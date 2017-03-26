@@ -1,0 +1,132 @@
+\documentclass[a4paper,11pt]{article}
+
+% set up sensible margins (same as for cssethesis)
+\usepackage[paper=a4paper,left=30mm,right=30mm,top=25mm,bottom=25mm]{geometry}
+\usepackage{natbib} % Use the natbib bibliography and citation package
+\usepackage{setspace} % This is used in the title page
+\usepackage{graphicx} % This is used to load the crest in the title page
+
+% non-template packages
+\usepackage{paralist}
+\usepackage{multicol}
+\usepackage{caption}
+\usepackage{tabularx, booktabs}
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
+
+
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{lscape}
+\hypersetup{
+	colorlinks,
+	linkcolor=teal,
+	citecolor=teal,
+	urlcolor=blue
+}
+
+%tikz stuff
+\usepackage{tikz}
+\usetikzlibrary{shapes, arrows, trees}
+\tikzstyle{decision} = [diamond, draw, fill=green!20, text width=4.5em, text badly centered, node distance=3cm, inner sep=0pt]
+\tikzstyle{block} = [rectangle, draw, fill=yellow!20, text width=3cm, text centered, rounded corners, minimum height=4em]
+\tikzstyle{line} = [draw, -latex']
+\tikzstyle{straight} = [draw]
+
+
+\usepackage{array}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+
+%\hypersetup{
+%	colorlinks,
+%	linkcolor={red!50!black},
+%	citecolor={blue!50!black},
+%	urlcolor={blue!80!black}
+%}
+
+\begin{document}
+
+% Set up a title page
+\thispagestyle{empty} % no page number on very first page
+% Use roman numerals for page numbers initially
+\renewcommand{\thepage}{\roman{page}}
+
+\begin{spacing}{1.5}
+\begin{center}
+{\Large \bfseries
+School of Computer Science \\
+Monash University}
+
+\vspace*{30mm}
+
+\includegraphics[width=5cm]{MonashCrest.pdf}
+
+\vspace*{15mm}
+
+{\large \bfseries
+Project Proposal --- Comp Sci Honours, 2017
+}
+
+\vspace*{10mm}
+
+{\LARGE \bfseries
+Multi-agent Pathfinding
+}
+
+\vspace*{20mm}
+
+{\large \bfseries
+Phillip Wong 25150510
+
+\vspace*{20mm}
+
+
+%Supervisors: \parbox[t]{50mm}{Daniel Harabor}, \\Another person}
+Supervisor: Daniel Harabor
+}
+
+\end{center}
+\end{spacing}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+% Now reset page number counter,and switch to arabic numerals for remaining
+% page numbers 
+\setcounter{page}{1}
+\renewcommand{\thepage}{\arabic{page}}
+
+\section{Introduction}
+This section presents an overview of your proposed area of study, states the problem being studied, the aims and significance of your project. Note that this should include why, and to whom, this project is of interest, in a form that can be understood by non-experts in the area of study. \\
+
+
+\noindent Who is interested:
+\begin{enumerate}
+	\item Games
+	\item Robotics
+\end{enumerate}
+
+\subsection{Warehouse Automation}
+Describe warehouse problem
+
+\section{Research Context/Background}
+This section sets the project in the context of previous studies including the most recent work.
+
+\section{Research Design (Plan and Methods)}
+\subsection{Methodologies}
+\subsection{Proposed thesis chapter headings}
+\subsection{Timetable}
+\subsection{Potential difficulties}
+
+\section{Deliverables/Outcomes }
+
+
+\bibliographystyle{dcu}
+\bibliography{bibliography}
+
+
+\end{document}
