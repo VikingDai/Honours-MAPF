@@ -72,7 +72,7 @@ Research Proposal --- Comp Sci Honours, 2017
 \vspace*{10mm}
 
 {\LARGE \bfseries
-Multi-agent Pathfinding
+Improving performance of Autonomous Vehicles in Warehouses
 }
 
 \vspace*{20mm}
@@ -101,29 +101,88 @@ Supervisor: Daniel Harabor
 \renewcommand{\thepage}{\arabic{page}}
 
 \section{Introduction}
-This section presents an overview of your proposed area of study, states the problem being studied, the aims and significance of your project. Note that this should include why, and to whom, this project is of interest, in a form that can be understood by non-experts in the area of study. \\
+% https://www.monash.edu/education/current-students/academic-language-literacy-numeracy-support/proposal-writing
 
+This section presents an overview of your proposed area of study, states the problem being studied, the aims and significance of your project. Note that this should include why, and to whom, this project is of interest, in a form that can be understood by non-experts in the area of study.
 
-\noindent Who is interested:
+\subsection{Need for the study}
+The usage of Multi-agent systems has risen during the past years.  % with self-driven cars, drones and 
+
 \begin{enumerate}
-	\item Games
-	\item Robotics
+	\item Future of MAS, scaling up to thousands of robots in a system - robot swarms? \cite{Rubenstein2014}
+	\item Multi-vehicle systems, self-driving cars - coordinating drones?
+	\item Disaster rescue (exploration) \cite{konolige2006centibots} \cite{fox2006distributed}
+	\item Computer games
+	\item Simulation human movement
+	\item Warehouse automaton
+	\item Automated Ports
 \end{enumerate}
 
-\subsection{Warehouse Automation}
-Describe warehouse problem
+\subsection{Purpose and aims of the study}
+In this project we aim to improve on Warehouse Automaton. The most well known use of this is Amazon's Robotics (formerly known as the Kiva warehouse-management system). We will be looking at a number of variables which have yet to be explored by existing literature.
+
+\subsection{Review of the literature}
+\cite{wurman2008coordinating}
+
 
 \section{Research Context/Background}
 This section sets the project in the context of previous studies including the most recent work.
 
-\section{Research Design (Plan and Methods)}
+\subsection{What is Multi-Agent pathfinding}
+Multi-agent pathfinding (MAPF) involves a number of agents in an environment moving to individual locations while avoiding collisions with one another.
+
+
+\subsection{Warehouse Automation}
+%http://www.roboticstomorrow.com/article/2011/12/how-kiva-systems-and-warehouse-management-systems-interact/23/
+Warehouse automaton involves using autonomous robots to assist with packing items into cartons. Inventory is stored in Storage units which are spread around the warehouse usually in lanes.
+
+An inventory is tagged for collection and a workers robot will be allocated accordingly. The worker will navigate to the storage units, lift it up and bring it to a picking station. The picking station is operated manually and a person will grab the inventory from the storage unit and put it into a box. 
+
+The box will then be given to the warehouse management system which is unrelated to this study, briefly it is responsible for tracking and moving the inventory around the facility.
+
+The warehouse environment is represented as a grid.
+
+As workers travel down rows we are faced with the issue of multi-agent path-finding, to ensure no agent bumps into another. scheduling a number of worker robots to fetch storage pods. The shelves are brought to a picking station where a person will pack 
+
 \subsection{Methodologies}
-\subsection{Proposed thesis chapter headings}
-\subsection{Timetable}
+
+\section{Research Design (Plan and Methods)}
+
+\subsection{Specific to Warehouse Automation}
+
+\subsection{Improving on MAPF}
+Goal is to decrease the amount of time robots are spent waiting / have path conflicts?
+
+By extending on adjusting the layout of storage units we add an intermediate dropping zone. Workers will be sorted into two groups depending on their location in the warehouse and will either bring their unit to the picking station or drop it in a zone. By doing this we hope to simplify the MAPF problem.
+
+\subsubsection{Warehouse layout}
+We expect the throughput of picking stations to affect the optimal warehouse layout.
+
+Adjusting layout of the storage units. 
+Adjusting location of the picking stations.
+Could we use genetic algorithms for this?
+
+
+Currently picking is done manually, meaning that it is likely that picking stations have a low throughput. As such it is important to take that in mind and send workers to the picking stations to low demand even if they are not the closest. In future, picking stations may also be automated and have a much higher throughput. 
+
+
+\subsection{Timetable/plan}
+
+
+\section{Significance / Expected Outcomes of the study}
+Increased inventory supply for the picking stations. Decreasing speed for MAPF calculations.
+
+\subsection{Proposed thesis structure}
+
+
 \subsection{Potential difficulties}
 
-\section{Deliverables/Outcomes }
 
+\section{Glossary of terms}
+
+avoidance
+
+path planning
 
 \bibliographystyle{dcu}
 \bibliography{bibliography}
