@@ -61,7 +61,7 @@ Monash University}
 
 \vspace*{30mm}
 
-\includegraphics[width=5cm]{MonashCrest.pdf}
+\includegraphics[width=5cm]{graphics/MonashCrest.pdf}
 
 \vspace*{15mm}
 
@@ -101,16 +101,7 @@ Supervisor: Daniel Harabor
 \renewcommand{\thepage}{\arabic{page}}
 
 	\begin{abstract} %100-200 words
-	\noindent \textbf{TODO} Warehouse Automation is a cooperative multi-agent pathfinding problem where a number of agents are individually moving inventory from shelves to a picking station.
-	
-	This project will be looking at two aspects which we suspect will decrease complexity of the pathfinding.
-	
-	First, is the configuration of the warehouse. 
-	
-	Second, is the positioning of the inventory.
-	
-	Lastly, we will look at improving on existing cooperative pathfinding techniques - specifically Conflict-Oriented Windowed Hierarchical Cooperative A∗.
-	
+	\noindent \textbf The order picking process is the number one expense in warehouse systems. Here we look at parts-to-picker a type of order picking where the products are autonomously retrieved and given to the pickers. Previous research have focused on improvements in the multi-agent path finding but they often overlook simple adjustments or additions which may reduce complexity of the problem.  This project will test the effect that these aspects have on improving order-picking. We will create a simulation and focus on the warehouse layout first. The results of this project will help identify how small adjustments may increase the efficiency of the order picking process.
 	
 \end{abstract}
 \section{Introduction}
@@ -120,15 +111,15 @@ Supervisor: Daniel Harabor
 
 In warehouse management, Order picking is the process whereby a product is retrieved according to incoming customer orders. This process has been identified by \cite{de2007design} as the most costly process in operating a warehouse, estimated to take 55\% of the warehouse operating cost.
 
-Here we look at a type of order picking known as Parts-to-picker systems which deals with automating the movement of products from storage areas to picking stations, where workers will manually pick the orders. A well-known example is the use of conveyor belts to move orders around. The down-side of conveyor systems are their high operational and maintenance cost as well as the rigid infrastructure needed for them to operate (\cite{wurman2008coordinating}). A better alternative to conveyor systems is the use of automated vehicles to retrieve the orders from where they are stored.
+% CONVEYER BELTS ARE SORTING SYSTEMS NOT PART-TO-PICKER SYSTEMS A well-known example is the use of conveyor belts to move orders around. The down-side of conveyor systems are their high operational and maintenance cost as well as the rigid infrastructure needed for them to operate
 
-\cite{introduction2015autostore} is a recent system where products are organized in a grid of stacked bins. Robots move around the top of the grid, lifting bins and delivering them to a human picker. Benefits of the AutoStore system include high storage density and expansion capability. While not much is known about the specifics of AutoStore, we suspect some downsides of this system to be similar to conveyor belts with high operational and maintenance costs as well as high retrieval cost.
+Here we look at a type of order picking known as Parts-to-picker systems which deals with automating the movement of products from storage areas to picking stations, where workers will manually pick the orders. (\cite{wurman2008coordinating}). Part-to-picker systems often employ the use of automated vehicles when retrieve the orders from where they are stored. \cite{introduction2015autostore} is a recent system where products are organized in a grid of stacked bins. Robots move around the top of the grid, lifting bins and delivering them to a human picker. Benefits of the AutoStore system include high storage density and expansion capability. While not much literature is published about the specifics of AutoStore, we suspect some downsides of this system to be similar to conveyor belts with high operational and maintenance costs as well as high retrieval cost.
 
 In this project we look at Kiva Systems (now known as Amazon Robotics). In Kiva systems, products are stored in shelves known as storage pods. Robots known as drive units are responsible for picking up and carrying storage pods to picking stations (see Fig \ref{kivaprocess} and \ref{kivalayout1}).
 \begin{figure}[h!]
 	\centering
-	\includegraphics[width=0.8\textwidth ]{kivaprocess}
-	\caption{A worker picking an order from a storage pod. Underneath, in orange is the drive unit carrying the storage pod. (\cite{kivayoutube2010quietlogistics})}
+	\includegraphics[width=0.8\textwidth ]{graphics/kivaprocess}
+	\caption{A worker picking an order from a storage pod. The orange robot underneath is the drive unit. (\cite{kivayoutube2010quietlogistics})}
 	\label{kivaprocess}
 \end{figure}
 
@@ -150,23 +141,21 @@ In this project we look at Kiva Systems (now known as Amazon Robotics). In Kiva 
 
 %Cooperative Multi-agent pathfinding has historically seen a lot of research in games but recently has risen in real world usage with robotics. Some of these fields includes disaster rescue, self-driving cars and automated ports
 
-\textbf{HALF-DONE} Finding an optimal solution to multi-agent pathfinding is an NP-hard problem and has been research a low number of agents. Without optimization this is not an option as Warehouse Automation deals with hundreds of agents, the Office Supply company Staples uses at 500 robots in their 30000$m^{2}$ center (\cite{guizzo2008three}).
+\textbf{HALF-DONE}
+Kiva Systems deal with a number of problems, in this project we will be focusing on the cooperative multi-agent pathfinding (MAPF) problem. MAPF aims to find a path from for each agent (drive unit) so that they can reach their goal while ensuring that no path conflicts with another. Kiva systems are cooperative as agents need to work together to resolve path conflicts? (\textbf{Is this correct?}).
 
-Existing literature has mainly focused on improving multi-agent pathfinding, in this project we will .
+Finding an optimal solution to multi-agent pathfinding is an NP-hard problem (\cite{yu2013structure}), has applications in systems containing few agents. This is not an option as Kiva systems deal with hundreds of agents, for example the Office Supply company, Staples uses 500 robots in their 30000$m^{2}$ center (\cite{guizzo2008three}).
 
-%\cite{wurman2008coordinating}
-
-
-
-%\cite{silver2005cooperative}
-
-
-%\cite{konolige2006centibots, fox2006distributed}.
-
-
+There is a trade-off with 
 
 \subsection{Research Aims}
-\textbf{TODO} In this project we aim to reduce the complexity of Cooperative MAPF by adjusting aspects specific the to Warehouse Automation. On top of that we hope to provide a path oracle which 
+In this project we aim to answer two major questions:
+\begin{itemize}
+	\item Can we reduce the complexity of Cooperative MAPF by adjusting aspects specific to Kiva systems?
+	\item How much faster will the pathfinding search run by using a path oracle to pre-compute paths?
+\end{itemize}
+
+\textbf{What more should I say here?, I feel if I talk about more specifics I am overlapping with the research methods section}
 
 \subsection{Review of the literature}
 % The review’s structure clearly articulates the different levels of significance (such as general, disciplinary and/or more technical significance of the project/the field of study to which the project belongs). The review also forms a consistent and strong narrative that logically leads to the problem/gap in research that necessitates the proposed project.
@@ -239,11 +228,11 @@ Talk about:
 \noindent \textbf{PLACEHOLDER} Decentralised MAPF algorithms usually involve search. A typical problem solving process (e.g. FAR (Wang \& Botea, ICAPS 2008)) involves each agent finding a path independent from all the rest (i.e. if there are k agents we solve k single-agent problems separately). When all agents have a path they each take turns moving one step at a time towards their goal. Conflicts are resolved locally choosing in favour of one agent over another in some way (e.g. assign a priority to each agent and always favour the agent with highest priority). We aim to improve efficiency by introducing a path oracle which removes entirely the need to search. The oracle is pre-computed up front and reused for every subsequent pathfinding query thereafter. Since the cost of the initial path searches tends to dominate runtime in MAPF we expect this approach will significantly improve performance. \textbf{PLACEHOLDER}
 
 \subsection{Warehouse layout}
-In many studies, the picking station is positioned on one side of the warehouse and the pods are laid out in rows (Fig. \ref{kivalayout1}).
+Usually the picking station is positioned on one side of the warehouse and the pods are laid out in rows (Fig. \ref{kivalayout1}).
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=0.9\textwidth]{kivasystemlayout}
+	\includegraphics[width=0.9\textwidth]{graphics/kivasystemlayout}
 	\caption{A Small Region of a Kiva Layout (\cite{wurman2008coordinating}). Picking stations located on the left and storage pods laid out in rows.}
 	\label{kivalayout1}
 \end{figure}
@@ -257,7 +246,7 @@ In many studies, the picking station is positioned on one side of the warehouse 
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=0.9\textwidth]{kivasystemlayout_adjusted}
+	\includegraphics[width=0.9\textwidth]{graphics/kivasystemlayout_adjusted}
 	\caption{Intermediate zone in red, delivery zone in blue and far zone in green}
 	\label{kivalayout2}
 \end{figure}
