@@ -147,6 +147,7 @@ In order to explore the improvements that can be made to improving Kiva systems,
 \end{enumerate}
 
 \section{Background}
+\label{background}
 % Description of MAPF problem, including objective function
 
 Kiva Systems deal with a number of problems, in this project we will be focusing on the multi-agent pathfinding (MAPF) problem. MAPF aims to find a path from for each agent so that they can reach their goal while ensuring that no path conflicts with another, in our case an agent is a drive unit and the goal is either a storage pod or picking station. When analyzing the performance of a MAPF solution we generally look at the makespan of the system. In our case of Kiva systems we will also be looking at the downtime of picking stations. Outside of order picking and warehouse applications,  MAPF has usage in video games, robotics (\cite{bennewitz2002finding}), search and rescue (\cite{konolige2006centibots}) and automated ports.
@@ -179,12 +180,12 @@ Specific to order picking, it is possible to assist MAPF by manipulated incoming
 \label{Research}
 \subsection{Path oracle}
 
+Decentralised approaches are usually used in MAPF algorithms due to their lower CPU and memory requirements (\cite{wang2009bridging}) compared to a centralised approach. Decentralised MAPF involves agents independently searching for a path to their goal. Once a path is found, agents take turns follow their path one step at a time until a collision occurs between some agents. We favor an agent based on some utility function and the other agent will wait or find a new path. Hence computing paths becomes very costly as we increase the number of agents and consequently the number of path collisions. Here aim to introduce a path oracle which will pre-compute paths, removing the need for agents to perform a search at runtime. We expect to base this off the work by \cite{strasser2015compressing}, utilizing a Compressed Path Database.
 
-\cite{strasser2015compressing}
-
-\noindent \textbf{PLACEHOLDER} Decentralised MAPF algorithms usually involve search. A typical problem solving process (e.g. FAR (Wang \& Botea, ICAPS 2008)) involves each agent finding a path independent from all the rest (i.e. if there are k agents we solve k single-agent problems separately). When all agents have a path they each take turns moving one step at a time towards their goal. Conflicts are resolved locally choosing in favour of one agent over another in some way (e.g. assign a priority to each agent and always favour the agent with highest priority). We aim to improve efficiency by introducing a path oracle which removes entirely the need to search. The oracle is pre-computed up front and reused for every subsequent pathfinding query thereafter. Since the cost of the initial path searches tends to dominate runtime in MAPF we expect this approach will significantly improve performance. \textbf{PLACEHOLDER}
+%\noindent \textbf{PLACEHOLDER} Decentralised MAPF algorithms usually involve search. A typical problem solving process (e.g. FAR (Wang \& Botea, ICAPS 2008)) involves each agent finding a path independent from all the rest (i.e. if there are k agents we solve k single-agent problems separately). When all agents have a path they each take turns moving one step at a time towards their goal. Conflicts are resolved locally choosing in favour of one agent over another in some way (e.g. assign a priority to each agent and always favour the agent with highest priority). We aim to improve efficiency by introducing a path oracle which removes entirely the need to search. The oracle is pre-computed up front and reused for every subsequent pathfinding query thereafter. Since the cost of the initial path searches tends to dominate runtime in MAPF we expect this approach will significantly improve performance. \textbf{PLACEHOLDER}
 
 \subsection{Warehouse layout}
+\label{warehouselayout}
 Usually the picking station is positioned on one side of the warehouse and the pods are laid out in rows (Fig. \ref{kivalayout1}).
 
 \begin{figure}[h]
@@ -208,13 +209,20 @@ Usually the picking station is positioned on one side of the warehouse and the p
 	\label{kivalayout2}
 \end{figure}
 
-\subsection{Order picking}
-As pods can be dynamically move around the warehouse, the layout pods can be changed to suit incoming orders. Storage pods containing popular orders may be placed next to a picking station so a drive unit can readily access it and unpopular orders will be placed further away. Vice-versa the distribution of orders can be re-ordered to suit the current layout of the warehouse. Here we may take inspiration from Robin-hood hashing and apply it to sorting the inventory pods. \cite{boysen2017parts} covered both of these aspects in detail and revealed that after optimizing orders, the total number of drive units can be cut by half and retain the same supply to picking stations.
+\subsection{Order processing}
+\label{orderprocessing}
+This problem is described in detail in Section \ref{background}. Reiterating the main points of order processing:
 
-% proving that the problem is NP-hard for even a single order and that their solution is strongly NP-complete.
+\begin{compactitem}
+	\item A product distribution around the warehouse
+	\item Smart sequencing of incoming orders according to the product distribution
+\end{compactitem}
+
+\noindent This is important to consider as determining the order process is dependent on the warehouse layout (Section \ref{warehouselayout}). We expect that an optimized order processing sequence will decrease the effects of having an inefficient warehouse layout. Here we may take inspiration from Robin-hood hashing or try implementing the optimizations described in \cite{boysen2017parts}.
 
 \subsection{Allowing for movement underneath storage pods}
-As drive units are capable of moving underneath pods when carrying them, this means that with small adjustments to the dimensions of storage pods it is possible to allow drive units to maneuver underneath the pods. With this the only obstacles in the environment are other drive units.
+\label{beneathpods}
+As drive units are capable of moving underneath pods when carrying them, this means that with small adjustments to the dimensions of storage pods it is possible to allow drive units to maneuver underneath the pods. With this the only obstacles in the environment are other drive units. Similar to order processing, this is important as it would greatly impact how we look at defining the warehouse layout.
 
 \subsection{Timetable/plan}
 \textbf{HALF DONE}
@@ -223,67 +231,41 @@ As drive units are capable of moving underneath pods when carrying them, this me
 \begin{tabular}{ c p{12cm} }
 \multicolumn{2}{l}{\textbf{Semester 1}} \\
 \hline \multicolumn{1}{c}{Week(s)} & \multicolumn{1}{c}{Plan} \\
-\hline 7  & Model warehouse and simple A* pathfinding \\
-\hline 8  & Add multiple agents with A* assigned random pods (no picking station) arsasarsa\\
-\hline 9  & Implement Cooperative A* \\
-\hline 11 & Add simple scheduler which assigns agents a location to fetch a random pod and return to the picking station \\
+\hline 7  & Create warehouse simulation with simple A* pathfinding \\
+\hline 8-9  & Add multiple agents to the simulation using with Cooperative A* and moving between pickup stations \\
+\hline 11 & Implement an order sequencer assigning generating an inflow of products to be retrieved \\
 \hline 12 & Focus on Interim Presentation \\
 \hline 13 & Focus on Literature Review \\
 \hline 14 & Focus on Examinations \\
-\hline Holidays & Implement Path Oracle with Compressed Path Databases \\
+\hline Holidays & Look at the effects of warehouse layout and an intermediate dropping zone \\
 \hline
 \end{tabular}
 }
-
 
 {\footnotesize
 \vspace{0.5cm}
 \begin{tabular}{ c p{12cm} }
 \multicolumn{2}{l}{\textbf{Semester 2}} \\
 \hline \multicolumn{1}{c}{Week(s)} & \multicolumn{1}{c}{Plan} \\
-\hline 1  & Add more complex scheduler, distributing requested inventory  and allow agents dynamically sort pods according to popularity. Agents dynamically sort pods according to popularity. Decide on the focus for the rest of the project. \\
-\hline 2-4 & Implement Path Oracle with Compressed Path Databases \\
-\hline 3  &  \\
-\hline 4  & \\
-\hline 5  &   \\
-\hline 6  &  \\
-\hline 7  & \\
-\hline 8  & \\
-\hline 9  & \\
-\hline 10 & \\
-\hline 11 & \\
-\hline 12 & Finish Final Thesis \\
-\hline 13 & Additional tasks \\
-\hline 14 & Focus on Final Presentation \\
-\hline 15 & Focus on Final Thesis \\
+\hline 1-3 & Implement Path Oracle with Compressed Path Databases \\
+\hline 2-5 & Implement an optimized order processing method (\ref{orderprocessing}) \\
+\hline 6-7 & Implement ability to move under pods (\ref{beneathpods}) \\
+\hline 7-12 & Improve and analyze results, any extra time to explore any interesting findings more deeply \\
+\hline 12 & Finish first draft of Final Thesis \\
+\hline 13-15 & Focus on Final Presentation and Thesis \\
 \hline
 \end{tabular}
 }
 \end{center}
 
+Weeks 7-15 in (semester 2) are not heavily populated as we will likely come across interesting areas while researching which we may decide to look at.
 
 \section{Expected Outcomes}
-% (Expected) outcomes of the project are discussed with appropriate level of detail, and are presented coherently to illustrate varying levels of implications and contributions the project offers. 
-% (Expected) outcomes are logically and consistently aligned against the relevant research questions/aims
+Overall we aim to provide two major insights:
 
 We suspect that these adjustments will reduce the number of conflicts in the MAPF problem hence allowing for a better bounded suboptimal solution to be found. Regardless of results, we expect to be able to better understand the explored properties described in Section \ref{Research} and their effect on Kiva systems.
 
 Additionally we hope to deliver an improved MAPF solution utilizing a pre-computed path oracle and a simulation showcasing its usage in a Kiva system.
-
-
-%\section{Glossary of terms} % Temporary, delete later
-
-%\begin{enumerate}
-%	\item avoidance
-%	\item path planning
-%	\item Drive Unit Agent (DUA)
-%	\item Storage Pod
-%	\item Makespan
-%	\item Idle time
-%	\item Performance curve relative to..?
-%	\item Robin-hood hashing
-%   \item order distribution systems
-%\end{enumerate}
 
 \bibliographystyle{dcu}
 \bibliography{bibliography}
