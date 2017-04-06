@@ -72,7 +72,7 @@ Research Proposal --- Comp Sci Honours, 2017
 \vspace*{10mm}
 
 {\LARGE \bfseries
-Improving Autonomous Vehicles in Warehouses
+Improving Autonomous Vehicles in Parts-to-picker systems
 }
 
 \vspace*{20mm}
@@ -118,11 +118,13 @@ Supervisor: Daniel Harabor
 
 %This section presents an overview of your proposed area of study, states the problem being studied, the aims and significance of your project. Note that this should include why, and to whom, this project is of interest, in a form that can be understood by non-experts in the area of study.
 
-In warehouse automation, there exists an automated method of moving around inventory to picking stations where human workers will be located to pack the inventory. Automation has mostly utilized conveyor belts for moving inventory, the issue with conveyors is its large operational and rigid infrastructure (\cite{wurman2008coordinating}).
+In warehouse management, Order picking is the process whereby a product is retrieved according to incoming customer orders. This process has been identified by \cite{de2007design} as the most costly process in operating a warehouse, estimated to take 55\% of the warehouse operating cost.
 
-\cite{introduction2015autostore} is a recent system which utilizes a grid of stacked bins. Robots move around on top of the grid, lifting bins off the grid and delivering them to a human picker. Some benefits include high storage density and expansion capability but similar to conveyor belts has large operational and maintenance costs. While not much is known about the specifics of AutoStore, we suspect some downsides of this system to include: high retrieval cost when a bin is located at the bottom of the grid and items need to be of similar size to fit into the bins.
+Here we look at a type of order picking known as Parts-to-picker systems which deals with automating the movement of products from storage areas to picking stations, where workers will manually pick the orders. A well-known example is the use of conveyor belts to move orders around. The down-side of conveyor systems are their high operational and maintenance cost as well as the rigid infrastructure needed for them to operate (\cite{wurman2008coordinating}). A better alternative to conveyor systems is the use of automated vehicles to retrieve the orders from where they are stored.
 
-In this project we look at Kiva Warehouse-management Systems (now known as Amazon Robotics). In Kiva systems, inventory are stored in shelves known as Storage Pods. Robots known as drive units are capable of picking up these storage pods. Lastly there are picking stations located around the warehouse (see Fig \ref{kivaprocess} and \ref{kivalayout1}). 
+\cite{introduction2015autostore} is a recent system where products are organized in a grid of stacked bins. Robots move around the top of the grid, lifting bins and delivering them to a human picker. Benefits of the AutoStore system include high storage density and expansion capability. While not much is known about the specifics of AutoStore, we suspect some downsides of this system to be similar to conveyor belts with high operational and maintenance costs as well as high retrieval cost.
+
+In this project we look at Kiva Systems (now known as Amazon Robotics). In Kiva systems, products are stored in shelves known as storage pods. Robots known as drive units are responsible for picking up and carrying storage pods to picking stations (see Fig \ref{kivaprocess} and \ref{kivalayout1}).
 \begin{figure}[h!]
 	\centering
 	\includegraphics[width=0.8\textwidth ]{kivaprocess}
@@ -133,16 +135,15 @@ In this project we look at Kiva Warehouse-management Systems (now known as Amazo
 \noindent The process for a drive unit is as follows:
 
 \begin{compactenum}
-	\item Unit is assigned an order
-	\item Unit moves to the storage pod containing the order and picks it up
+	\item Unit is told to retrieve a product
+	\item Unit moves to the storage pod containing the product and picks up the pod
 	\item Unit carries the pod to a picking station
-	\item Human worker picks the order from the pod and packs the inventory
+	\item Human worker picks the product from the pod and packs it
 	\item Unit returns the pod back to where it was picked up
-	\item Unit is assigned a new inventory
+	\item Unit waits until it is told to retrieve another product
 \end{compactenum}
 
-\noindent Kiva systems do not require a complex infrastructure to operate hence solving the main issue of maintenance and operational costs. When a unit malfunctions it can be easily accessed and replaced. While malfunction occurs other units can move around it and the system remains operational. They are also very flexible and can be easily scaled as a warehouse needs only storage pods, a picking station and a number of drive units. 
-
+\noindent Kiva systems do not require a complex infrastructure to operate hence solving issues found in alternative solutions: maintenance and operational costs. When a unit malfunctions it can be easily accessed and replaced, moreover the system remains operational. The initial setup for a warehouse is cheap and fast as a warehouse needs only storage pods, a picking station and a number of drive units to operate.
 
 \subsection{Need for the study}
 %The writing includes a set of clearly articulated research questions/aims, and they are presented coherently (and hierarchically if applicable) to illustrate the structure within the questions/aims.
