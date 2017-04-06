@@ -72,7 +72,7 @@ Research Proposal --- Comp Sci Honours, 2017
 \vspace*{10mm}
 
 {\LARGE \bfseries
-Improving Autonomous Vehicles in Parts-to-picker systems
+Exploring improvements to Part-to-picker systems in Warehouses 
 }
 
 \vspace*{20mm}
@@ -101,19 +101,15 @@ Supervisor: Daniel Harabor
 \renewcommand{\thepage}{\arabic{page}}
 
 	\begin{abstract} %100-200 words
-	\noindent \textbf The order picking process is the number one expense in warehouse systems. Here we look at parts-to-picker a type of order picking where the products are autonomously retrieved and given to the pickers. Previous research have focused on improvements in the multi-agent path finding but they often overlook simple adjustments or additions which may reduce complexity of the problem.  This project will test the effect that these aspects have on improving order-picking. We will create a simulation and focus on the warehouse layout first. The results of this project will help identify how small adjustments may increase the efficiency of the order picking process.
+	\noindent \textbf The order picking process is the number one expense in warehouse systems. Here we look at part-to-picker a type of order picking where the products are autonomously retrieved and given to the pickers. Previous research have focused on improvements in the multi-agent path finding but they often overlook simple adjustments or additions which may reduce complexity of the problem.  This project will test the effect that these aspects have on improving order-picking. We will create a simulation and focus on the warehouse layout first. The results of this project will help identify how small adjustments may increase the efficiency of the order picking process.
 	
 \end{abstract}
 \section{Introduction}
-% https://www.monash.edu/education/current-students/academic-language-literacy-numeracy-support/proposal-writing
+In warehouse management, order picking is the process whereby a product is retrieved according to incoming customer orders. This process has been identified by \cite{de2007design} as the most costly process in operating a warehouse, estimated to take 55\% of the warehouse operating cost.
 
-%This section presents an overview of your proposed area of study, states the problem being studied, the aims and significance of your project. Note that this should include why, and to whom, this project is of interest, in a form that can be understood by non-experts in the area of study.
+% cONVEYER BELTS ARE SORTING SYSTEMS NOT PART-TO-PICKER SYSTEMS A well-known example is the use of conveyor belts to move orders around. The down-side of conveyor systems are their high operational and maintenance cost as well as the rigid infrastructure needed for them to operate
 
-In warehouse management, Order picking is the process whereby a product is retrieved according to incoming customer orders. This process has been identified by \cite{de2007design} as the most costly process in operating a warehouse, estimated to take 55\% of the warehouse operating cost.
-
-% CONVEYER BELTS ARE SORTING SYSTEMS NOT PART-TO-PICKER SYSTEMS A well-known example is the use of conveyor belts to move orders around. The down-side of conveyor systems are their high operational and maintenance cost as well as the rigid infrastructure needed for them to operate
-
-Here we look at a type of order picking known as Parts-to-picker systems which deals with automating the movement of products from storage areas to picking stations, where workers will manually pick the orders. (\cite{wurman2008coordinating}). Part-to-picker systems often employ the use of automated vehicles when retrieve the orders from where they are stored. \cite{introduction2015autostore} is a recent system where products are organized in a grid of stacked bins. Robots move around the top of the grid, lifting bins and delivering them to a human picker. Benefits of the AutoStore system include high storage density and expansion capability. While not much literature is published about the specifics of AutoStore, we suspect some downsides of this system to be similar to conveyor belts with high operational and maintenance costs as well as high retrieval cost.
+Here we look at a type of order picking known as part-to-picker systems which deals with automating the movement of products from storage areas to picking stations, where workers will manually pick the orders. (\cite{wurman2008coordinating}). Part-to-picker systems often employ the use of automated vehicles when retrieve the orders from where they are stored. \cite{introduction2015autostore} is a recent system where products are organized in a grid of stacked bins. Robots move around the top of the grid, lifting bins and delivering them to a human picker. Benefits of the AutoStore system include high storage density and expansion capability. While not much literature is published about the specifics of AutoStore, we suspect some downsides of this system to be similar to conveyor belts with high operational and maintenance costs as well as high retrieval cost.
 
 In this project we look at Kiva Systems (now known as Amazon Robotics). In Kiva systems, products are stored in shelves known as storage pods. Robots known as drive units are responsible for picking up and carrying storage pods to picking stations (see Fig \ref{kivaprocess} and \ref{kivalayout1}).
 \begin{figure}[h!]
@@ -136,34 +132,32 @@ In this project we look at Kiva Systems (now known as Amazon Robotics). In Kiva 
 
 \noindent Kiva systems do not require a complex infrastructure to operate hence solving issues found in alternative solutions: maintenance and operational costs. When a unit malfunctions it can be easily accessed and replaced, moreover the system remains operational. The initial setup for a warehouse is cheap and fast as a warehouse needs only storage pods, a picking station and a number of drive units to operate.
 
-\subsection{Need for the study}
-%The writing includes a set of clearly articulated research questions/aims, and they are presented coherently (and hierarchically if applicable) to illustrate the structure within the questions/aims.
-
+%\subsection{Need for the study}
 %Cooperative Multi-agent pathfinding has historically seen a lot of research in games but recently has risen in real world usage with robotics. Some of these fields includes disaster rescue, self-driving cars and automated ports
 
-\textbf{HALF-DONE}
-Kiva Systems deal with a number of problems, in this project we will be focusing on the cooperative multi-agent pathfinding (MAPF) problem. MAPF aims to find a path from for each agent (drive unit) so that they can reach their goal while ensuring that no path conflicts with another. Kiva systems are cooperative as agents need to work together to resolve path conflicts? (\textbf{Is this correct?}).
+Kiva Systems deal with a number of problems, in this project we will be focusing on the multi-agent pathfinding (MAPF) problem. MAPF aims to find a path from for each agent (drive unit) so that they can reach their goal while ensuring that no path conflicts with another. Finding an optimal solution to multi-agent pathfinding is an NP-hard problem (\cite{yu2013structure}), has applications in systems containing few agents. This is not an option as Kiva systems deal with hundreds of agents, for example the Office Supply company, Staples uses 500 robots in their 30000$m^{2}$ center (\cite{guizzo2008three}). Here we aim to reduce the number of conflicts in pathfinding by exploring a number of adjustments that can be made to the system.
 
-Finding an optimal solution to multi-agent pathfinding is an NP-hard problem (\cite{yu2013structure}), has applications in systems containing few agents. This is not an option as Kiva systems deal with hundreds of agents, for example the Office Supply company, Staples uses 500 robots in their 30000$m^{2}$ center (\cite{guizzo2008three}).
+\subsection{Research questions}
+In order to explore the improvements that can be made to improving Kiva systems, we aim to answer two main questions:
 
-There is a trade-off with 
+\begin{enumerate}
+	\item What adjustments can be made to Kiva systems to simplify the pathfinding?
+\begin{compactitem}
+	\item An improved layout of storage pods and picking stations
+	\item Allowing drive units are capable of maneuvering underneath storage pods
+	\item An intermediate zone for drive units to drop off storage pods
+\end{compactitem}
 
-\subsection{Research Aims}
-In this project we aim to answer two major questions:
-\begin{itemize}
-	\item Can we reduce the complexity of Cooperative MAPF by adjusting aspects specific to Kiva systems?
-	\item How much faster will the pathfinding search run by using a path oracle to pre-compute paths?
-\end{itemize}
+\item How much faster will the path search run by pre-computing paths and storing them in a path oracle?
 
-\textbf{What more should I say here?, I feel if I talk about more specifics I am overlapping with the research methods section}
+\end{enumerate}
 
-\subsection{Review of the literature}
-% The review’s structure clearly articulates the different levels of significance (such as general, disciplinary and/or more technical significance of the project/the field of study to which the project belongs). The review also forms a consistent and strong narrative that logically leads to the problem/gap in research that necessitates the proposed project.
-% The sources used demonstrate judicious selection of literature; review exhibits perceptive interpretation of sources and clear justification for inclusion in the review.
-
+\section{Literature Review}
 \textbf{HALF-DONE} There are a number of problems in Warehouse Automation, some of these we will be looking at in this project include: multi-agent pathfinding, order sequencing and warehouse design.
 
 In multi-agent pathfinding, \cite{cohen2016bounded} uses highways.
+
+\cite{strasser2015compressing} uses Compressed Path Databases.
 
 \cite{gu2010research} provides a comprehensive review of warehouse design and performance. It covers 5 major aspects, overall structure, sizing and dimensioning, department layout, equipment selection and operation strategy selection.
 
@@ -188,37 +182,7 @@ In multi-agent pathfinding, \cite{cohen2016bounded} uses highways.
 
 \cite{boysen2017parts} looks at the batching and sequencing of inventory orders which are given to units. Their study found that only half the units is needed when orders are optimized optimized picking allows
 
-
-
-
-\section{Research Context/Background}
-%This section sets the project in the context of previous studies including the most recent work.
-
-% "Spatially Distributed Multiagent Path Planning" - region controllers - https://www.youtube.com/watch?v=-8ZsuXEwCvc&t=27s
-
-% Cooperative problem - we are aiming to resolve conflicts to benefit the system.
-
-% This problem is significantly harder, because the agents need to plan around both static and dynamic obstacles.
-
-\subsection{What is Cooperative Multi-Agent pathfinding}
-\noindent \textit{\textbf{I think I am missing a lot here. Not exactly sure what other background to give besides expanding on Coop MAPF}}
-
-\textbf{TODO} Cooperative multi-agent pathfinding (MAPF) involves a number of agents in an environment moving to individual locations while avoiding collisions with one another.
-
-Talk about: 
-\begin{compactitem}
-	\item NP-hard
-	\item Optimality has only been done with small number of agents. Not possible here.
-	\item Completeness
-\end{compactitem}
-
-
-
-\section{Research Design}
-% Research design, methodology and method(s) are described with appropriate level of detail, and are presented coherently, sequentially, and/or hierarchically to illustrate the structurewithin the design. 
-% Research design, methodology and method(s) are logically and consistently aligned against the relevant research questions/aims, and they are justified in light of this alignment.
-% There are clear and structured descriptions, discussion and justification of timeline and administrative requirements where applicable. 
-
+\section{Methodology}
 \label{Research}
 \subsection{Path oracle}
 
@@ -305,24 +269,14 @@ As drive units are capable of moving underneath pods when carrying them, this me
 \end{center}
 
 
-\section{Significance / Expected Outcomes of the study}
+\section{Expected Outcomes}
 % (Expected) outcomes of the project are discussed with appropriate level of detail, and are presented coherently to illustrate varying levels of implications and contributions the project offers. 
 % (Expected) outcomes are logically and consistently aligned against the relevant research questions/aims
 
-\textbf{TODO}
+We suspect that these adjustments will reduce the number of conflicts in the MAPF problem hence allowing for a better bounded suboptimal solution to be found. Regardless of results, we expect to be able to better understand the explored properties described in Section \ref{Research} and their effect on Kiva systems.
 
+Additionally we hope to deliver an improved MAPF solution utilizing a pre-computed path oracle and a simulation showcasing its usage in a Kiva system.
 
-\noindent \textbf{Contributions}
-\begin{compactitem}
-	\item A Warehouse Automation simulation
-	\item A better understanding of the effects of Warehouse Configurations
-	\item An improved MAPF solution utilizing a path oracle
-\end{compactitem}
-
-
-We should have a better understanding of how the aspects described in Section \ref{Research} affect the performance of Warehouse Automation.
-
-Increased inventory supply for the picking stations. Decreasing speed for MAPF calculations.
 
 %\section{Glossary of terms} % Temporary, delete later
 
