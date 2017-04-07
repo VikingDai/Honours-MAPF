@@ -13,7 +13,7 @@
 \usepackage{tabularx, booktabs}
 \newcolumntype{Y}{>{\centering\arraybackslash}X}
 
-
+\usepackage[font={small,it}]{caption}
 \usepackage{hyperref}
 \usepackage{xcolor}
 \usepackage{lscape}
@@ -103,19 +103,19 @@ Supervisor: Daniel Harabor
 	\begin{abstract} %100-200 words
 	
 	% Why
-	\noindent The order picking process is the number one expense when looking at the operational costs in warehouses. This project will look at \textit{part-to-picker}, a method of order picking where products are autonomously retrieved and delivered to the picking areas. Previous research has improved on multi-agent path finding algorithms (MAPF) but mostly overlooked other aspects.
-	% What 
-	Here we will be exploring the effects of warehouse layout.
+	\noindent The order picking process is the number one expense in the operating cost of warehouse systems. This project will look at \textit{part-to-picker}, a method of order picking where products are autonomously retrieved and delivered to the picking areas. Previous research has improved on multi-agent path finding (MAPF) algorithms but mostly overlooked the potential benefits gained by configuring the warehouse layout.
+	% What
+	Here, we will be exploring a number of adjustments and additions to Kiva systems which we expect to greatly determine what makes a good warehouse layout.
 	% How
-	In particular, this involves investigating a number of modifications which are expected to determine how we decide a good warehouse layout. These include: introducing an intermediate dropping zone, adding the capability for robots to maneuver under storage pods and optimizing order processing.
+	These include: introducing an intermediate dropping zone, adding the capability for robots to maneuver under storage pods and optimizing order processing.
 	% Where
 	The results of this project will help identify how we should layout storage and picking stations in a warehouse. Additionally we will be looking at developing a MAPF method which uses a pre-computed path oracle.
 	
 \end{abstract}
 \section{Introduction}
-Order picking is a process in warehouse systems whereby a product is retrieved according an incoming customer order. This process has been identified by \cite{de2007design} as the most expensive process in operating a warehouse, estimated to take 55\% of the warehouse operating cost.
+Order picking is a process in warehouse systems whereby products are retrieved from storage to satisfy incoming customer orders. This process has been identified by \cite{de2007design} as the most expensive process in operating a warehouse, estimated to take 55\% of the warehouse operating cost.
 
-Here we look at a method of order picking known as part-to-picker systems which automates the movement of products from where they are stored to picking stations, where workers will manually pick and process the product. Part-to-picker systems often employ the use of automated vehicles to retrieve and deliver orders from where they are stored. \cite{introduction2015autostore} is a recent system where products are organized in a grid of stacked bins. Robots move around the top of the grid, lifting bins and delivering them to a human picker. Benefits of the AutoStore system include high storage density and expansion capability. While not much literature is published about the specifics of AutoStore, we suspect the major downsides are: slow, expensive order retrieval as well as high infrastructure and maintenance costs.
+Here we look at a method of order picking known as part-to-picker systems. Part-to-picker systems contain multiple picking stations located around the warehouse. Products are brought to picking stations where workers will manually pick and process the product. One of the disadvantages of part-to-picker systems is that there will be some downtime at the picking stations while waiting for an order to be delivered. To solve this, these systems often use an automated storage and retrieval system (AS/RS). \cite{introduction2015autostore} is a recent part-to-picker system where products are organized in a grid of stacked bins. Robots move around the top of the grid, lifting bins and delivering them to a human picker. Benefits of the AutoStore system include high storage density and expansion capability. While not much literature is published about the specifics of AutoStore, we suspect the major downsides are: slow, expensive order retrieval as well as high infrastructure and maintenance costs.
 
 In this project, we look at Kiva Systems (now known as Amazon Robotics). In Kiva systems, products are stored in shelves known as storage pods. Robots known as drive units are responsible for retrieving and delivering storage pods to picking stations before returning them to an appropriate place in the warehouse. A human worker is stationed at each picking station who picks the item off the pod before processing it (Fig \ref{kivaprocess}).
 
@@ -136,17 +136,18 @@ In this project, we look at Kiva Systems (now known as Amazon Robotics). In Kiva
 %	\item Unit is told to retrieve a product
 %\end{compactenum}
 
-Kiva systems do not require a complex infrastructure to operate, a warehouse needs only storage pods, a picking station and a suitable number of drive units to operate. As long as the warehouse has space, more robots, pods or stations can be easily be added to the system to satisfy the incoming flow of customer orders. When a drive unit malfunctions it can be easily accessed and replaced. In summary, the main benefits of Kiva systems are their low initial and maintenance costs, rapidly deployment and flexibility (\cite{wurman2008coordinating}).
+Kiva systems do not require a complex infrastructure to operate, a warehouse needs only a suitible number of storage pods, picking stations and drive units to operate. As long as the warehouse has space, more robots, pods or stations can be easily be added to the system to satisfy the incoming flow of customer orders. When a drive unit malfunctions it can be easily accessed and replaced. In summary, the main benefits of Kiva systems are their low initial and maintenance costs and their rapid deployment and flexibility (\cite{wurman2008coordinating}).
 
+\newpage
 \subsection{Research questions}
-In order to explore the improvements that can be made to improving Kiva systems, we aim to answer two main questions:
+We aim to explore two areas of Kiva systems, the layout and MAPF. These can be summarized in the following questions:
 
 \begin{enumerate}
-	\item What effect will these modifications have and how do they affect our decision when it comes to organizing the warehouse layout?
+	\item How will the adjustments and additions below affect our decision when it comes to configuring the warehouse layout?
 	\begin{compactitem}
-		\item An optimized order process
-		\item Allowing drive units are capable of maneuvering underneath storage pods
-		\item An intermediate zone for drive units to drop off storage pods
+		\item Implementing an optimized order process
+		\item Adding the capability for drive units to maneuver under storage pods
+		\item Adding an intermediate zone where drive units may drop off storage pods
 	\end{compactitem}
 
 \item How much faster will the MAPF search run by pre-computing paths and storing them in a path oracle?
@@ -157,18 +158,20 @@ In order to explore the improvements that can be made to improving Kiva systems,
 \label{background}
 % Description of MAPF problem, including objective function
 
-In Kiva Systems we face a multi-agent pathfinding (MAPF) problem. MAPF aims to find a path for each agent so that they can reach their goal while ensuring that no path conflicts with another. When analyzing the performance of a MAPF solution we generally aim to reduce the makespan of the system. Specific to Kiva systems we also aim to reduce the downtime of picking stations. Outside of order picking and warehouse applications,  MAPF has usage in video games, robotics (\cite{bennewitz2002finding}), search and rescue (\cite{konolige2006centibots}) and automated ports.
+In Kiva systems we face a multi-agent pathfinding (MAPF) problem. MAPF aims to find a path for each agent to their goal while ensuring that no path conflicts with another. MAPF has usage in video games, robotics (\cite{bennewitz2002finding}), search and rescue (\cite{konolige2006centibots}) and of course warehouse applications. When analyzing the efficiency of a MAPF algorithm we generally aim to reduce the makespan of the system. Additionally, in Kiva systems we want to reduce the downtime of picking stations.
 
 % How hard is it?
-Finding an optimal solution to multi-agent pathfinding is an NP-hard problem (\cite{yu2013structure}) and has found applications in systems containing a small number agents. This is not an option as Kiva systems deal with hundreds of agents, for example the Office Supply company, Staples uses 500 robots in their $30000m^{2}$ center (\cite{guizzo2008three}). The best we can get currently is a bounded suboptimal solution and this has been explored by a number of existing literature (\cite{cohen2016bounded}).
+Finding an optimal solution in MAPF is an NP-hard problem (\cite{yu2013structure}) and mostly has found usage in systems containing a small number agents. This is not an option as Kiva systems deal with hundreds of agents, for example the Office Supply company, Staples uses 500 robots in their $30000m^{2}$ center (\cite{guizzo2008three}). Here we look at finding a bounded suboptimal solution and this has been explored in Kiva systems by (\cite{cohen2016bounded}).
 
 % What are the main way people solve it?
-Generally methods are provided to simplify the MAPF problem, \cite{cohen2016bounded} uses user-provided highways to help guide agents towards a specific direction, greatly reducing the chance of path collisions. \cite{wilt2014spatially} identifies bottlenecks in the environment and assigns a controller to handle agents who want to pass through this area, simplifying behaviour in high collision zones. Another common technique is grouping agents into teams. \cite{ma2016optimal} splits agents into teams of 5 and presents a Conflict-Based Min-Cost-Flow algorithm which and shows that they can achieve a correct, complete and optimal solution.
+To improve MAPF, generally methods are created to simplify the problem, \cite{cohen2016bounded} define user-provided highways to help guide agents towards a specific direction, greatly reducing the chance of path collisions. \cite{wilt2014spatially} identifies bottlenecks in the environment and assigns a controller which handles agents who want to pass through the bottleneck, simplifying behaviour in high collision zones. Another common technique is grouping agents into teams. \cite{ma2016optimal} splits agents into teams of 5 and presents a Conflict-Based Min-Cost-Flow algorithm which and shows that they can achieve a correct, complete and optimal solution.
 
 % What are the main advantages and drawbacks of each approach?
 
 %\cite{de2007design} provides a great overview of picking
-Specific to order picking, it is possible to assist MAPF by manipulating incoming orders to suit the location of products. For example if a large order of one product came in, this could be interlaced with other orders, so agents do not need to all head to the same location. In a similar fashion, MAPF can be assisted by smart distribution of products across the warehouse. Take the same example where a large order of one product comes in, if the products were spread out around the warehouse this would not be an issue. This method is especially relevant in Kiva systems as storage pods can be easily moved around the warehouse by the drive units. \cite{boysen2017parts} looks at both of these aspects and found that with optimized order processing, only half the units are required to provide the supply given by a non-optimized system.
+Specific to the process of order picking, we can look at the method of order processing. Take an example where products of the same type are grouped together in a warehouse. If a large order of one product comes in, the agents will all try to find a path to this one area and create many collisions in the MAPF. We want the goal locations for our drive units to be spread evenly around the warehouse and order processing allows this by looking at two areas. Firstly, by smartly distributing products around the warehouse. If we place products of the same type across many pods row around the warehouse, a large order of one product will be no issue. Secondly, is sequencing of incoming orders. Instead of processing the large orders of one product, we have some flexibility to interlace this large order with other orders which we know we will need to process at some time, once again solving this issue. \cite{boysen2017parts} looks at both of these aspects in unison and found that with optimized order processing, only half the units are required to provide the supply given by a non-optimized system.
+
+%it is possible to assist MAPF by manipulating incoming orders to suit the location of products. For example if a large order of one product came in, this could be interlaced with other orders, so agents do not need to all head to the same location. In a similar fashion, MAPF can be assisted by smart distribution of products across the warehouse. Take the same example where a large order of one product comes in, if the products were spread out around the warehouse this would not be an issue. This method is especially relevant in Kiva systems as storage pods can be easily moved around the warehouse by the drive units. \cite{boysen2017parts} looks at both of these aspects and found that with optimized order processing, only half the units are required to provide the supply given by a non-optimized system.
 
 %\cite{wurman2008coordinating} provides an in depth overview of Kiva Systems, describing their benefits, usages and research areas.
 
@@ -183,16 +186,11 @@ Specific to order picking, it is possible to assist MAPF by manipulating incomin
 %Windowed Hierarchical Cooperative A∗. Cooperative A*. Conflict-Oriented Windowed Hierarchical Cooperative A∗. Compressed Path Databases.
 
 \section{Methodology}
-\label{Research}
-\subsection{Path oracle}
-
-Decentralised approaches are usually used in MAPF algorithms due to their lower CPU and memory requirements (\cite{wang2009bridging}) compared to a centralised approach. Decentralised MAPF involves agents independently searching for a path to their goal. Here we aim to introduce a path oracle which will pre-compute paths, removing the need for agents to perform a search at runtime. We expect to base this off the work by \cite{strasser2015compressing}, utilizing a Compressed Path Database.
-
-Once a path is found, agents take turns following their path one step at a time until a spatio-temporal conflict occurs between agents. We choose one agent based on a user-defined utility function and this agent will continue along the path. The other agent has two options first is simply waiting until the other agent moves out of the way. The second method we may explore involves using a looking forward using a spatio-temporal reservation table to find a path without conflicts (\cite{wilt2014spatially}).
+\label{method}
 
 \subsection{Warehouse layout}
 \label{warehouselayout}
-Usually the picking station is positioned on one side of the warehouse and the pods are laid out in rows (Fig. \ref{kivalayout1}).
+In previous studies we usually see the picking station positioned on one side of the warehouse and pods are laid out in rows (Fig. \ref{kivalayout1}). Warehouse layout looks at configuring the location of both storage pods and picking stations. We will determine a good warehouse layout to be one which minimizes makespan as well as downtime of picking stations. Firstly, we will investigate by looking at a user-defined set of warehouse layouts. A possibility later in the project is the use of genetic algorithms to find a good warehouse layout. 
 
 \begin{figure}[h]
 	\centering
@@ -201,9 +199,11 @@ Usually the picking station is positioned on one side of the warehouse and the p
 	\label{kivalayout1}
 \end{figure}
 
-One of the focuses of this study is designing logical warehouse layouts, where picking stations may be distributed inbetween or around picking stations. We want to look at how this affects makespan and may help or cause issues in the MAPF. Ultimately to identify what works and what does not. A hand-made set of warehouse layouts will be the start but one possibility is the use of genetic algorithms to automatically generate a good warehouse layout.
+\noindent Below we describe a number of adjustments and additions which are expected to play a large role in determining how we create a good warehouse layout.
 
-In Section \ref{background}, we saw that \cite{wilt2014spatially} identified bottlenecks in the environment and assigned controllers to simply behaviour for any agents who wanted to travel through that zone. Inspired by this, we plan to split the warehouse into two halves and introduce an intermediate zone (See Fig \ref{kivalayout2}). Now, drive units in the far zone deliver pods to the intermediate zone instead of a pickup station. Drive units situated in the delivery zone will be responsible for retrieving pods in the intermediate zone and bringing them to pickup areas. These zones will have their own controller which handles any agents within the zone and tells agents what behaviour should occur.
+\subsubsection{Intermediate zone}
+\label{intermediatezone}
+In Section \ref{background}, we saw that \cite{wilt2014spatially} identified bottlenecks in the environment and assigned controllers to simplify behaviour for any agents who wanted to travel through the bottleneck. Inspired by this, we plan to split the warehouse into two halves and introduce an intermediate zone (See Fig \ref{kivalayout2}). Now, drive units located in the far zone deliver pods to the intermediate zone instead of a pickup station. Drive units located in the delivery zone will be additionally responsible for retrieving pods in the intermediate zone and bringing them to pickup stations. We suspect this to provide benefits in traditional warehouse layouts where we have picking stations on one side and storage pods laid in rows.
 
 \begin{figure}[h]
 	\centering
@@ -212,13 +212,20 @@ In Section \ref{background}, we saw that \cite{wilt2014spatially} identified bot
 	\label{kivalayout2}
 \end{figure}
 
-\subsection{Order processing}
+\subsubsection{Order processing}
 \label{orderprocessing}
-This process is described in detail in Section \ref{background}. Reiterating the main points of order processing we look at distribution of products around the warehouse to reduce path collisions and smart sequencing of incoming orders according to the current distribution of products around the warehouse. This is important to consider as we expect that an optimized order processing sequence will decrease the effects of having an inefficient warehouse layout. Here we may take inspiration from Robin-hood hashing.
+This process is described in detail in Section \ref{background}. Reiterating the main points of order processing we look at distribution of products around the warehouse to reduce path collisions and smart sequencing of incoming orders. This is important to consider as we expect that an optimized order processing sequence will decrease the effects of having a poor warehouse layout. Here we may take inspiration from Robin-hood hashing as well as the previous work from \cite{boysen2017parts}.
 
-\subsection{Capability for pathing below storage pods}
+\subsubsection{Capability for movement underneath storage pods}
 \label{beneathpods}
-One of the specifications for creating a drive unit is the ability to maneuver underneath a pods to pick it up, this means that with small adjustments to the dimensions of storage pods it is possible to allow drive units to maneuver underneath the pods. Until a unit starts carrying a pod, it will not see any obstacles in the environment besides other drive units. We will explore exactly how much effect this has on reducing the makespan of the system as it will definitely reduce the number of path collisions.
+One of the specifications for creating a drive unit is the ability to maneuver underneath a storage pods to pick it up. This means that by slightly adjusting the dimensions of storage pods it is possible to allow drive units to maneuver underneath pods. Until a unit starts carrying a storage pod, it will not see storage pods as any obstacles in the environment. Essentially this simplifies the MAPF problem as we have decreased the number of obstacles and will allow for more  paths during retrieval. We expect this to reduce both the makespan of the system and downtime of picking stations. Moreover with this in place we suspect the warehouse layout to be less affected by the positioning of storage pods as they are not obstacles for most of the time.
+
+\subsection{MAPF and the use of a path oracle}
+\label{pathoracle}
+Decentralised approaches are usually used in MAPF algorithms due to their lower CPU and memory requirements (\cite{wang2009bridging}) compared to a centralised approach. Decentralised MAPF involves agents independently searching for a path to their goal. Here we aim to introduce a path oracle which will pre-compute paths, removing the cost of performing a path searching at runtime and hence significantly improving performance. We expect to base this off the work by \cite{strasser2015compressing}, utilizing a Compressed Path Database.
+
+Path collisions in MAPF is a type of spatio-temporal conflict. Here, we will explore two options to resolve them. When a collision occurs, we choose one agent based on a user-defined utility function and this agent will continue along their path. We have two methods of resolving these collisions, firstly we can make the other agent wait until the chosen agent moves out of the way. Alternatively we can use a spatio-temporal reservation table which looks forward to find a path without conflicts. This method will be based off the work by \cite{wilt2014spatially}.
+
 
 \subsection{Timetable}
 
@@ -229,12 +236,12 @@ There are a large number of individual tasks involved in this project which have
 \begin{tabular}{ c p{12cm} }
 \multicolumn{2}{l}{\textbf{Semester 1}} \\
 \hline \multicolumn{1}{c}{Week(s)} & \multicolumn{1}{c}{Plan} \\
-\hline 7  & Create warehouse simulation with simple A* pathfinding \\
-\hline 8-9  & Add multiple agents to the simulation using with Cooperative A* and moving between pickup stations \\
-\hline 10 & Implement an order sequencer assigning generating an inflow of products to be retrieved \\
-\hline 11 & Begin looking at robin-hood hashing \\
-\hline 12-14 & Focus on Interim Presentation, Literature Review and Examinations \\
-\hline Holidays & Look at adding an intermediate dropping zone (\ref{warehouselayout}) and implement ability to move under pods (\ref{beneathpods}) \\
+\hline 7  & Create warehouse simulation with simple A* pathfinding. \\
+\hline 8-9  & Add multiple agents to the simulation using with Cooperative A* and moving between pickup stations. Agents will wait during collisions (\ref{pathoracle}). \\
+\hline 10 & Implement an order sequencer assigning generating an inflow of products to be retrieved. Implement agents using a reservation table to resolve collisions (\ref{pathoracle}). \\
+\hline 11 & Implement robin-hood hashing (\ref{orderprocessing}) \\
+\hline 12-14 & Focus on interim presentation, literature review and examinations \\
+\hline Holidays & Look at adding an intermediate dropping zone (\ref{intermediatezone}). Implement ability to move under pods (\ref{beneathpods}). Begin implementing a path oracle (\ref{pathoracle}). \\
 \hline
 \end{tabular}
 }
@@ -244,22 +251,20 @@ There are a large number of individual tasks involved in this project which have
 \begin{tabular}{ c p{12cm} }
 \multicolumn{2}{l}{\textbf{Semester 2}} \\
 \hline \multicolumn{1}{c}{Week(s)} & \multicolumn{1}{c}{Plan} \\
-
-\hline 7-11 & Implement Path Oracle with Compressed Path Databases \\
-
-\hline 1-3 & Implement an optimized order processing method (\ref{orderprocessing}) \\
-\hline 5-7 & Run simulation looking at combination of modifications and analyze results. Use any extra time to explore the use of genetic algorithms to generate warehouse layouts. \\
+\hline 1-3 & Continue implementation of a path oracle (\ref{pathoracle}) \\
+\hline 4-7 & Implement an optimized order processing method (\ref{orderprocessing}) based on \cite{boysen2017parts} \\
+\hline 8-11 & Run simulation looking at combination of modifications and analyze results. Use any extra time to explore the use of genetic algorithms to generate warehouse layouts (\ref{warehouselayout}). \\
 \hline 12 & Finish first draft of Final Thesis \\
-\hline 13-15 & Focus on Final Presentation, Thesis and Examinations \\
+\hline 13-15 & Focus on final presentation, final thesis and examinations \\
 \hline
 \end{tabular}
 }
 \end{center}
 
 \section{Expected Outcomes}
-Overall we aim to contribute one major insight and one deliverable. In Section \ref{Research}, we described methods to add: an optimized order process, the capability for drive units to path under storage pods and lastly addition of an intermediate zone. What we aim to answer is how these modifications may affect our decision when it comes to designing a good warehouse layout. To showcase our results we hope to produce two main graphs comparing the makespan of the system and the idle time of picking stations across our user-defined warehouse layouts. Accompanying this would be any interesting results we see from adding or removing modifications described in Section \ref{Research}. 
+Overall we aim to contribute one major insight and one deliverable. In Section \ref{method}, we described methods to add: an optimized order process, the capability for drive units to path under storage pods and the addition of an intermediate zone. What we aim to answer is how these modifications may affect our decision when it comes to designing a good warehouse layout. To showcase our results we hope to produce two main graphs comparing the makespan of the system and the idle time of picking stations across our user-defined warehouse layouts. Accompanying this would be any interesting finding we see from mixing and matching the adjustments and additions described in Section \ref{method}. 
 
-For our deliverable, we hope to produce an improved MAPF solution utilizing a pre-computed path oracle and a simulation showcasing its usage in a simulated Kiva system. Similarly, we will showcase the results by comparing the makespan of the system and idle time of picking stations to alternative MAPF techniques.
+For our deliverable, we hope to produce an improved MAPF solution utilizing a pre-computed path oracle and showcase its usage in a computer simulated Kiva system. We will compare it to other MAPF techniques, looking at the makespan of the system and idle time of picking stations.
 
 \bibliographystyle{dcu}
 \bibliography{bibliography}
