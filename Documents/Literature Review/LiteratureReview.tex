@@ -72,7 +72,7 @@ Literature Review, 2017
 \vspace*{10mm}
 
 {\LARGE \bfseries
-Exploring the effect of warehouse layout on multi-agent pathfinding in part-to-picker systems
+Improving cooperative pathfinding using a path oracle
 }
 
 \vspace*{20mm}
@@ -110,6 +110,9 @@ Supervisors: \parbox[t]{50mm}{Daniel Harabor,\\Pierre Le Bodic}
 	% Where
 	The results of this project will help identify how we should position storage and picking stations in a warehouse. Additionally, we will be looking at developing a MAPF method which uses a pre-computed path oracle.
 	
+	\noindent \\ \textbf{Keywords} \\
+	Cooperative Multi-agent pathfinding, Kiva systems
+	
 \end{abstract}
 \section{Introduction}
 Order picking is a process in warehouse systems whereby products are retrieved from storage to satisfy incoming customer orders. This process has been identified by \cite{de2007design} as the most expensive process in operating a warehouse, estimated to take 55\% of the warehouse operating cost.
@@ -130,6 +133,8 @@ In this project, we look at Kiva Systems (now known as Amazon Robotics). In Kiva
 %\end{compactenum}
 
 Kiva systems do not require a complex infrastructure to operate, a warehouse needs only a suitible number of storage pods, picking stations and drive units to operate. As long as the warehouse has space, more robots, pods or stations can be easily be added to the system to satisfy the incoming flow of customer orders. When a drive unit malfunctions it can be easily accessed and replaced. In summary, the main benefits of Kiva systems are their low initial and maintenance costs and their rapid deployment and flexibility (\cite{wurman2008coordinating}).
+
+
 
 \newpage
 \subsection{Research questions}
@@ -164,6 +169,35 @@ To improve MAPF, generally methods are created to simplify the problem, \cite{co
 %\cite{de2007design} provides a great overview of picking
 Specific to the process of order picking, we will look at the method of order processing. Take an example where products of the same type are grouped together in a warehouse. If a large order of one product comes in, the agents will all try to find a path to this one area and create many collisions in the MAPF. We want the goal locations for our drive units to be spread evenly around the warehouse and order processing allows this by looking at two areas. Firstly, by evenly distributing products around the warehouse. If we place products of the same type across many different row around the warehouse, a large order of one product will be no issue. Secondly, is sequencing of incoming orders. Instead of processing the large orders of one product sequentially, we have some flexibility to interlace this large order with other orders which we know we will need to process. Essentially, we can move the mobile storage pods as well adjust the incoming ordering sequence to benefit the MAPF. \cite{boysen2017parts} looks at both these aspects in unison and found that with optimized order processing, only half the units are required to provide the supply given by a non-optimized system.
 
+\subsection{Comparing search algorithms}
+\begin{compactitem}
+	\item Completeness
+	\item Solution quality - Optimal, bounded suboptimal, suboptimal
+	\item Centralized - \textbf{A centralised method incorporates a global decision maker to plan paths for all units simultaneously}
+	\item Time complexity
+	\item Anonymous - In TAPF we put agents in groups. The group may have \textit{n} agents moving to \textit{n} targets, anonymous means we don't care which agent moves to which target
+	\begin{compactitem}
+		\item Non-Polynomial (NP) / Intractable
+		\item Polynomial / Tractable
+	\end{compactitem}
+\end{compactitem}
+
+Centralized -> Complete
+
+Decentralized -> Incomplete.
+
+\subsection{tractable}
+
+\textbf{QUOTES}
+
+\begin{itemize}
+	\item In global search approaches, the entire set of agents is treated as a single entity and paths are found for all agents simultaneously. Alternatively, in decoupled approaches paths are found for each agent one at a time, and information about the paths of other agents is used to ensure that no paths conflict
+\end{itemize}
+
+\textbf{END QUOTES}
+
+
+
 %\cite{wurman2008coordinating} provides an in depth overview of Kiva Systems, describing their benefits, usages and research areas.
 
 %\cite{gu2010research} provides a comprehensive review of warehouse design and performance. It covers 5 major aspects, overall structure, sizing and dimensioning, department layout, equipment selection and operation strategy selection.
@@ -176,6 +210,30 @@ Specific to the process of order picking, we will look at the method of order pr
 
 %Windowed Hierarchical Cooperative A∗. Cooperative A*. Conflict-Oriented Windowed Hierarchical Cooperative A∗. Compressed Path Databases.
 
+\subsection{Cooperative Multi-agent pathfinding}
+
+When looking at multi-agent pathfinding, we will be first considering whether it is centralized. A centralized search usually indicates
+
+\subsubsection{WHCA*}
+Windowed Hierarchical Cooperative A* uses a Reservation table
+
+\subsubsection{FAR}
+
+\cite{wang2008fast}
+
+\subsubsection{MAPP}
+\textbf{For each problem in- stance, MAPP systematically identifies a set of units, which can contain all units in the instance, that are guaranteed to be solved within low-polynomial time}
+
+Based on sliding tile puzzle. Always tries to keep a blank on an alternative path.
+
+\cite{wang2011mapp}
+
+\subsubsection{CBS}
+
+
+\subsection{Summary}
+
+\subsection{Further research}
 
 \bibliographystyle{dcu}
 \bibliography{bibliography}
