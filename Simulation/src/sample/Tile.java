@@ -3,19 +3,22 @@ package sample;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
+import search.SearchNode;
 
 import java.awt.*;
 
-enum TileType
-{
-    EMPTY, BLOCKED, START, GOAL
-}
-
 public class Tile extends Rectangle
 {
-    static float GRID_SIZE = 8;
+    public enum TileType
+    {
+        EMPTY, BLOCKED, START, GOAL
+    }
+
+    public static float GRID_SIZE = 8;
     public Point tilePos;
     public TileType tileType;
+    public SearchNode node;
 
     public Tile(int x, int y, TileType tileType)
     {
@@ -30,31 +33,37 @@ public class Tile extends Rectangle
         setY(y * GRID_SIZE);
 
         setOnMouseClicked(this::OnMouseClicked);
+    }
 
+    public void setSearchNode(SearchNode node)
+    {
+        this.node = node;
     }
 
     public void SetType(TileType newType)
     {
-        if (tileType == TileType.START)
-            Main.start = null;
-        if (tileType == TileType.GOAL)
-            Main.goal = null;
+//        if (tileType == TileType.START)
+//            Main.getSimulation().setStart(node.getX(), node.getY());
+//
+//        if (tileType == TileType.GOAL)
+//            Main.getSimulation().setEnd(node.getX(), node.getY());
 
         switch (newType)
         {
             case EMPTY:
+
                 setFill(Color.WHITE);
                 break;
             case BLOCKED:
                 setFill(Color.GREY);
                 break;
             case START:
+                Main.getSimulation().setStart(node.getX(), node.getY());
                 setFill(Color.GREEN);
-                Main.start = this;
                 break;
             case GOAL:
+                Main.getSimulation().setEnd(node.getX(), node.getY());
                 setFill(Color.RED);
-                Main.goal = this;
                 break;
         }
 
@@ -69,12 +78,11 @@ public class Tile extends Rectangle
                 switch (e.getButton())
                 {
                     case PRIMARY:
-                        if (Main.start != null) Main.start.SetType(TileType.EMPTY);
-                        SetType(TileType.START);
+                        if (node != null) SetType(TileType.START);
+
                         break;
                     case SECONDARY:
-                        if (Main.goal != null) Main.goal.SetType(TileType.EMPTY);
-                        SetType(TileType.GOAL);
+                        if (node != null) SetType(TileType.GOAL);
                 }
                 break;
             case START:

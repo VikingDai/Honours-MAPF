@@ -1,5 +1,6 @@
 package search;
 
+
 public class ProblemInstance
 {
     private int goal;
@@ -20,5 +21,25 @@ public class ProblemInstance
     public int getSearchId()
     {
         return searchId;
+    }
+
+    public void setGoal(int goal)
+    {
+        this.goal = goal;
+    }
+
+    public int getStart()
+    {
+        return start;
+    }
+
+    public void setStart(int start)
+    {
+        this.start = start;
+    }
+
+    public void setSearchId(int searchId)
+    {
+        this.searchId = searchId;
     }
 }
