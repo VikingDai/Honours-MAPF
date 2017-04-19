@@ -3,17 +3,19 @@ package sample;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
 
 import java.awt.*;
 
-enum TileType
-{
-    EMPTY, BLOCKED, START, GOAL
-}
-
 public class Tile extends Rectangle
 {
-    static float GRID_SIZE = 8;
+
+    public enum TileType
+    {
+        EMPTY, BLOCKED, START, GOAL
+    }
+
+    public static float GRID_SIZE = 8;
     public Point tilePos;
     public TileType tileType;
 
@@ -35,10 +37,10 @@ public class Tile extends Rectangle
 
     public void SetType(TileType newType)
     {
-        if (tileType == TileType.START)
-            Main.start = null;
-        if (tileType == TileType.GOAL)
-            Main.goal = null;
+//        if (tileType == TileType.START)
+//            Main.start = null;
+//        if (tileType == TileType.GOAL)
+//            Main.goal = null;
 
         switch (newType)
         {
@@ -50,11 +52,11 @@ public class Tile extends Rectangle
                 break;
             case START:
                 setFill(Color.GREEN);
-                Main.start = this;
+//                Main.start = this;
                 break;
             case GOAL:
                 setFill(Color.RED);
-                Main.goal = this;
+//                Main.goal = this;
                 break;
         }
 
@@ -68,13 +70,13 @@ public class Tile extends Rectangle
             case EMPTY:
                 switch (e.getButton())
                 {
-                    case PRIMARY:
-                        if (Main.start != null) Main.start.SetType(TileType.EMPTY);
-                        SetType(TileType.START);
-                        break;
-                    case SECONDARY:
-                        if (Main.goal != null) Main.goal.SetType(TileType.EMPTY);
-                        SetType(TileType.GOAL);
+//                    case PRIMARY:
+//                        if (Main.start != null) Main.start.SetType(TileType.EMPTY);
+//                        SetType(TileType.START);
+//                        break;
+//                    case SECONDARY:
+//                        if (Main.goal != null) Main.goal.SetType(TileType.EMPTY);
+//                        SetType(TileType.GOAL);
                 }
                 break;
             case START:
