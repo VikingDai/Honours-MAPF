@@ -10,6 +10,7 @@ public class GridMap
 {
     private int paddedWidth, paddedHeight, paddingPerRow;
     private int db;
+    private List<SearchNode> allNodes;
     private SearchNode[] nodes;
 
     private List<Tile> tiles;
@@ -21,7 +22,7 @@ public class GridMap
     public GridMap(GridMapParser parser)
     {
         this(parser.getMetaInfo().getWidth(), parser.getMetaInfo().getHeight());
-
+        allNodes = new ArrayList<>();
         List<String> map = parser.getMap(); // map as list of strings
         for (int y = 0; y < map.size(); y++)
         {
@@ -58,6 +59,7 @@ public class GridMap
     public void setSearchNode(SearchNode node, int x, int y)
     {
         nodes[x + y * width] = node;
+        allNodes.add(node);
     }
 
     public int getX(int searchId)
@@ -117,5 +119,10 @@ public class GridMap
     public List<Tile> getTiles()
     {
         return tiles;
+    }
+
+    public SearchNode getRandomNode()
+    {
+        return allNodes.get((int)(Math.random() * allNodes.size() - 1));
     }
 }

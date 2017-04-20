@@ -64,11 +64,6 @@ public class SearchNode
 
     public void setHasExpanded(boolean hasExpanded)
     {
-        if (tile != null)
-        {
-            tile.setFill(Color.BLUE);
-        }
-
         this.hasExpanded = hasExpanded;
     }
 
