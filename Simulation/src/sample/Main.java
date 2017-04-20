@@ -32,16 +32,11 @@ public class Main extends Application
     private boolean hasClicked = false;
 
     private Stage stage;
-    private BorderPane root;
     private Group centerGroup;
     private Scene scene;
-    private Canvas tileCanvas;
-    private Canvas agentCanvas;
-    private Canvas pathCanvas;
     private GraphicsContext tileGC;
     private GraphicsContext agentGC;
     private GraphicsContext pathGC;
-    private Pane layeredPane;
 
     private static Simulation simulation;
     private GridMap map;
@@ -56,13 +51,13 @@ public class Main extends Application
         double width = 1280;
         double height = 720;
 
-        tileCanvas = new Canvas(CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
+        Canvas tileCanvas = new Canvas(CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
         tileGC = tileCanvas.getGraphicsContext2D();
 
-        agentCanvas = new Canvas(CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
+        Canvas agentCanvas = new Canvas(CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
         agentGC = agentCanvas.getGraphicsContext2D();
 
-        pathCanvas = new Canvas(CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
+        Canvas pathCanvas = new Canvas(CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
         pathGC = agentCanvas.getGraphicsContext2D();
 
         // sample.Main node where rendering occurs
@@ -70,7 +65,7 @@ public class Main extends Application
         centerGroup.setOnMouseDragged(this::OnDragged);
         centerGroup.setOnMouseReleased(e -> hasClicked = false);
 
-        layeredPane = new Pane();
+        Pane layeredPane = new Pane();
         layeredPane.getChildren().add(tileCanvas);
         layeredPane.getChildren().add(agentCanvas);
         layeredPane.getChildren().add(pathCanvas);
@@ -115,10 +110,7 @@ public class Main extends Application
 
     private void OnTick(ActionEvent e)
     {
-        simulation.update(0.016f);
-        agentGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
-        simulation.drawAgents(agentGC);
-        simulation.drawPaths(pathGC);
+        simulation.tick(0.016f);
     }
 
     private void OnKeyPressed(KeyEvent e)
@@ -126,6 +118,13 @@ public class Main extends Application
         if (e.getCode() == KeyCode.ENTER)
         {
             simulation.step();
+
+            agentGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
+            simulation.drawAgents(agentGC);
+
+            simulation.drawPaths(pathGC);
+
+
 //            UpdateSearch();
         }
         else if (e.getCode() == KeyCode.Q)
@@ -177,6 +176,9 @@ public class Main extends Application
 
         tileGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
         simulation.drawTiles(tileGC);
+        agentGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
+        simulation.drawAgents(agentGC);
+        simulation.drawPaths(pathGC);
 
 //        centerGroup.setScaleX(centerGroup.getScaleX() * scaleDelta);
 //        centerGroup.setScaleY(centerGroup.getScaleY() * scaleDelta);
@@ -213,9 +215,6 @@ public class Main extends Application
 //        centerGroup.getChildren().clear();
 
         int numberOfTilesRenderered = 0;
-
-        agentCanvas.setWidth(xE);
-        agentCanvas.setHeight(yE);
 
 //        System.out.println("");
 

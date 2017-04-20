@@ -16,27 +16,14 @@ public class Tile extends Rectangle
 
     public static double GRID_SIZE = 8;
     public Point tilePos;
-    public double centerX;
-    public double centerY;
     public TileType tileType;
     public SearchNode node;
 
     public Tile(int x, int y, TileType tileType)
     {
         super(x * (GRID_SIZE + 1), y * (GRID_SIZE + 1), GRID_SIZE, GRID_SIZE);
-
         SetType(tileType);
         tilePos = new Point(x, y);
-
-//        setStroke(javafx.scene.paint.Color.BLACK);
-//        setStrokeWidth(.5f);
-
-//        setX(x * (GRID_SIZE + 1));
-//        setY(y * (GRID_SIZE + 1));
-
-        centerX = getX() + GRID_SIZE / 2;
-        centerY = getY() + GRID_SIZE / 2;
-
         setOnMouseClicked(this::OnMouseClicked);
     }
 
@@ -63,11 +50,9 @@ public class Tile extends Rectangle
                 setFill(Color.GREY);
                 break;
             case START:
-                sample.Main.getSimulation().setStart(node.getX(), node.getY());
                 setFill(Color.GREEN);
                 break;
             case GOAL:
-                sample.Main.getSimulation().setEnd(node.getX(), node.getY());
                 setFill(Color.RED);
                 break;
         }
