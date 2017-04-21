@@ -55,9 +55,11 @@ public class Simulation
 
     void drawAgents(GraphicsContext gc)
     {
+        gc.setGlobalAlpha(1);
         for (Agent agent : agents)
         {
             gc.setLineWidth(1);
+
             gc.setStroke(Color.BLACK);
 
             gc.setFill(agent.color);
@@ -76,6 +78,7 @@ public class Simulation
 
     public void drawPaths(GraphicsContext gc)
     {
+        gc.setGlobalAlpha(0.1);
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(2f);
 

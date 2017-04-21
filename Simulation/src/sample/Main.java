@@ -1,7 +1,7 @@
 package sample;
 
-import com.sun.javafx.geom.Vec2f;
-import domains.GridMap;
+import com.sun.javafx.geom.Vec2d;
+import domains.GridMapParser;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -20,15 +20,13 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import search.FlexibleAStar;
-import domains.GridMapParser;
 
 
 public class Main extends Application
 {
     private static int CANVAS_MAX_SIZE = 5000;
 
-    private Vec2f mouseClicked = new Vec2f();
+    private Vec2d mouseClicked = new Vec2d();
     private boolean hasClicked = false;
 
     private Stage stage;
@@ -39,8 +37,6 @@ public class Main extends Application
     private GraphicsContext pathGC;
 
     private static Simulation simulation;
-    private GridMap map;
-    private FlexibleAStar aStar;
 
     @Override
     public void start(Stage stage) throws Exception
@@ -118,18 +114,12 @@ public class Main extends Application
         if (e.getCode() == KeyCode.ENTER)
         {
             simulation.step();
-
             agentGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
             simulation.drawAgents(agentGC);
-
             simulation.drawPaths(pathGC);
 
-
 //            UpdateSearch();
-        }
-        else if (e.getCode() == KeyCode.Q)
-        {
-//            tickSearch = true;
+
         }
         else if (e.getCode() == KeyCode.P)
         {
@@ -186,52 +176,16 @@ public class Main extends Application
 
     private void OnDragged(MouseEvent e)
     {
-//        System.out.println("Dragging");
         if (hasClicked)
         {
-
             centerGroup.setTranslateX(centerGroup.getTranslateX() + (e.getX() - mouseClicked.x));
             centerGroup.setTranslateY(centerGroup.getTranslateY() + (e.getY() - mouseClicked.y));
-
-            UpdateVisibleTiles();
         }
         else
         {
-            mouseClicked.set((float) e.getX(), (float) e.getY());
+            mouseClicked.set(e.getX(), e.getY());
             hasClicked = true;
         }
-    }
-
-    private void UpdateVisibleTiles()
-    {
-        Tile[][] tiles = simulation.getMap().getTilesXY();
-
-        double xS = -centerGroup.getTranslateX();
-        double yS = -centerGroup.getTranslateY();
-
-        double xE = xS + scene.getWidth() * 1.25f;
-        double yE = yS + scene.getHeight() * 1.25f;
-
-//        centerGroup.getChildren().clear();
-
-        int numberOfTilesRenderered = 0;
-
-//        System.out.println("");
-
-//        for (int x = (int) (xS / Tile.GRID_SIZE); x < (int) (xE / Tile.GRID_SIZE); x++)
-//        {
-//            for (int y = (int) (yS / Tile.GRID_SIZE); y < (int) (yE / Tile.GRID_SIZE); y++)
-//            {
-//                if (x < 0 || y < 0 || x > simulation.getMap().width - 1 || y > simulation.getMap().height - 1) continue;
-
-//                if (tiles[x][y] != null)
-//                {
-//                    numberOfTilesRenderered++;
-//                    centerGroup.getChildren().add(tiles[x][y]);
-//                }
-//            }
-//        }
-//        System.out.println("Rendering " + numberOfTilesRenderered + " tiles of " + simulation.getMap().width * simulation.getMap().height);
     }
 
     public static Simulation getSimulation()
