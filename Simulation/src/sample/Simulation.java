@@ -21,7 +21,12 @@ public class Simulation
 
     public Simulation()
     {
-        GridMapParser mapParser = new GridMapParser("maps/newMap.map");
+        init("maps/newMap.map");
+    }
+
+    public void init(String mapPath)
+    {
+        GridMapParser mapParser = new GridMapParser(mapPath);
 //        GridMapParser mapParser = new GridMapParser("maps/maze512-1-8.map");
 //        GridMapParser mapParser = new GridMapParser("maps/AcrosstheCape.map");
 
@@ -46,10 +51,15 @@ public class Simulation
 
     void drawTiles(GraphicsContext gc)
     {
+        gc.setLineWidth(0);
         for (Tile tile : getMap().getTiles())
         {
             gc.setFill(tile.getFill());
-            gc.fillRect(tile.tilePos.getX() * Tile.GRID_SIZE, tile.tilePos.getY() * Tile.GRID_SIZE, Tile.GRID_SIZE - 1, Tile.GRID_SIZE - 1);
+            gc.fillRect(
+                    tile.tilePos.getX() * Tile.GRID_SIZE,
+                    tile.tilePos.getY() * Tile.GRID_SIZE,
+                    Tile.GRID_SIZE * 0.95,
+                    Tile.GRID_SIZE * 0.95);
         }
     }
 
@@ -58,21 +68,22 @@ public class Simulation
         gc.setGlobalAlpha(1);
         for (Agent agent : agents)
         {
-            gc.setLineWidth(1);
+//            gc.setLineWidth(1);
 
             gc.setStroke(Color.BLACK);
 
             gc.setFill(agent.color);
-            gc.fillOval(agent.currentNode.getTile().tilePos.getX() * Tile.GRID_SIZE,
-                    agent.currentNode.getTile().tilePos.getY() * Tile.GRID_SIZE,
-                    Tile.GRID_SIZE,
-                    Tile.GRID_SIZE);
-
-            gc.strokeOval(
+            gc.fillOval(
                     agent.currentNode.getTile().tilePos.getX() * Tile.GRID_SIZE,
                     agent.currentNode.getTile().tilePos.getY() * Tile.GRID_SIZE,
-                    Tile.GRID_SIZE,
-                    Tile.GRID_SIZE);
+                    Tile.GRID_SIZE * 0.95,
+                    Tile.GRID_SIZE * 0.95);
+
+//            gc.strokeOval(
+//                    agent.currentNode.getTile().tilePos.getX() * Tile.GRID_SIZE,
+//                    agent.currentNode.getTile().tilePos.getY() * Tile.GRID_SIZE,
+//                    Tile.GRID_SIZE,
+//                    Tile.GRID_SIZE);
         }
     }
 

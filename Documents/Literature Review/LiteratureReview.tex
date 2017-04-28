@@ -219,7 +219,7 @@ Branch and price is a method for solving integer programming problems
 
 \textbf{Dynamic?:} If the environment is changed does anything need to be recomputed i.e. did the algorithm require preprocessing
 
-\textbf{???:} Can the search spend more computation to improve the solution quality or number of solutions found
+\textbf{Anytime:} The search can spend more computation to improve the solution quality or number of solutions. It can stop earlier at any time and return a path.
 
 \textbf{Centralized / Coupled:} \textit{A centralised approach (Barraquand \& Latombe 1991; LaValle \& Hutchin- son 1998) has a single global decision maker for all agents, is theoretically optimal but, as discussed before, it does not scale up to many agents due to a prohibitive complexity. A decoupled (decentralized) approach decomposes the problem into several subproblems. The latter approach is faster but yields suboptimal solutions and loses the completeness} \cite{wang2008fast}
 
@@ -289,8 +289,17 @@ Based on sliding tile puzzle. Always tries to keep a blank on an alternative pat
 \subsubsection*{TASS}
 \textit{tree-based agent swapping strategy}
 
+\section{Optimality}
 
-\subsubsection{CBS}
+\subsubsection{ICTS}
+
+\subsubsection{Conflict-Based Search}
+Conflict-Based Search (CBS) is a optimal search algorithm.
+
+When a collision occurs a constraint 
+Constraints describe the agent, time and location.
+
+The algorithm uses a constraint tree to describe these constraints and searches through this tree.
 
 
 \subsection{TAPF}

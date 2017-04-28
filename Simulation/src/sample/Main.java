@@ -6,20 +6,37 @@ import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.print.*;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.util.converter.IntegerStringConverter;
+
+import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Scanner;
 
 
 public class Main extends Application
@@ -72,12 +89,102 @@ public class Main extends Application
 //        layeredPane.setOnMouseReleased(e -> hasClicked = false);
 
         centerGroup.getChildren().add(layeredPane);
+        BorderPane borderPane = new BorderPane(centerGroup);
+        borderPane.setStyle("-fx-background-color: #000000;");
 
-        BorderPane pane = new BorderPane(centerGroup);
-        pane.setStyle("-fx-background-color: #000000;");
+
+        // Top group
+        Group topGroup = new Group();
+//        borderPane.setTop(topGroup);
+
+        HBox topBox = new HBox();
+
+        topBox.setPrefHeight(30);
+        topBox.setPadding(new Insets(10, 10, 10, 10));
+        topBox.setSpacing(20);
+        topBox.setStyle("-fx-background-color: #FFFFFF; -fx-border-insets: 0 0 0 0; -fx-border-color: #D3D3D3");
+//        topBox.setAlignment(Pos.BASELINE_CENTER);
+//        topBox.setBorder(new Border());
+        topGroup.getChildren().add(topBox);
+
+        borderPane.setTop(topBox);
+
+        // radio button
+        RadioButton radioButton = new RadioButton("test");
+
+        // average time label
+        Label avgTime = new Label("Average search time: 0.001 ms");
+        Label timeStep = new Label("Time step: 0");
+
+
+        // all maps combobox
+        ObservableList<Path> allMaps = FXCollections.observableArrayList();
+        Files.list(Paths.get("maps")).forEach(allMaps::add);
+        ComboBox<Path> mapComboBox = new ComboBox<>(allMaps);
+
+        Button loadMapButton = new Button("Load Map");
+        loadMapButton.setOnAction(event ->
+        {
+            if (mapComboBox.getValue() != null)
+            {
+                System.out.println("Loaded map: " + mapComboBox.getValue());
+                simulation.init(mapComboBox.getValue().toString());
+            }
+            else
+            {
+                System.err.println("Map selected is null");
+            }
+        });
+
+
+        // choose file button
+        Button chooseFileButton = new Button("Open Map");
+        chooseFileButton.setOnAction(event ->
+        {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Open Resource File");
+            fileChooser.showOpenDialog(stage);
+        });
+
+        // enter seed
+        TextField seedTextField = new TextField();
+        seedTextField.setTextFormatter(new TextFormatter<>(new IntegerStringConverter()));
+        seedTextField.setText("" + 0);
+
+
+        // run button
+        ImageView runImage = new ImageView(new Image("file:assets/images/play-button.png"));
+        runImage.setPreserveRatio(true);
+        runImage.setFitHeight(topBox.getPrefHeight());
+        Button runButton = new Button("", runImage);
+        runButton.setOnAction(event ->
+        {
+            simulation.step();
+            agentGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
+            simulation.drawAgents(agentGC);
+            simulation.drawPaths(pathGC);
+            System.out.println("Running simulation");
+        });
+
+        // pause button
+        ImageView pauseImage = new ImageView(new Image("file:assets/images/pause-button.png"));
+        pauseImage.setPreserveRatio(true);
+        pauseImage.setFitHeight(topBox.getPrefHeight());
+        Button pauseButton = new Button("", pauseImage);
+        pauseButton.setOnAction(event ->
+        {
+            simulation.step();
+            agentGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
+            simulation.drawAgents(agentGC);
+            simulation.drawPaths(pathGC);
+            System.out.println("Running simulation");
+        });
+
+
+        topBox.getChildren().addAll(mapComboBox, loadMapButton, chooseFileButton, radioButton, avgTime, seedTextField, runButton, pauseButton, timeStep);
 
         // Scene is the window
-        scene = new Scene(pane, width, height);
+        scene = new Scene(borderPane, width, height);
         this.stage = stage;
         stage.setTitle("Warehouse Automation");
         stage.setScene(scene);
