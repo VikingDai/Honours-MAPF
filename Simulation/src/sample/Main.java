@@ -202,6 +202,8 @@ public class Main extends Application
 
         // Testing
         simulation = new Simulation();
+        simulation.agents.forEach(a -> layeredPane.getChildren().add(a.circle));
+
 
 //        simulation.getMap().getTiles().forEach(t -> centerGroup.getChildren().add(t));
 //        UpdateVisibleTiles();

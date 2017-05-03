@@ -7,13 +7,13 @@ import sample.Tile;
 
 public class SearchNode
 {
-    private int f, g, h;
-    private SearchNode parent;
-    private int priority;
-    private int searchId;
-    private boolean hasExpanded;
-    private Tile tile;
-    private int x, y;
+    public int f, g, h;
+    public SearchNode parent;
+    public int priority;
+    public int searchId;
+    public boolean hasExpanded;
+    public Tile tile;
+    public int x, y;
 
     public SearchNode(int x, int y)
     {
@@ -21,24 +21,6 @@ public class SearchNode
         this.y = y;
         parent = null;
         f = g = priority = Integer.MAX_VALUE;
-    }
-
-    public int getX()
-    {
-        return x;
-    }
-
-    public int getY()
-    {
-        return y;
-    }
-
-    public void relax(int newG, SearchNode parent)
-    {
-        assert(newG < g);
-        f = (f - g) + newG; // update f
-        g = newG;
-        this.parent = parent;
     }
 
     public void setSearchId(GridMap map)
@@ -67,16 +49,6 @@ public class SearchNode
         this.hasExpanded = hasExpanded;
     }
 
-    public int getF()
-    {
-        return f;
-    }
-
-    public int getG()
-    {
-        return g;
-    }
-
     public void updateCost(int g, int h)
     {
         this.g = g;
@@ -84,33 +56,12 @@ public class SearchNode
         this.f = g + h;
     }
 
-    public void setParent(SearchNode parent)
+    public void relax(int newG, SearchNode parent)
     {
+        assert (newG < g);
+        f = (f - g) + newG; // update f
+        g = newG;
         this.parent = parent;
-    }
-    public void setPriority(int priority)
-    {
-        this.priority = priority;
-    }
-
-    public int getHeuristic()
-    {
-        return h;
-    }
-
-    public SearchNode getParent()
-    {
-        return parent;
-    }
-
-    public int getPriority()
-    {
-        return priority;
-    }
-
-    public int getSearchId()
-    {
-        return searchId;
     }
 
     @Override

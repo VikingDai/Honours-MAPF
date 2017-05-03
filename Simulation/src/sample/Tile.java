@@ -34,20 +34,13 @@ public class Tile extends Rectangle
 
     public void SetType(TileType newType)
     {
-//        if (tileType == TileType.START)
-//            Main.getSimulation().setStart(node.getX(), node.getY());
-//
-//        if (tileType == TileType.GOAL)
-//            Main.getSimulation().setEnd(node.getX(), node.getY());
-
         switch (newType)
         {
             case EMPTY:
-
                 setFill(Color.WHITE);
                 break;
             case BLOCKED:
-                setFill(Color.GREY);
+                setFill(new Color(0.2, 0.2, 0.2, 0.5));
                 break;
             case START:
                 setFill(Color.GREEN);

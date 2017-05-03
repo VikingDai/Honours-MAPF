@@ -2,11 +2,8 @@ package search;
 
 import expanders.GridMapExpansionPolicy;
 import heuristics.BaseHeuristic;
-import javafx.scene.Node;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Path;
 
-import java.time.Instant;
 import java.util.*;
 
 
@@ -103,7 +100,7 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
     public Stack<SearchNode> step()
     {
         nodesTouched++;
-        if (open.peek().getX() == goalX && open.peek().getY() == goalY) // found path
+        if (open.peek().x == goalX && open.peek().y == goalY) // found path
         {
             searching = false;
 
@@ -150,7 +147,7 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
     {
         int costToN = 1; //current.getF();//Integer.MAX_VALUE;
 
-        for (SearchNode n : expander.getNeighbours(current.getSearchId()))
+        for (SearchNode n : expander.getNeighbours(current.searchId))
         {
             nodesTouched++;
             if (n.hasExpanded())
@@ -159,8 +156,8 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
             if (open.contains(n))
             {
                 // update a node from the fringe
-                int gVal = current.getG() + costToN;
-                if (gVal < n.getHeuristic())
+                int gVal = current.g + costToN;
+                if (gVal < n.h)
                 {
 
                     // TODO figure out what this does
@@ -171,10 +168,10 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
             else
             {
                 // add a new node to the fringe
-                int gVal = current.getG() + costToN;
+                int gVal = current.g + costToN;
                 cameFrom.put(n, current);
-                n.updateCost(gVal, heuristic.h(n.getX(), n.getY(), goalX, goalY));
-                n.setParent(current);
+                n.updateCost(gVal, heuristic.h(n.x, n.y, goalX, goalY));
+                n.parent = current;
 //                n.getTile().setFill(Color.RED);
                 open.add(n);
                 nodesGenerated++;

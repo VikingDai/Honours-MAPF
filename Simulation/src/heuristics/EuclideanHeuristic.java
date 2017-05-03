@@ -2,18 +2,18 @@ package heuristics;
 
 import domains.GridMapMetaInfo;
 
-public class ManhattanHeuristic extends BaseHeuristic
+public class EuclideanHeuristic extends BaseHeuristic
 {
     private int mapWidth;
     private int mapHeight;
 
-    public ManhattanHeuristic(int mapWidth, int mapHeight)
+    public EuclideanHeuristic(int mapWidth, int mapHeight)
     {
         this.mapWidth = mapWidth;
         this.mapHeight = mapHeight;
     }
 
-    public ManhattanHeuristic(GridMapMetaInfo mapMetaInfo)
+    public EuclideanHeuristic(GridMapMetaInfo mapMetaInfo)
     {
         this(mapMetaInfo.getWidth(), mapMetaInfo.getHeight());
     }
@@ -21,7 +21,9 @@ public class ManhattanHeuristic extends BaseHeuristic
     @Override
     public int h(int x1, int y1, int x2, int y2)
     {
-        return (Math.abs(x2 - x1) + Math.abs(y2 - y1));
+        double dx = x2 - x1;
+        double dy = y2 - y1;
+        return (int) Math.sqrt(dx * dx + dy * dy);
     }
 
     @Override

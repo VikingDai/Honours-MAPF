@@ -7,7 +7,6 @@ import heuristics.ManhattanHeuristic;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import search.FlexibleAStar;
-import search.SearchNode;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -15,9 +14,9 @@ import java.util.List;
 
 public class Simulation
 {
-    private GridMap map;
-    private FlexibleAStar aStar;
-    private List<Agent> agents;
+    public GridMap map;
+    public FlexibleAStar aStar;
+    public List<Agent> agents;
 
     public Simulation()
     {
@@ -46,13 +45,13 @@ public class Simulation
 
     void tick(float dt)
     {
-//        agents.forEach(a -> a.tick(dt));
+        agents.forEach(a -> a.tick(dt));
     }
 
     void drawTiles(GraphicsContext gc)
     {
         gc.setLineWidth(0);
-        for (Tile tile : getMap().getTiles())
+        for (Tile tile : map.getTiles())
         {
             gc.setFill(tile.getFill());
             gc.fillRect(
@@ -66,25 +65,17 @@ public class Simulation
     void drawAgents(GraphicsContext gc)
     {
         gc.setGlobalAlpha(1);
-        for (Agent agent : agents)
-        {
-//            gc.setLineWidth(1);
-
-            gc.setStroke(Color.BLACK);
-
-            gc.setFill(agent.color);
-            gc.fillOval(
-                    agent.currentNode.getTile().tilePos.getX() * Tile.GRID_SIZE,
-                    agent.currentNode.getTile().tilePos.getY() * Tile.GRID_SIZE,
-                    Tile.GRID_SIZE * 0.95,
-                    Tile.GRID_SIZE * 0.95);
-
-//            gc.strokeOval(
+//        for (Agent agent : agents)
+//        {
+//            gc.setStroke(Color.BLACK);
+//
+//            gc.setFill(agent.color);
+//            gc.fillOval(
 //                    agent.currentNode.getTile().tilePos.getX() * Tile.GRID_SIZE,
 //                    agent.currentNode.getTile().tilePos.getY() * Tile.GRID_SIZE,
-//                    Tile.GRID_SIZE,
-//                    Tile.GRID_SIZE);
-        }
+//                    Tile.GRID_SIZE * 0.95,
+//                    Tile.GRID_SIZE * 0.95);
+//        }
     }
 
     public void drawPaths(GraphicsContext gc)
@@ -107,20 +98,5 @@ public class Simulation
                         end.y * Tile.GRID_SIZE + Tile.GRID_SIZE / 2);
             }
         }
-    }
-
-    public GridMap getMap()
-    {
-        return map;
-    }
-
-    public FlexibleAStar getSearch()
-    {
-        return aStar;
-    }
-
-    public List<Agent> getAgents()
-    {
-        return agents;
     }
 }

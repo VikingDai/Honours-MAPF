@@ -1,7 +1,6 @@
 package domains;
 
 import sample.Tile;
-import search.SearchNode;
 
 import java.io.File;
 import java.io.FileNotFoundException;
