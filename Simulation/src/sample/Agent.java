@@ -1,7 +1,6 @@
 package sample;
 
 
-import domains.GridMap;
 import expanders.GridMapExpansionPolicy;
 import heuristics.ManhattanHeuristic;
 import javafx.scene.paint.Color;
@@ -24,8 +23,13 @@ public class Agent
 
     private FlexibleAStar<ManhattanHeuristic, GridMapExpansionPolicy> search;
 
+    public int agentId;
+    private static int agentCounter = 0;
+
     public Agent(SearchNode currentNode, FlexibleAStar<ManhattanHeuristic, GridMapExpansionPolicy> search)
     {
+        agentId = agentCounter;
+        agentCounter += 1;
 
         this.currentNode = currentNode;
         reachedNext = true;
@@ -44,8 +48,15 @@ public class Agent
 
             Instant startTime = Instant.now();
             path = search.findPath(currentNode.x, currentNode.y, randomNode.x, randomNode.y);
+            if (path.size() > 1) // skip first node of the path (where you start)
+                path.pop();
+
+            // update reservation table TODO: move this somewhere else
+//            Main.getSimulation().reservationTable.update(Main.getSimulation().timestep, this);
+//            Main.getSimulation().reservationTable.findConflicts(Main.getSimulation().timestep);
+
             long time = Duration.between(startTime, Instant.now()).toMillis();
-            System.out.println(" took " + time + " milliseconds");
+//            System.out.println(" took " + time + " milliseconds");
         }
 
         nextNode = path.pop();

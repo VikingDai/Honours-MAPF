@@ -14,7 +14,7 @@ public class Tile extends Rectangle
         EMPTY, BLOCKED, START, GOAL
     }
 
-    public static double GRID_SIZE = 8;
+    public static double GRID_SIZE = 40;
     public Point tilePos;
     public TileType tileType;
     public SearchNode node;

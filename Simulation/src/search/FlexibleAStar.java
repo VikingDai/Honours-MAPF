@@ -28,6 +28,9 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
 
     public boolean searching;
 
+    // meta search info
+    public static int numSearches;
+
     public FlexibleAStar(H heuristic, E expander)
     {
         closed = new ArrayList<>();
@@ -40,6 +43,8 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
 
     public Stack<SearchNode> findPath(int startX, int startY, int goalX, int goalY)
     {
+        numSearches += 1;
+
         initSearch(startX, startY, goalX, goalY);
 
         while (!open.isEmpty())
@@ -48,10 +53,10 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
             if (path != null)
             {
 
-                System.out.println(
-                        "Expanded: " + nodesExpanded +
-                                " | Generated: " + nodesGenerated +
-                                " | Touched: " + nodesTouched);
+//                System.out.println(
+//                        "Expanded: " + nodesExpanded +
+//                                " | Generated: " + nodesGenerated +
+//                                " | Touched: " + nodesTouched);
 
                 return path;
             }
@@ -94,7 +99,7 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
 
         open.add(start);
 
-        System.out.println("Finding path from {" + startX + ", " + startY + "} to {" + goalX + ", " + goalY + "}");
+//        System.out.println("Finding path from {" + startX + ", " + startY + "} to {" + goalX + ", " + goalY + "}");
     }
 
     public Stack<SearchNode> step()
@@ -105,7 +110,7 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
             searching = false;
 
             // rebuild path
-            System.out.println("Found goal!");
+//            System.out.println("Found goal!");
             SearchNode current = open.poll();
             Stack<SearchNode> path = new Stack<>();
             path.push(current);
@@ -178,7 +183,4 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
             }
         }
     }
-
-
-
 }

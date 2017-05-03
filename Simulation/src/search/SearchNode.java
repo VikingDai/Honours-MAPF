@@ -5,8 +5,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import sample.Tile;
 
+
 public class SearchNode
 {
+    public boolean hasStoragePod;
     public int f, g, h;
     public SearchNode parent;
     public int priority;
@@ -21,6 +23,7 @@ public class SearchNode
         this.y = y;
         parent = null;
         f = g = priority = Integer.MAX_VALUE;
+        hasStoragePod = false;
     }
 
     public void setSearchId(GridMap map)

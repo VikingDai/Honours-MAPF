@@ -13,7 +13,7 @@ public class GridMap
     private List<SearchNode> allNodes;
     private SearchNode[] nodes;
 
-    private List<Tile> tiles;
+    public List<Tile> tiles;
     private Tile[][] tilesXY;
 
     public int width;
@@ -31,17 +31,21 @@ public class GridMap
             {
                 char c = chars[x];
 
-                Tile tile = new Tile(x, y, c == '@' ? Tile.TileType.BLOCKED : Tile.TileType.EMPTY);
+                Tile tile = new Tile(x, y, c == '@' || c == 'S' ? Tile.TileType.BLOCKED : Tile.TileType.EMPTY);
                 tiles.add(tile);
                 tilesXY[x][y] = tile;
 
-                if (c != '@') // don't add blocked wall tiles to the initSearch map
+                if (c != '@') // don't add walls to the search tree
                 {
                     SearchNode node = new SearchNode(x, y);
                     node.setSearchId(this);
                     setSearchNode(node, x, y);
+                    System.out.println("Added search node at: " + x + " " + y);
                     node.setTile(tile);
 
+                    // tiles to the initSearch map
+                    if (c == 'S')
+                        node.hasStoragePod = true;
                 }
             }
         }
@@ -92,20 +96,29 @@ public class GridMap
         return x >= 0 && y >= 0 && x < width && y < height && doesSearchNodeExist(x, y);
     }
 
+    public boolean checkPositionValid(int x, int y, boolean hasStoragePod)
+    {
+        if (hasStoragePod)
+            return checkPositionValid(x, y) && !getSearchNodeAt(x, y).hasStoragePod;
+        else
+            return checkPositionValid(x, y);
+    }
+
     public List<SearchNode> getNeighbours(int x, int y)
     {
         ArrayList<SearchNode> neighbours = new ArrayList<>();
+        boolean thisNodeHasStoragePod = getSearchNodeAt(x, y).hasStoragePod;
 
-        if (checkPositionValid(x + 1, y))
+        if (checkPositionValid(x + 1, y, thisNodeHasStoragePod))
             neighbours.add(getSearchNodeAt(x + 1, y));
 
-        if (checkPositionValid(x - 1, y))
+        if (checkPositionValid(x - 1, y, thisNodeHasStoragePod))
             neighbours.add(getSearchNodeAt(x - 1, y));
 
-        if (checkPositionValid(x, y + 1))
+        if (checkPositionValid(x, y + 1, thisNodeHasStoragePod))
             neighbours.add(getSearchNodeAt(x, y + 1));
 
-        if (checkPositionValid(x, y - 1))
+        if (checkPositionValid(x, y - 1, thisNodeHasStoragePod))
             neighbours.add(getSearchNodeAt(x, y - 1));
 
         return neighbours;
@@ -123,6 +136,6 @@ public class GridMap
 
     public SearchNode getRandomNode()
     {
-        return allNodes.get((int)(Math.random() * allNodes.size() - 1));
+        return allNodes.get((int)(Math.random() * allNodes.size()));
     }
 }

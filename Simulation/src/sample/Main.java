@@ -10,7 +10,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.print.*;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -31,12 +30,9 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.util.converter.IntegerStringConverter;
 
-import java.io.File;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Scanner;
 
 
 public class Main extends Application
@@ -53,13 +49,15 @@ public class Main extends Application
     private GraphicsContext agentGC;
     private GraphicsContext pathGC;
 
+    private boolean updateTiles = true;
+
     private static Simulation simulation;
+
+    private Label timeStepLabel;
 
     @Override
     public void start(Stage stage) throws Exception
     {
-
-        new GridMapParser("maps/newMap.map");
 //        Parent centerGroup = FXMLLoader.load(getClass().getResource("sample.fxml"));
         double width = 1280;
         double height = 720;
@@ -79,9 +77,14 @@ public class Main extends Application
         centerGroup.setOnMouseReleased(e -> hasClicked = false);
 
         Pane layeredPane = new Pane();
+        Pane agentPane = new Pane();
+
+        layeredPane.getChildren().add(agentPane);
         layeredPane.getChildren().add(tileCanvas);
         layeredPane.getChildren().add(agentCanvas);
         layeredPane.getChildren().add(pathCanvas);
+        tileCanvas.toFront();
+        agentPane.toFront();
         agentCanvas.toFront();
         pathCanvas.toFront();
 
@@ -112,10 +115,11 @@ public class Main extends Application
         // radio button
         RadioButton radioButton = new RadioButton("test");
 
-        // average time label
+        // average search time label
         Label avgTime = new Label("Average search time: 0.001 ms");
-        Label timeStep = new Label("Time step: 0");
 
+        // time step label
+        timeStepLabel = new Label("Time step: 0");
 
         // all maps combobox
         ObservableList<Path> allMaps = FXCollections.observableArrayList();
@@ -161,7 +165,6 @@ public class Main extends Application
         {
             simulation.step();
             agentGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
-            simulation.drawAgents(agentGC);
             simulation.drawPaths(pathGC);
             System.out.println("Running simulation");
         });
@@ -175,13 +178,12 @@ public class Main extends Application
         {
             simulation.step();
             agentGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
-            simulation.drawAgents(agentGC);
             simulation.drawPaths(pathGC);
             System.out.println("Running simulation");
         });
 
 
-        topBox.getChildren().addAll(mapComboBox, loadMapButton, chooseFileButton, radioButton, avgTime, seedTextField, runButton, pauseButton, timeStep);
+        topBox.getChildren().addAll(mapComboBox, loadMapButton, chooseFileButton, radioButton, avgTime, seedTextField, runButton, pauseButton, timeStepLabel);
 
         // Scene is the window
         scene = new Scene(borderPane, width, height);
@@ -202,7 +204,7 @@ public class Main extends Application
 
         // Testing
         simulation = new Simulation();
-        simulation.agents.forEach(a -> layeredPane.getChildren().add(a.circle));
+        simulation.agents.forEach(a -> agentPane.getChildren().add(a.circle));
 
 
 //        simulation.getMap().getTiles().forEach(t -> centerGroup.getChildren().add(t));
@@ -220,12 +222,23 @@ public class Main extends Application
 
     private void OnKeyPressed(KeyEvent e)
     {
-        if (e.getCode() == KeyCode.ENTER)
+        if (e.getCode() == KeyCode.ENTER) // step simulation
         {
-            simulation.step();
             agentGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
-            simulation.drawAgents(agentGC);
+
+
+
+            simulation.step();
+            timeStepLabel.setText("" + simulation.timestep);
+
+            tileGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
+            simulation.drawTiles(tileGC);
+
+            pathGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
             simulation.drawPaths(pathGC);
+            simulation.drawCollisions(pathGC);
+            simulation.drawAgentIds(pathGC);
+
 
 //            UpdateSearch();
 
@@ -266,17 +279,17 @@ public class Main extends Application
         }
     }
 
+    // zoom
     private void OnScrolled(ScrollEvent e)
     {
         double scaleDelta = 1 + Math.signum(e.getDeltaY()) * 0.05f;
 
         Tile.GRID_SIZE = Tile.GRID_SIZE * scaleDelta;
-        System.out.println(Tile.GRID_SIZE);
 
         tileGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
         simulation.drawTiles(tileGC);
+
         agentGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
-        simulation.drawAgents(agentGC);
         simulation.drawPaths(pathGC);
 
 //        centerGroup.setScaleX(centerGroup.getScaleX() * scaleDelta);
