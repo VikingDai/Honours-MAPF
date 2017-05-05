@@ -72,7 +72,7 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
             n.getTile().setFill(Color.WHITE);
             n.getTile().SetType(n.getTile().tileType);
             n.setHasExpanded(false);
-//            System.out.println("Resetting node");
+//            System.out.println("Resetting homeNode");
         });
         closed.clear();
 
@@ -160,7 +160,7 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
 
             if (open.contains(n))
             {
-                // update a node from the fringe
+                // update a homeNode from the fringe
                 int gVal = current.g + costToN;
                 if (gVal < n.h)
                 {
@@ -172,7 +172,7 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
             }
             else
             {
-                // add a new node to the fringe
+                // add a new homeNode to the fringe
                 int gVal = current.g + costToN;
                 cameFrom.put(n, current);
                 n.updateCost(gVal, heuristic.h(n.x, n.y, goalX, goalY));

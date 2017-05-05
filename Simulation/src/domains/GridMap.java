@@ -1,7 +1,11 @@
 package domains;
 
+import sample.Main;
+import sample.Simulation;
 import sample.Tile;
 import search.SearchNode;
+import warehouse.PickingStation;
+import warehouse.StoragePod;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,12 +44,21 @@ public class GridMap
                     SearchNode node = new SearchNode(x, y);
                     node.setSearchId(this);
                     setSearchNode(node, x, y);
-                    System.out.println("Added search node at: " + x + " " + y);
+                    System.out.println("Added search homeNode at: " + x + " " + y);
                     node.setTile(tile);
 
-                    // tiles to the initSearch map
-                    if (c == 'S')
+                    if (c == 'S') // load storage pods
+                    {
                         node.hasStoragePod = true;
+                        StoragePod pod = new StoragePod(node);
+//                        Simulation sim = Main.getSimulation();
+                        Main.getSimulation().storagePods.add(pod);
+                    }
+                    else if (c == 'P') // spawn picking station
+                    {
+                        PickingStation station = new PickingStation(node);
+                        Main.getSimulation().pickingStations.add(station);
+                    }
                 }
             }
         }

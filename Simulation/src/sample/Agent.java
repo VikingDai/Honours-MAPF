@@ -42,25 +42,30 @@ public class Agent
 
     public void step()
     {
-        if (path.isEmpty()) // search to random position
+        if (path.isEmpty()) // reached destination
         {
-            SearchNode randomNode = Main.getSimulation().map.getRandomNode();
-
+            OnReachDestination();
+            SearchNode nodeToMoveTo = GenerateGoalNode();
             Instant startTime = Instant.now();
-            path = search.findPath(currentNode.x, currentNode.y, randomNode.x, randomNode.y);
-            if (path.size() > 1) // skip first node of the path (where you start)
+            path = search.findPath(currentNode.x, currentNode.y, nodeToMoveTo.x, nodeToMoveTo.y);
+            if (path.size() > 1) // skip first homeNode of the path (where you start)
                 path.pop();
 
-            // update reservation table TODO: move this somewhere else
-//            Main.getSimulation().reservationTable.update(Main.getSimulation().timestep, this);
-//            Main.getSimulation().reservationTable.findConflicts(Main.getSimulation().timestep);
-
             long time = Duration.between(startTime, Instant.now()).toMillis();
-//            System.out.println(" took " + time + " milliseconds");
         }
 
         nextNode = path.pop();
         currentNode = nextNode;
+    }
+
+    public void OnReachDestination()
+    {
+
+    }
+
+    public SearchNode GenerateGoalNode()
+    {
+        return Main.getSimulation().map.getRandomNode();
     }
 
     public void tick(float dt)

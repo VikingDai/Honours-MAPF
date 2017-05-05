@@ -1,18 +1,16 @@
 package warehouse;
 
-import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
-import java.util.stream.Stream;
 
 public class OrderHandler
 {
-    Queue<ProductType> incomingOrders;
+    Queue<OrderType> incomingOrders;
 
     List<StoragePod> storagePods;
 
-    public enum ProductType
+    public enum OrderType
     {
         SHIRT,
         JACKET,
@@ -20,7 +18,7 @@ public class OrderHandler
         CHOCOLATE,
         CHIPS,
         CHAIR,
-
+        TEDDY_BEAR,
     }
 
     public OrderHandler(List<StoragePod> storagePods)
@@ -30,19 +28,25 @@ public class OrderHandler
 
     public void Generate()
     {
-        ProductType[] orders = ProductType.values();
-        incomingOrders.add(orders[(int)(Math.random() * ProductType.values().length)]);
+        OrderType[] orders = OrderType.values();
+        incomingOrders.add(orders[(int)(Math.random() * OrderType.values().length)]);
     }
 
     public StoragePod RequestOrder()
     {
-        ProductType order = incomingOrders.poll();
+        OrderType order = incomingOrders.poll();
         Optional<StoragePod> storagePod =
                 storagePods
                 .stream()
-                .filter(s -> s.products.contains(order)).findAny();
+                .filter(s -> s.product.equals(order)).findAny();
 
         return storagePod.orElse(null);
+    }
+
+    public static OrderType RandomOrder()
+    {
+        OrderType[] orders = OrderType.values();
+        return orders[(int)(Math.random() * OrderType.values().length)];
     }
 
     public void GiveOrder()

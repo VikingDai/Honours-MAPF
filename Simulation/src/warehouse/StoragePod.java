@@ -1,12 +1,15 @@
 package warehouse;
 
-import javafx.scene.shape.Rectangle;
-
-import java.util.List;
+import search.SearchNode;
 
 public class StoragePod
 {
-    public Rectangle rectangle;
+    public SearchNode homeNode;
+    public OrderHandler.OrderType product;
 
-    public List<OrderHandler.ProductType> products;
+    public StoragePod(SearchNode homeNode)
+    {
+        this.homeNode = homeNode;
+        this.product = OrderHandler.RandomOrder();
+    }
 }

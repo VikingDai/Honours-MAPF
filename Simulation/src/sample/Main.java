@@ -71,7 +71,7 @@ public class Main extends Application
         Canvas pathCanvas = new Canvas(CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
         pathGC = agentCanvas.getGraphicsContext2D();
 
-        // sample.Main node where rendering occurs
+        // sample.Main homeNode where rendering occurs
         centerGroup = new Group();
         centerGroup.setOnMouseDragged(this::OnDragged);
         centerGroup.setOnMouseReleased(e -> hasClicked = false);
@@ -204,6 +204,7 @@ public class Main extends Application
 
         // Testing
         simulation = new Simulation();
+        simulation.init("maps/warehouse.map");
         simulation.agents.forEach(a -> agentPane.getChildren().add(a.circle));
 
 
@@ -226,19 +227,18 @@ public class Main extends Application
         {
             agentGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
 
-
-
             simulation.step();
             timeStepLabel.setText("" + simulation.timestep);
 
-            tileGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
-            simulation.drawTiles(tileGC);
+//            tileGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
+//            simulation.drawTiles(tileGC);
 
             pathGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
             simulation.drawPaths(pathGC);
             simulation.drawCollisions(pathGC);
             simulation.drawAgentIds(pathGC);
-
+            simulation.drawStoragePods(pathGC);
+            simulation.drawPickingStations(pathGC);
 
 //            UpdateSearch();
 

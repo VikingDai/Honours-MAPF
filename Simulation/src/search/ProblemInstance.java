@@ -1,16 +1,43 @@
 package search;
 
 
+import domains.GridMapMetaInfo;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Scanner;
+
 public class ProblemInstance
 {
     private int goal;
     private int start;
     private int searchId;
 
-    public ProblemInstance(int goalId, int startId)
+    public String mapFileName;
+
+    public ProblemInstance(String fileName)
     {
         goal = 0;
         start = 0;
+
+        loadFile(fileName);
+    }
+
+    public boolean loadFile(String fileName)
+    {
+        Scanner scanner;
+        try
+        {
+            scanner = new Scanner(new File(fileName));
+        } catch (FileNotFoundException e)
+        {
+            e.printStackTrace();
+            return false;
+        }
+        assert scanner.hasNextLine();
+        mapFileName = scanner.nextLine();
+        return true;
     }
 
     public int getGoal()

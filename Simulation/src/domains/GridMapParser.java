@@ -1,6 +1,7 @@
 package domains;
 
 import sample.Tile;
+import search.ProblemInstance;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -19,9 +20,9 @@ public class GridMapParser
     private GridMapMetaInfo metaInfo;
     private List<String> mapAsString;
 
-    public GridMapParser(String fileName)
+    public GridMapParser(ProblemInstance instance)
     {
-        loadFile(fileName);
+        loadFile(instance.mapFileName);
     }
 
     public boolean loadFile(String fileName)
