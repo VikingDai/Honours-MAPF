@@ -8,6 +8,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import search.FlexibleAStar;
 import search.ProblemInstance;
+import utils.Globals;
 import utils.ReservationTable;
 import warehouse.DriveUnit;
 import warehouse.PickingStation;
@@ -45,7 +46,7 @@ public class Simulation
         aStar = new FlexibleAStar<>(new ManhattanHeuristic(mapParser.getMetaInfo()), new GridMapExpansionPolicy(map));
 
         // Add actors to simulation
-        for (int i = 0; i < 1; i++)
+        for (int i = 0; i < 100; i++)
             agents.add(new DriveUnit(map.getRandomNode(), aStar));
 
         reservationTable = new ReservationTable();
@@ -77,8 +78,11 @@ public class Simulation
         agents.forEach(a -> a.tick(dt));
     }
 
-    void drawAgentIds(GraphicsContext gc)
+    void draw(GraphicsContext gc)
     {
+        gc.clearRect(0, 0, Main.CANVAS_MAX_SIZE, Main.CANVAS_MAX_SIZE);
+
+        // DRAW THE IDENTIFIER OF THE AGENTS
         for (Agent agent : agents)
         {
             gc.setStroke(Color.BLACK);
@@ -87,24 +91,69 @@ public class Simulation
                     agent.circle.getCenterX(),
                     agent.circle.getCenterY());
         }
+
+        // DRAW PATHS OF THE AGENTS
+        gc.setStroke(Color.BLACK);
+        gc.setLineWidth(2f);
+        Point start;
+        Point end;
+        gc.setStroke(Color.BLACK);
+
+        for (Agent agent : agents)
+        {
+            for (int i = 1; i < agent.path.size() + 1; i++)
+            {
+                start = agent.path.get(i - 1).tile.tilePos;
+
+                if (i == agent.path.size())
+                    end = agent.currentNode.tile.tilePos;
+                else
+                    end = agent.path.get(i).tile.tilePos;
+
+                gc.strokeLine(
+                        start.x * Globals.RENDER_SCALE + Globals.RENDER_SCALE / 2,
+                        start.y * Globals.RENDER_SCALE + Globals.RENDER_SCALE / 2,
+                        end.x * Globals.RENDER_SCALE + Globals.RENDER_SCALE / 2,
+                        end.y * Globals.RENDER_SCALE + Globals.RENDER_SCALE / 2);
+            }
+        }
+
+        // DRAW STORAGE PODS
+        gc.setLineWidth(0);
+        gc.setFill(Color.GREEN);
+        for (StoragePod pod : storagePods)
+        {
+            gc.fillRect(
+                    pod.homeNode.x * Globals.RENDER_SCALE,
+                    pod.homeNode.y * Globals.RENDER_SCALE,
+                    Globals.RENDER_SCALE * 0.8,
+                    Globals.RENDER_SCALE * 0.8);
+        }
+
+        // DRAW THE PICKING STATIONS
+        gc.setLineWidth(0);
+        gc.setFill(Color.RED);
+        for (PickingStation station : pickingStations)
+        {
+            gc.fillRect(
+                    station.node.x * Globals.RENDER_SCALE,
+                    station.node.y * Globals.RENDER_SCALE,
+                    Globals.RENDER_SCALE * 0.8,
+                    Globals.RENDER_SCALE * 0.8);
+        }
     }
 
-    void drawTiles(GraphicsContext gc)
+    void drawMap(GraphicsContext gc)
     {
+        gc.clearRect(0, 0, Main.CANVAS_MAX_SIZE, Main.CANVAS_MAX_SIZE);
         for (Tile tile : map.getTiles())
         {
             gc.setFill(tile.getFill());
             gc.fillRect(
-                    tile.tilePos.getX() * Tile.GRID_SIZE,
-                    tile.tilePos.getY() * Tile.GRID_SIZE,
-                    Tile.GRID_SIZE * 0.95,
-                    Tile.GRID_SIZE * 0.95);
-//
-//            gc.setStroke(Color.TEAL);
-//            gc.strokeText(
-//                    "" + tile.tilePos.getX() + "," + tile.tilePos.getY(),
-//                    tile.tilePos.getX() * Tile.GRID_SIZE,
-//                    tile.tilePos.getY() * Tile.GRID_SIZE);
+                    tile.tilePos.getX() * Globals.RENDER_SCALE,
+                    tile.tilePos.getY() * Globals.RENDER_SCALE,
+                    Globals.RENDER_SCALE * 0.95,
+                    Globals.RENDER_SCALE * 0.95);
         }
     }
 
@@ -116,72 +165,11 @@ public class Simulation
             for (Point collision : positionList)
             {
                 gc.fillOval(
-                        collision.x * Tile.GRID_SIZE + Tile.GRID_SIZE / 2 - Tile.GRID_SIZE * 0.125,
-                        collision.y * Tile.GRID_SIZE + Tile.GRID_SIZE / 2 - Tile.GRID_SIZE * 0.125,
-                        Tile.GRID_SIZE * 0.25,
-                        Tile.GRID_SIZE * 0.25);
+                        collision.x * Globals.RENDER_SCALE + Globals.RENDER_SCALE / 2 - Globals.RENDER_SCALE * 0.125,
+                        collision.y * Globals.RENDER_SCALE + Globals.RENDER_SCALE / 2 - Globals.RENDER_SCALE * 0.125,
+                        Globals.RENDER_SCALE * 0.25,
+                        Globals.RENDER_SCALE * 0.25);
             }
-        }
-    }
-
-    public void drawPaths(GraphicsContext gc)
-    {
-//        gc.setGlobalAlpha(0.1);
-//        gc.setStroke(Color.BLACK);
-        gc.setLineWidth(2f);
-
-        Point start;
-        Point end;
-
-        gc.setStroke(Color.BLACK);
-
-        for (Agent agent : agents)
-        {
-//            gc.setStroke(agent.color);
-
-            for (int i = 1; i < agent.path.size() + 1; i++)
-            {
-                start = agent.path.get(i - 1).getTile().tilePos;
-
-                if (i == agent.path.size())
-                    end = agent.currentNode.getTile().tilePos;
-                else
-                    end = agent.path.get(i).getTile().tilePos;
-
-                gc.strokeLine(
-                        start.x * Tile.GRID_SIZE + Tile.GRID_SIZE / 2,
-                        start.y * Tile.GRID_SIZE + Tile.GRID_SIZE / 2,
-                        end.x * Tile.GRID_SIZE + Tile.GRID_SIZE / 2,
-                        end.y * Tile.GRID_SIZE + Tile.GRID_SIZE / 2);
-            }
-        }
-    }
-
-    void drawStoragePods(GraphicsContext gc)
-    {
-        gc.setLineWidth(0);
-        gc.setFill(Color.GREEN);
-        for (StoragePod pod : storagePods)
-        {
-            gc.fillRect(
-                    pod.homeNode.x * Tile.GRID_SIZE,
-                    pod.homeNode.y * Tile.GRID_SIZE,
-                    Tile.GRID_SIZE * 0.8,
-                    Tile.GRID_SIZE * 0.8);
-        }
-    }
-
-    void drawPickingStations(GraphicsContext gc)
-    {
-        gc.setLineWidth(0);
-        gc.setFill(Color.RED);
-        for (PickingStation station : pickingStations)
-        {
-            gc.fillRect(
-                    station.node.x * Tile.GRID_SIZE,
-                    station.node.y * Tile.GRID_SIZE,
-                    Tile.GRID_SIZE * 0.8,
-                    Tile.GRID_SIZE * 0.8);
         }
     }
 }

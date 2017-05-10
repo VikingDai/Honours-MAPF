@@ -31,11 +31,6 @@ public class SearchNode
         searchId = map.xyToSearchId(x, y);
     }
 
-    public Tile getTile()
-    {
-        return tile;
-    }
-
     public void setTile(Tile tile)
     {
         this.tile = tile;

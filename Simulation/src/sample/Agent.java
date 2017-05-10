@@ -7,6 +7,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import search.FlexibleAStar;
 import search.SearchNode;
+import utils.Globals;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -37,7 +38,7 @@ public class Agent
         path = new Stack<>();
         color = Color.color(Math.random(), Math.random(), Math.random());
 
-        circle = new Circle(Tile.GRID_SIZE, color);
+        circle = new Circle(Globals.RENDER_SCALE, color);
     }
 
     public void step()
@@ -70,8 +71,8 @@ public class Agent
 
     public void tick(float dt)
     {
-        circle.setRadius(Tile.GRID_SIZE * 0.4);
-        circle.setCenterX(currentNode.x * Tile.GRID_SIZE + Tile.GRID_SIZE / 2);
-        circle.setCenterY(currentNode.y * Tile.GRID_SIZE + Tile.GRID_SIZE / 2);
+        circle.setRadius(Globals.RENDER_SCALE * 0.4);
+        circle.setCenterX(currentNode.x * Globals.RENDER_SCALE + Globals.RENDER_SCALE / 2);
+        circle.setCenterY(currentNode.y * Globals.RENDER_SCALE + Globals.RENDER_SCALE / 2);
     }
 }

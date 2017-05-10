@@ -171,6 +171,24 @@ To improve MAPF, generally methods are created to simplify the problem, \cite{co
 %\cite{de2007design} provides a great overview of picking
 Specific to the process of order picking, we will look at the method of order processing. Take an example where products of the same type are grouped together in a warehouse. If a large order of one product comes in, the agents will all try to find a path to this one area and create many collisions in the MAPF. We want the goal locations for our drive units to be spread evenly around the warehouse and order processing allows this by looking at two areas. Firstly, by evenly distributing products around the warehouse. If we place products of the same type across many different row around the warehouse, a large order of one product will be no issue. Secondly, is sequencing of incoming orders. Instead of processing the large orders of one product sequentially, we have some flexibility to interlace this large order with other orders which we know we will need to process. Essentially, we can move the mobile storage pods as well adjust the incoming ordering sequence to benefit the MAPF. \cite{boysen2017parts} looks at both these aspects in unison and found that with optimized order processing, only half the units are required to provide the supply given by a non-optimized system.
 
+\subsection{Objective function}
+
+\cite{yu2015optimal} looked at: 
+\begin{compactenum}
+	\item Total Arrival time: 
+	\item Makespan: The time between 
+	\item Total Distance: 
+	\item Maximum Distance: 
+\end{compactenum}
+
+\begin{enumerate}
+	\item Test
+\end{enumerate}
+
+
+
+\subsubsection{}
+
 \subsection{Improving A*}
 
 \subsubsection{Compressed Path Databases}
@@ -188,7 +206,11 @@ MAPF
 
 \cite{schouwenaars2001mixed} Multi-vehicle path planning. Mixed integer programming.
 
-\cite{richards2002aircraft} aircraft collision avoidance. Mixed integer linear programming.
+\cite{richards2002aircraft} Aircraft collision avoidance. Mixed integer linear programming.
+
+\cite{surynek2016efficient} Satisfiability problem (SAT)
+
+\cite{yu2013planning} Multi-robot path planning. Multiflow based integer linear programming (ILP).
 
 Branch and price is a method for solving integer programming problems
 
@@ -325,6 +347,15 @@ Package-Exchange Robot-Routing (PERR)
 \textit{Each agent plans its optimal path to the goal with A*. Then conflicts are detected, and resolved if possible. When a conflict between two agents is not solvable, the two agents are gathered into a group, and an optimal solution is found for this group. Conflict between groups are detected and so forth. When few conflicts occur this method avoids the exponential size of the set of actions, but in the worst case, this method is inferior to any centralized method.}
 
 
+\section{Other factors}
+\cite{honig2016multi} factored in kinematic constraints.
+
+\section{Warehouse}
+
+\subsection{Overview papers}
+\cite{gu2007research} (Research on warehouse operation: A comprehensive review)
+
+\cite{gu2010research} (Research on warehouse design and performance evaluation: A comprehensive review)
 
 \subsection{Summary}
 

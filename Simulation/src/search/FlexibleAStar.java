@@ -67,17 +67,13 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
 
     public void initSearch(int startX, int startY, int goalX, int goalY)
     {
-        closed.forEach(n ->
+        closed.forEach(n -> // reset tiles from last search
         {
-            n.getTile().setFill(Color.WHITE);
-            n.getTile().SetType(n.getTile().tileType);
             n.setHasExpanded(false);
-//            System.out.println("Resetting homeNode");
         });
-        closed.clear();
 
+        closed.clear();
         cameFrom.clear();
-//        open.forEach(n -> n.getTile().SetType(n.getTile().tileType));
         open.clear();
 
         searching = true;
@@ -85,17 +81,11 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
         this.goalX = goalX;
         this.goalY = goalY;
 
-//        expander.generate(goalX, goalY).getTile().setFill(Color.RED);
-
         nodesExpanded = nodesGenerated = nodesTouched = 0;
-//        ProblemInstance instance = new ProblemInstance(1, 2); // TODO: What is problem instance for
-//        instance.setGoal(goalId);
-//        instance.setStart(startX, startY);
-//        instance.setSearchId(); //
 
         SearchNode goal = null;
         SearchNode start = expander.generate(startX, startY);
-        start.updateCost(0, heuristic.h(startX, startY, goalX, goalY)); //* hscale);
+        start.updateCost(0, heuristic.h(startX, startY, goalX, goalY));
 
         open.add(start);
 
@@ -110,11 +100,9 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
             searching = false;
 
             // rebuild path
-//            System.out.println("Found goal!");
             SearchNode current = open.poll();
             Stack<SearchNode> path = new Stack<>();
             path.push(current);
-
 
             while (cameFrom.keySet().contains(current))
             {
@@ -122,28 +110,15 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
                 path.push(current);
             }
 
-//            path.forEach(p -> p.getTile().setFill(Color.TEAL));
-
             return path;
-//            goal = open.peek(); // TODO whats this for?
-//            break;
         }
 
         nodesExpanded++;
         current = open.poll();
         current.setHasExpanded(true);
-//        current.getTile().setFill(Color.AQUA);
-
-
-
         closed.add(current);
 
-//        System.out.println("Expanding: " + current);
-//        expander.expand(current, instance);
-
         expandCurrent();
-
-//        System.out.println("Open list size: " + open.size());
 
         return null;
     }
@@ -166,8 +141,8 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
                 {
 
                     // TODO figure out what this does
-//                     n.relax(gVal, current);
                     // open.decreaseKey(n);
+//                     n.relax(gVal, current);
                 }
             }
             else

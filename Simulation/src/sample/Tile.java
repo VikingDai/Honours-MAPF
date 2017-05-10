@@ -4,6 +4,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import search.SearchNode;
+import utils.Globals;
 
 import java.awt.*;
 
@@ -14,14 +15,19 @@ public class Tile extends Rectangle
         EMPTY, BLOCKED, START, GOAL
     }
 
-    public static double GRID_SIZE = 40;
+    //    public static double GRID_SIZE = 40;
     public Point tilePos;
     public TileType tileType;
     public SearchNode node;
 
     public Tile(int x, int y, TileType tileType)
     {
-        super(x * (GRID_SIZE + 1), y * (GRID_SIZE + 1), GRID_SIZE, GRID_SIZE);
+
+        super(  x * (Globals.RENDER_SCALE + 1),
+                y * (Globals.RENDER_SCALE + 1),
+                Globals.RENDER_SCALE,
+                Globals.RENDER_SCALE);
+
         SetType(tileType);
         tilePos = new Point(x, y);
         setOnMouseClicked(this::OnMouseClicked);

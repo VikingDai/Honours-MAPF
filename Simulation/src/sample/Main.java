@@ -1,7 +1,6 @@
 package sample;
 
 import com.sun.javafx.geom.Vec2d;
-import domains.GridMapParser;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -29,6 +28,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.util.converter.IntegerStringConverter;
+import utils.Globals;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,7 +37,7 @@ import java.nio.file.Paths;
 
 public class Main extends Application
 {
-    private static int CANVAS_MAX_SIZE = 5000;
+    public static int CANVAS_MAX_SIZE = 5000;
 
     private Vec2d mouseClicked = new Vec2d();
     private boolean hasClicked = false;
@@ -165,7 +165,7 @@ public class Main extends Application
         {
             simulation.step();
             agentGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
-            simulation.drawPaths(pathGC);
+            simulation.draw(pathGC);
             System.out.println("Running simulation");
         });
 
@@ -178,7 +178,7 @@ public class Main extends Application
         {
             simulation.step();
             agentGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
-            simulation.drawPaths(pathGC);
+            simulation.draw(pathGC);
             System.out.println("Running simulation");
         });
 
@@ -202,7 +202,7 @@ public class Main extends Application
         timeline.setCycleCount(Animation.INDEFINITE);
         timeline.play();
 
-        // Testing
+        // run the simulation
         simulation = new Simulation();
         simulation.init("maps/warehouse.map");
         simulation.agents.forEach(a -> agentPane.getChildren().add(a.circle));
@@ -212,8 +212,7 @@ public class Main extends Application
 //        UpdateVisibleTiles();
 //        simulation.getAgents().forEach(a -> centerGroup.getChildren().add(a));
 
-        simulation.drawTiles(tileGC);
-
+        simulation.drawMap(tileGC);
     }
 
     private void OnTick(ActionEvent e)
@@ -234,12 +233,8 @@ public class Main extends Application
 //            simulation.drawTiles(tileGC);
 
             pathGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
-            simulation.drawPaths(pathGC);
+            simulation.draw(pathGC);
             simulation.drawCollisions(pathGC);
-            simulation.drawAgentIds(pathGC);
-            simulation.drawStoragePods(pathGC);
-            simulation.drawPickingStations(pathGC);
-
 //            UpdateSearch();
 
         }
@@ -279,21 +274,16 @@ public class Main extends Application
         }
     }
 
-    // zoom
+    // ZOOM
     private void OnScrolled(ScrollEvent e)
     {
+        // decrease scale
         double scaleDelta = 1 + Math.signum(e.getDeltaY()) * 0.05f;
+        Globals.RENDER_SCALE *= scaleDelta;
 
-        Tile.GRID_SIZE = Tile.GRID_SIZE * scaleDelta;
-
-        tileGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
-        simulation.drawTiles(tileGC);
-
-        agentGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
-        simulation.drawPaths(pathGC);
-
-//        centerGroup.setScaleX(centerGroup.getScaleX() * scaleDelta);
-//        centerGroup.setScaleY(centerGroup.getScaleY() * scaleDelta);
+        // redraw graphics
+        simulation.drawMap(tileGC);
+        simulation.draw(pathGC);
     }
 
     private void OnDragged(MouseEvent e)
