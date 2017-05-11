@@ -1,8 +1,6 @@
 package search;
 
 import domains.GridMap;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import sample.Tile;
 
 
@@ -11,7 +9,6 @@ public class SearchNode
     public boolean hasStoragePod;
     public int f, g, h;
     public SearchNode parent;
-    public int priority;
     public int searchId;
     public boolean hasExpanded;
     public Tile tile;
@@ -22,7 +19,7 @@ public class SearchNode
         this.x = x;
         this.y = y;
         parent = null;
-        f = g = priority = Integer.MAX_VALUE;
+        f = g = Integer.MAX_VALUE;
         hasStoragePod = false;
     }
 
@@ -37,16 +34,6 @@ public class SearchNode
         tile.setSearchNode(this);
     }
 
-    public boolean hasExpanded()
-    {
-        return hasExpanded;
-    }
-
-    public void setHasExpanded(boolean hasExpanded)
-    {
-        this.hasExpanded = hasExpanded;
-    }
-
     public void updateCost(int g, int h)
     {
         this.g = g;
@@ -57,7 +44,7 @@ public class SearchNode
     public void relax(int newG, SearchNode parent)
     {
         assert (newG < g);
-        f = (f - g) + newG; // update f
+        f = (f - g) + newG;
         g = newG;
         this.parent = parent;
     }

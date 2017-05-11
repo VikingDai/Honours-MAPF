@@ -27,7 +27,7 @@ public class Simulation
     public List<PickingStation> pickingStations;
 
     public ReservationTable reservationTable;
-    public int timestep;
+    public int timeStep;
 
 
     public Simulation()
@@ -45,32 +45,33 @@ public class Simulation
         map = new GridMap(mapParser);
         aStar = new FlexibleAStar<>(new ManhattanHeuristic(mapParser.getMetaInfo()), new GridMapExpansionPolicy(map));
 
-        // Add actors to simulation
-        for (int i = 0; i < 100; i++)
+        // add actors to simulation
+        for (int i = 0; i < 1; i++)
             agents.add(new DriveUnit(map.getRandomNode(), aStar));
 
         reservationTable = new ReservationTable();
     }
 
-    public void step()
+    public void step(GraphicsContext gc)
     {
-//        System.out.println("\t### Timestep " + timestep + " ###");
         for (Agent agent : agents)
         {
             agent.step();
-//            reservationTable.update(timestep, agent);
+//            reservationTable.update(timeStep, agent);
         }
 
-//        reservationTable.findConflicts(timestep);
-//        System.out.println(timestep);
+//        reservationTable.findConflicts(timeStep);
+//        System.out.println(timeStep);
 //        reservationTable.print();
-
-
 //        System.out.println(reservationTable.table.size());
 
         agents.forEach(a -> a.tick(0));
 
-        timestep += 1;
+        timeStep += 1;
+
+        // update rendering
+        draw(gc);
+        drawCollisions(gc);
     }
 
     void tick(float dt)
@@ -82,7 +83,7 @@ public class Simulation
     {
         gc.clearRect(0, 0, Main.CANVAS_MAX_SIZE, Main.CANVAS_MAX_SIZE);
 
-        // DRAW THE IDENTIFIER OF THE AGENTS
+        // draw the agent id
         for (Agent agent : agents)
         {
             gc.setStroke(Color.BLACK);
@@ -92,7 +93,7 @@ public class Simulation
                     agent.circle.getCenterY());
         }
 
-        // DRAW PATHS OF THE AGENTS
+        // draw the agent paths
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(2f);
         Point start;
@@ -118,7 +119,7 @@ public class Simulation
             }
         }
 
-        // DRAW STORAGE PODS
+        // draw the storage pods
         gc.setLineWidth(0);
         gc.setFill(Color.GREEN);
         for (StoragePod pod : storagePods)
@@ -130,7 +131,7 @@ public class Simulation
                     Globals.RENDER_SCALE * 0.8);
         }
 
-        // DRAW THE PICKING STATIONS
+        // draw the picking stations
         gc.setLineWidth(0);
         gc.setFill(Color.RED);
         for (PickingStation station : pickingStations)
@@ -145,6 +146,7 @@ public class Simulation
 
     void drawMap(GraphicsContext gc)
     {
+        // draw the tiles
         gc.clearRect(0, 0, Main.CANVAS_MAX_SIZE, Main.CANVAS_MAX_SIZE);
         for (Tile tile : map.getTiles())
         {
@@ -159,6 +161,7 @@ public class Simulation
 
     public void drawCollisions(GraphicsContext gc)
     {
+        // mark any collisions with a circle
         gc.setFill(Color.RED);
         for (List<Point> positionList : reservationTable.collisions.values())
         {

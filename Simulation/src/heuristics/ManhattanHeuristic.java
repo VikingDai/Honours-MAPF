@@ -1,6 +1,7 @@
 package heuristics;
 
 import domains.GridMapMetaInfo;
+import search.SearchNode;
 
 public class ManhattanHeuristic extends BaseHeuristic
 {
@@ -34,5 +35,11 @@ public class ManhattanHeuristic extends BaseHeuristic
         int yE = goalId / mapWidth;
 
         return h(xS, yS, xE, yE);
+    }
+
+    @Override
+    public int h(SearchNode start, SearchNode goal)
+    {
+        return h(start.x, start.y, goal.x, goal.y);
     }
 }

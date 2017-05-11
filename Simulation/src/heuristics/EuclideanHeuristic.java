@@ -1,6 +1,7 @@
 package heuristics;
 
 import domains.GridMapMetaInfo;
+import search.SearchNode;
 
 public class EuclideanHeuristic extends BaseHeuristic
 {
@@ -11,6 +12,12 @@ public class EuclideanHeuristic extends BaseHeuristic
     {
         this.mapWidth = mapWidth;
         this.mapHeight = mapHeight;
+    }
+
+    @Override
+    public int h(SearchNode start, SearchNode goal)
+    {
+        return h(start.x, start.y, goal.x, goal.y);
     }
 
     public EuclideanHeuristic(GridMapMetaInfo mapMetaInfo)

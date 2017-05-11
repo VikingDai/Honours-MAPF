@@ -62,7 +62,7 @@ public class ReservationTable
     {
         for (Integer time : table.keySet())
         {
-//            assert time > timestep : "Error why dis happen";
+//            assert time > timeStep : "Error why dis happen";
 
             Map<Point, List<Agent>> positionToAgents = table.get(time);
 

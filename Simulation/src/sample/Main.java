@@ -163,10 +163,10 @@ public class Main extends Application
         Button runButton = new Button("", runImage);
         runButton.setOnAction(event ->
         {
-            simulation.step();
-            agentGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
-            simulation.draw(pathGC);
-            System.out.println("Running simulation");
+            simulation.step(pathGC);
+//            agentGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
+//            simulation.draw(pathGC);
+//            System.out.println("Running simulation");
         });
 
         // pause button
@@ -174,13 +174,7 @@ public class Main extends Application
         pauseImage.setPreserveRatio(true);
         pauseImage.setFitHeight(topBox.getPrefHeight());
         Button pauseButton = new Button("", pauseImage);
-        pauseButton.setOnAction(event ->
-        {
-            simulation.step();
-            agentGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
-            simulation.draw(pathGC);
-            System.out.println("Running simulation");
-        });
+        pauseButton.setOnAction(event -> {});
 
 
         topBox.getChildren().addAll(mapComboBox, loadMapButton, chooseFileButton, radioButton, avgTime, seedTextField, runButton, pauseButton, timeStepLabel);
@@ -224,18 +218,10 @@ public class Main extends Application
     {
         if (e.getCode() == KeyCode.ENTER) // step simulation
         {
-            agentGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
+//            agentGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
+            simulation.step(pathGC);
+            timeStepLabel.setText(simulation.timeStep + "");
 
-            simulation.step();
-            timeStepLabel.setText("" + simulation.timestep);
-
-//            tileGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
-//            simulation.drawTiles(tileGC);
-
-            pathGC.clearRect(0, 0, CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
-            simulation.draw(pathGC);
-            simulation.drawCollisions(pathGC);
-//            UpdateSearch();
 
         }
         else if (e.getCode() == KeyCode.P)

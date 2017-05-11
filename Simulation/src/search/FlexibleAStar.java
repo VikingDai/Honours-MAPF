@@ -18,8 +18,6 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
     private SearchNode current;
     private int goalId;
 
-    private int goalX, goalY;
-
     private int nodesExpanded;
     private int nodesGenerated;
     private int nodesTouched;
@@ -41,103 +39,83 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
         this.searching = false;
     }
 
-    public Stack<SearchNode> findPath(int startX, int startY, int goalX, int goalY)
+    public Stack<SearchNode> findPath(SearchNode start, SearchNode goal)
     {
         numSearches += 1;
 
-        initSearch(startX, startY, goalX, goalY);
+        initSearch(start, goal);
 
         while (!open.isEmpty())
         {
-            Stack<SearchNode> path = step();
-            if (path != null)
-            {
-
-//                System.out.println(
-//                        "Expanded: " + nodesExpanded +
-//                                " | Generated: " + nodesGenerated +
-//                                " | Touched: " + nodesTouched);
-
-                return path;
-            }
+            Stack<SearchNode> path = step(goal);
+            if (path != null) return path;
         }
 
         return null;
     }
 
-    public void initSearch(int startX, int startY, int goalX, int goalY)
+    public void initSearch(SearchNode start, SearchNode goal)
     {
-        closed.forEach(n -> // reset tiles from last search
-        {
-            n.setHasExpanded(false);
-        });
+        // reset tiles from last search
+        closed.forEach(n -> n.hasExpanded = false);
 
         closed.clear();
         cameFrom.clear();
         open.clear();
 
-        searching = true;
-
-        this.goalX = goalX;
-        this.goalY = goalY;
-
+        // reset stats
         nodesExpanded = nodesGenerated = nodesTouched = 0;
 
-        SearchNode goal = null;
-        SearchNode start = expander.generate(startX, startY);
-        start.updateCost(0, heuristic.h(startX, startY, goalX, goalY));
+        searching = true;
+        start.updateCost(0, heuristic.h(start, goal));
 
         open.add(start);
-
-//        System.out.println("Finding path from {" + startX + ", " + startY + "} to {" + goalX + ", " + goalY + "}");
     }
 
-    public Stack<SearchNode> step()
+    public Stack<SearchNode> step(SearchNode goal)
     {
-        nodesTouched++;
-        if (open.peek().x == goalX && open.peek().y == goalY) // found path
+        // found path
+        if (open.peek().equals(goal))
         {
             searching = false;
 
             // rebuild path
-            SearchNode current = open.poll();
             Stack<SearchNode> path = new Stack<>();
+            SearchNode current = open.poll();
             path.push(current);
-
             while (cameFrom.keySet().contains(current))
             {
                 current = cameFrom.get(current);
                 path.push(current);
             }
-
             return path;
         }
 
         nodesExpanded++;
         current = open.poll();
-        current.setHasExpanded(true);
+        current.hasExpanded = true;
         closed.add(current);
 
-        expandCurrent();
+        expandCurrent(goal);
 
         return null;
     }
 
-    public void expandCurrent()
+    public void expandCurrent(SearchNode goal)
     {
         int costToN = 1; //current.getF();//Integer.MAX_VALUE;
 
-        for (SearchNode n : expander.getNeighbours(current.searchId))
+        for (SearchNode node : expander.getNeighbours(current.searchId))
         {
             nodesTouched++;
-            if (n.hasExpanded())
+            if (node.hasExpanded)
                 continue;
 
-            if (open.contains(n))
+            if (open.contains(node))
             {
                 // update a homeNode from the fringe
                 int gVal = current.g + costToN;
-                if (gVal < n.h)
+                if (gVal < node.h)
                 {
 
                     // TODO figure out what this does
@@ -147,13 +125,12 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
             }
             else
             {
-                // add a new homeNode to the fringe
+                // add node to the fringe
                 int gVal = current.g + costToN;
-                cameFrom.put(n, current);
-                n.updateCost(gVal, heuristic.h(n.x, n.y, goalX, goalY));
-                n.parent = current;
-//                n.getTile().setFill(Color.RED);
-                open.add(n);
+                cameFrom.put(node, current);
+                node.updateCost(gVal, heuristic.h(node, goal));
+                node.parent = current;
+                open.add(node);
                 nodesGenerated++;
             }
         }

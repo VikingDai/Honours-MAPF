@@ -48,7 +48,7 @@ public class Agent
             OnReachDestination();
             SearchNode nodeToMoveTo = GenerateGoalNode();
             Instant startTime = Instant.now();
-            path = search.findPath(currentNode.x, currentNode.y, nodeToMoveTo.x, nodeToMoveTo.y);
+            path = search.findPath(currentNode, nodeToMoveTo);
             if (path.size() > 1) // skip first homeNode of the path (where you start)
                 path.pop();
 
