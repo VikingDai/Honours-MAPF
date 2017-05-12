@@ -1,9 +1,9 @@
 package domains;
 
 import sample.Main;
-import sample.Simulation;
 import sample.Tile;
 import search.SearchNode;
+import utils.Globals;
 import warehouse.PickingStation;
 import warehouse.StoragePod;
 
@@ -137,18 +137,9 @@ public class GridMap
         return neighbours;
     }
 
-    public Tile[][] getTilesXY()
-    {
-        return tilesXY;
-    }
-
-    public List<Tile> getTiles()
-    {
-        return tiles;
-    }
-
     public SearchNode getRandomNode()
     {
-        return allNodes.get((int)(Math.random() * allNodes.size()));
+
+        return allNodes.get(Globals.RNG.nextInt(allNodes.size()));
     }
 }

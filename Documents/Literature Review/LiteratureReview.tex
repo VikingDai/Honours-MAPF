@@ -134,8 +134,11 @@ In this project, we look at Kiva Systems (now known as Amazon Robotics). In Kiva
 %	\item Unit is told to retrieve a product
 %\end{compactenum}
 
-Kiva systems do not require a complex infrastructure to operate, a warehouse needs only a suitible number of storage pods, picking stations and drive units to operate. As long as the warehouse has space, more robots, pods or stations can be easily be added to the system to satisfy the incoming flow of customer orders. When a drive unit malfunctions it can be easily accessed and replaced. In summary, the main benefits of Kiva systems are their low initial and maintenance costs and their rapid deployment and flexibility (\cite{wurman2008coordinating}).
+Kiva systems do not require a complex infrastructure to operate, a warehouse needs only a suitable number of storage pods, picking stations and drive units to operate. As long as the warehouse has space, more robots, pods or stations can be easily be added to the system to satisfy the incoming flow of customer orders. When a drive unit malfunctions it can be easily accessed and replaced. In summary, the main benefits of Kiva systems are their low initial and maintenance costs and their rapid deployment and flexibility (\cite{wurman2008coordinating}).
 
+
+\section{Introduction 2}
+In this literature review, we will be looking at optimal search algorithms in MAPF and specifics in regards to Warehouse Automation.
 
 
 \newpage
@@ -197,22 +200,7 @@ Specific to the process of order picking, we will look at the method of order pr
 
 \cite{renukamurthy2016improving}
 
-\subsection{Linear programming}
-Linear programming is commonly used when dealing with NP-hard problems. In pathfinding it excels at finding an optimal path. \textbf{In this technique, we look at an optimization function and constraints. A solver will work to find the optimal solution to the problem.}
 
-The book by \cite{ahuja1993network}, introduces many algorithms and applications, most related to this research is Section 4 which overviews shortest path searches. \cite{planes2009path} applies integer programming to search through a metabolic pathways. Here they find a series of biochemical reactions which a living organism will transform an compound to the target compound.
-
-MAPF
-
-\cite{schouwenaars2001mixed} Multi-vehicle path planning. Mixed integer programming.
-
-\cite{richards2002aircraft} Aircraft collision avoidance. Mixed integer linear programming.
-
-\cite{surynek2016efficient} Satisfiability problem (SAT)
-
-\cite{yu2013planning} Multi-robot path planning. Multiflow based integer linear programming (ILP).
-
-Branch and price is a method for solving integer programming problems
 
 
 
@@ -279,12 +267,16 @@ Branch and price is a method for solving integer programming problems
 
 \subsection{Cooperative Multi-agent pathfinding}
 
+
+
 When looking at multi-agent pathfinding, we will be first considering whether it is centralized. A centralized search usually indicates
+
+
+\section{Suboptimal}
 
 \subsubsection{CA*, HCA* and WHCA*}
 \cite{silver2005cooperative}
 \subsubsection*{Cooperative A*}
-
 \textit{The individual searches are performed in three dimensional space-time, and take account of the planned routes of other agents. A wait move is included in the agent’s action set, to enable it to remain stationary. After each agent’s route is calculated, the states along the route are marked into a reservation table. Entries in the reservation table are considered impassable and are avoided during searches by subsequent agents.
 }
 \subsubsection*{Hierarchical Cooperative A*}
@@ -294,11 +286,59 @@ When looking at multi-agent pathfinding, we will be first considering whether it
 \subsubsection*{Windowed Hierarchical Cooperative A*}
 \textit{The cooperative search is limited to a fixed depth specified by the current window. Each agent searches for a partial route to its destination, and then begins following the route. At regular intervals (e.g. when an agent is half-way through its partial route) the window is shifted forwards and a new partial route is computed}
 
+\subsection{Variants of optimal algorithms}
 
 \subsubsection{FAR}
 \cite{wang2008fast}
 
 \textit{When building a search graph from a grid map, FAR implements a flow restriction idea inspired by road networks. The movement along a given row (or column) is restricted to only one direction, avoiding head-to-head collisions. The movement direction alternates from one row (or column) to the next. Additional rules ensure that two locations reachable from each other on the original map remain connected (in both directions) in the graph. After building the search graph, an A* search is independently run for each mobile unit. Dur- ing plan execution, deadlocks are detected as cycles of units that wait for each other to move. A heuristic procedure for deadlock breaking attempts to repair plans locally, instead of running a larger scale, more expensive replanning step.}
+
+
+
+%==============================================
+
+\section{Reduction-based solvers}
+
+\textbf{\cite{surynek2016efficient} ``Many recent optimal solvers reduce MAPF to known problems such as COP [15], SAT [26], Inductive Logic Programming [33] and Answer Set Programming [9]. These papers mostly prove a polynomial-time reduction from MAPF to these problems. These reductions are usually designed for the makespan variant of MAPF; they are not applicable for the sum-of- costs variant.
+(2)''}
+
+\subsection{LP}
+Linear programming is commonly used when dealing with NP-hard problems. In pathfinding it excels at finding an optimal path. \textbf{In this technique, we look at an optimization function and constraints. A solver will work to find the optimal solution to the problem.}
+
+The book by \cite{ahuja1993network}, introduces many algorithms and applications, most related to this research is Section 4 which overviews shortest path searches. \cite{planes2009path} applies integer programming to search through a metabolic pathways. Here they find a series of biochemical reactions which a living organism will transform an compound to the target compound.
+
+MAPF
+
+\cite{schouwenaars2001mixed} Multi-vehicle path planning. Mixed integer programming.
+
+\cite{richards2002aircraft} Aircraft collision avoidance. Mixed integer linear programming.
+
+\subsection{SAT}
+\cite{surynek2016efficient} applies Linear program and looks at MAPF as a Satisfiability problem (SAT). They create a SAT solver for the bounding sum-of-costs objective function.
+
+
+\begin{compactitem}
+	\item Cardinality Constraints [3, 19]
+	\item Time expansion graph [27, 28, 29] - Makespan variant
+	\item Uses Multi-value Decision Diagram from \cite{sharon2011increasing}
+\end{compactitem}
+
+
+\subsection{Multi-flow based integer linear programming}
+
+\cite{yu2013planning} Multi-robot path planning. Multiflow based integer linear programming (ILP).
+
+Branch and price is a method for solving integer programming problems
+
+
+
+
+
+\subsection{Answer Set Programming?}
+
+\section{Procedure based}
+
+\textbf{``Complete. Very fast. Far from optimal. Solve very large problems''}
 
 \subsection{Slidable}
 \subsubsection*{MAPP}
@@ -308,14 +348,19 @@ When looking at multi-agent pathfinding, we will be first considering whether it
 
 Based on sliding tile puzzle. Always tries to keep a blank on an alternative path.
 
-\subsubsection*{TASS}
-\textit{tree-based agent swapping strategy}
+\subsection{Push and Swap}
 
-\section{Optimality}
+\subsection{Push and Rotate}
 
-\subsubsection{ICTS}
+\subsection{Tree-based agent swapping strategy}
 
-\subsubsection{Conflict-Based Search}
+%==============================================
+
+\section{Search trees}
+\subsubsection{Increasing cost search tree (ICTS)}
+
+
+\subsubsection{Conflict-Based Search (CBS)}
 Conflict-Based Search (CBS) is a optimal search algorithm.
 
 When a collision occurs a constraint 
@@ -323,27 +368,38 @@ Constraints describe the agent, time and location.
 
 The algorithm uses a constraint tree to describe these constraints and searches through this tree.
 
+\subsubsection*{Tree-based agent swapping strategy (TASS)}
+\textit{tree-based agent swapping strategy}
 
-\subsection{TAPF}
+%==============================================
+
+
+
+
+
+\section{Optimality}
+
+
+\subsection{Combined target assignment and pathfinding (TAPF)}
 
 \textit{Combined target assignment and pathfinding (TAPF) couples the target-assignment and the pathfinding problems and defines one common objective for both of them. Agents are partitioned into teams.
 Each team is given the same number of unique targets as there are agents in the team. The task of TAPF is to assign the targets to the agents and plan collision-free paths for the agents from their current vertices to their targets in a way such that each agent moves to exactly one target given to its team, all targets are visited and the makespan is minimized}
 
-\subsection{CBM}
+\subsection{Conflict-based Min-cost flow (CBM)}
 Conflict-based Min-cost flow
 
 \textit{The anonymous variant of MAPF (also called goal- invariant MAPF). Agents can get assigned any target and are thus exchangeable. It can be solved optimally in polynomial time with flow-based MAPF methods}
 
-\subsection{PERR}
+\subsection{Package-Exchange Robot-Routing (PERR)}
 Package-Exchange Robot-Routing (PERR)
 
 \subsection{Highways}
 \cite{cohen2016bounded}
 
-\subsection{Operator Decomposition}
+\subsection{Operator Decomposition (OD)}
 \textit{Standley proposes the mechanism of operator decomposition (OD) [30]. Instead of considering that the set of agents decides its joint action (operator), the agents decide their elementary action in turn, one after each other. With some care to special cases, A* associated with OD and a perfect heuristic is admissible and complete [30]}
 
-\subsection{Independance Detection}
+\subsection{Independance Detection (ID)}
 \textit{Each agent plans its optimal path to the goal with A*. Then conflicts are detected, and resolved if possible. When a conflict between two agents is not solvable, the two agents are gathered into a group, and an optimal solution is found for this group. Conflict between groups are detected and so forth. When few conflicts occur this method avoids the exponential size of the set of actions, but in the worst case, this method is inferior to any centralized method.}
 
 

@@ -148,7 +148,7 @@ public class Simulation
     {
         // draw the tiles
         gc.clearRect(0, 0, Main.CANVAS_MAX_SIZE, Main.CANVAS_MAX_SIZE);
-        for (Tile tile : map.getTiles())
+        for (Tile tile : map.tiles)
         {
             gc.setFill(tile.getFill());
             gc.fillRect(
