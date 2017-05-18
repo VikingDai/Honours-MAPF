@@ -9,12 +9,13 @@ import warehouse.StoragePod;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class GridMap
 {
     private int paddedWidth, paddedHeight, paddingPerRow;
     private int db;
-    private List<SearchNode> allNodes;
+    private List<SearchNode> nodePool;
     private SearchNode[] nodes;
 
     public List<Tile> tiles;
@@ -26,7 +27,7 @@ public class GridMap
     public GridMap(GridMapParser parser)
     {
         this(parser.getMetaInfo().getWidth(), parser.getMetaInfo().getHeight());
-        allNodes = new ArrayList<>();
+        nodePool = new ArrayList<>();
         List<String> map = parser.getMap(); // map as list of strings
         for (int y = 0; y < map.size(); y++)
         {
@@ -44,7 +45,7 @@ public class GridMap
                     SearchNode node = new SearchNode(x, y);
                     node.setSearchId(this);
                     setSearchNode(node, x, y);
-                    System.out.println("Added search homeNode at: " + x + " " + y);
+//                    System.out.println("Added search homeNode at: " + x + " " + y);
                     node.setTile(tile);
 
                     if (c == 'S') // load storage pods
@@ -76,7 +77,7 @@ public class GridMap
     public void setSearchNode(SearchNode node, int x, int y)
     {
         nodes[x + y * width] = node;
-        allNodes.add(node);
+        nodePool.add(node);
     }
 
     public int getX(int searchId)
@@ -94,9 +95,12 @@ public class GridMap
         return x + y * width;
     }
 
-    public SearchNode getSearchNodeAt(int x, int y)
+    public Optional<SearchNode> getSearchNodeAt(int x, int y)
     {
-        return nodes[xyToSearchId(x, y)];
+        if (checkPositionValid(x, y))
+            return Optional.of(nodes[xyToSearchId(x, y)]);
+
+        return Optional.empty();
     }
 
     public boolean doesSearchNodeExist(int x, int y)
@@ -112,7 +116,10 @@ public class GridMap
     public boolean checkPositionValid(int x, int y, boolean hasStoragePod)
     {
         if (hasStoragePod)
-            return checkPositionValid(x, y) && !getSearchNodeAt(x, y).hasStoragePod;
+        {
+            Optional<SearchNode> maybeNode = getSearchNodeAt(x, y);
+            return maybeNode.isPresent() && !maybeNode.get().hasStoragePod;
+        }
         else
             return checkPositionValid(x, y);
     }
@@ -125,26 +132,30 @@ public class GridMap
     public List<SearchNode> getNeighbours(int x, int y)
     {
         ArrayList<SearchNode> neighbours = new ArrayList<>();
-        boolean thisNodeHasStoragePod = getSearchNodeAt(x, y).hasStoragePod;
+        Optional<SearchNode> maybeNode = getSearchNodeAt(x, y);
 
-        if (checkPositionValid(x + 1, y, thisNodeHasStoragePod))
-            neighbours.add(getSearchNodeAt(x + 1, y));
+        if (!maybeNode.isPresent())
+            return neighbours;
 
-        if (checkPositionValid(x - 1, y, thisNodeHasStoragePod))
-            neighbours.add(getSearchNodeAt(x - 1, y));
+        boolean hasStoragePod = maybeNode.get().hasStoragePod;
 
-        if (checkPositionValid(x, y + 1, thisNodeHasStoragePod))
-            neighbours.add(getSearchNodeAt(x, y + 1));
+        if (checkPositionValid(x + 1, y, hasStoragePod))
+            getSearchNodeAt(x + 1, y).ifPresent(neighbours::add);
 
-        if (checkPositionValid(x, y - 1, thisNodeHasStoragePod))
-            neighbours.add(getSearchNodeAt(x, y - 1));
+        if (checkPositionValid(x - 1, y, hasStoragePod))
+            getSearchNodeAt(x - 1, y).ifPresent(neighbours::add);
+
+        if (checkPositionValid(x, y + 1, hasStoragePod))
+            getSearchNodeAt(x, y + 1).ifPresent(neighbours::add);
+
+        if (checkPositionValid(x, y - 1, hasStoragePod))
+            getSearchNodeAt(x, y - 1).ifPresent(neighbours::add);
 
         return neighbours;
     }
 
     public SearchNode getRandomNode()
     {
-
-        return allNodes.get(Globals.RNG.nextInt(allNodes.size()));
+        return nodePool.get(Globals.RNG.nextInt(nodePool.size()));
     }
 }

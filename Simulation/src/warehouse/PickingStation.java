@@ -6,6 +6,7 @@ import search.SearchNode;
 import utils.Globals;
 
 import java.util.List;
+import java.util.Optional;
 
 public class PickingStation
 {
@@ -22,7 +23,7 @@ public class PickingStation
     {
         return Main.getSimulation().map.getSearchNodeAt(
                 node.x + Globals.RNG.nextInt(3) - 1,
-                node.y + Globals.RNG.nextInt(3) - 1);
-}
+                node.y + Globals.RNG.nextInt(3) - 1).orElse(null);
+    }
 }
 

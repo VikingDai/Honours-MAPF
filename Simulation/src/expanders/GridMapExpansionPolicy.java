@@ -22,9 +22,7 @@ public class GridMapExpansionPolicy
 
     public SearchNode generate(int x, int y)
     {
-        return map.getSearchNodeAt(x, y);
-//         return map.getNeighbours(x, y).get(0);
-//        return nodepool();
+        return map.getSearchNodeAt(x, y).orElse(null);
     }
 
     public List<SearchNode> getNeighbours(int searchId)

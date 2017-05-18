@@ -1,10 +1,14 @@
 package search;
 
 import expanders.GridMapExpansionPolicy;
+import graphics.GUI;
 import heuristics.BaseHeuristic;
 import javafx.scene.paint.Color;
+import sample.Main;
 import utils.ISearch;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 
 public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPolicy> implements ISearch
@@ -18,16 +22,18 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
     private SearchNode current;
     private int goalId;
 
+
+    private boolean waitForInput;
+    public boolean searching;
+
+
+    // meta search info
     private int nodesExpanded;
     private int nodesGenerated;
     private int nodesTouched;
 
-    private boolean waitForInput;
-
-    public boolean searching;
-
-    // meta search info
-    public static int numSearches;
+    private long totalSearches;
+    private long totalSearchTime;
 
     public FlexibleAStar(H heuristic, E expander)
     {
@@ -37,31 +43,41 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
         this.heuristic = heuristic;
         this.expander = expander;
         this.searching = false;
-        nodesExpanded = 0;
-        nodesGenerated = 0;
-        nodesTouched = 0;
+        nodesExpanded = nodesGenerated = nodesTouched = 0;
+        totalSearches = totalSearchTime = 0;
     }
 
     public Stack<SearchNode> findPath(SearchNode start, SearchNode goal)
     {
-        numSearches += 1;
+        Instant startTime = Instant.now();
+        Stack<SearchNode> path = new Stack<>();
 
         initSearch(start, goal);
 
         while (!open.isEmpty())
         {
-            Stack<SearchNode> path = step(goal);
-            if (path != null) return path;
+            Optional<Stack<SearchNode>> maybePath = step(goal);
+            if (maybePath.isPresent())
+            {
+                path = maybePath.get();
+                return path;
+            }
         }
 
-        return null;
+        System.err.println("Failed to find a path!");
+
+        long duration = Duration.between(startTime, Instant.now()).toNanos();
+        totalSearchTime += duration;
+        totalSearches += 1;
+        Main.getGUI().setAvgSearch(totalSearchTime / (double) (totalSearches * 1000));
+
+        return path;
     }
 
     public void initSearch(SearchNode start, SearchNode goal)
     {
         // reset tiles from last search
         closed.forEach(n -> n.hasExpanded = false);
-
         closed.clear();
         cameFrom.clear();
         open.clear();
@@ -75,10 +91,9 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
         open.add(start);
     }
 
-    public Stack<SearchNode> step(SearchNode goal)
+    public Optional<Stack<SearchNode>> step(SearchNode goal)
     {
-        // found path
-        if (open.peek().equals(goal))
+        if (open.peek().equals(goal)) // found path
         {
             searching = false;
 
@@ -86,12 +101,13 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
             Stack<SearchNode> path = new Stack<>();
             SearchNode current = open.poll();
             path.push(current);
+
             while (cameFrom.keySet().contains(current))
             {
                 current = cameFrom.get(current);
                 path.push(current);
             }
-            return path;
+            return Optional.of(path);
         }
 
         nodesExpanded++;
@@ -101,7 +117,7 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
 
         expandCurrent(goal);
 
-        return null;
+        return Optional.empty();
     }
 
     public void expandCurrent(SearchNode goal)

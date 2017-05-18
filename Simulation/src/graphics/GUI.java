@@ -12,6 +12,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.util.converter.IntegerStringConverter;
 import math.Vector2d;
@@ -41,11 +42,22 @@ public class GUI extends BorderPane
     public Group simulationGroup;
     private Map<RenderLayer, GraphicsContext> renderLayers;
 
-    //
+    // simulation group input
     private boolean hasClicked;
     private Vector2d mouseClicked;
 
+    // stats
     private Label timeStepLabel;
+
+    public void setTimeStep(int timeStep) { timeStepLabel.setText("Time step: " + timeStep); }
+
+    private Label avgSearchLabel;
+
+    public void setAvgSearch(double avgSearchTime) { avgSearchLabel.setText(String.format("Avg search: %.2f ms",
+            avgSearchTime)); }
+
+    private Label nodesSearchedLabel;
+
 
     public GUI()
     {
@@ -66,31 +78,26 @@ public class GUI extends BorderPane
         Canvas movingCanvas = new Canvas(CANVAS_MAX_SIZE, CANVAS_MAX_SIZE);
         renderLayers.put(RenderLayer.MOVING, movingCanvas.getGraphicsContext2D());
 
-
-        // sample.Main homeNode where rendering occurs
+        // create main group to draw the simulation
         simulationGroup = new Group();
         simulationGroup.setOnMouseDragged(this::onDragged);
         simulationGroup.setOnScroll(this::onScrolled);
+        simulationGroup.setOnMouseClicked(this::onClicked);
         simulationGroup.setOnMouseReleased(e -> hasClicked = false);
-
         setCenter(simulationGroup);
 
+        // order panes and canvases
         Pane layeredPane = new Pane();
         Pane agentPane = new Pane();
-        layeredPane.getChildren().add(agentPane);
-        layeredPane.getChildren().add(tileCanvas);
-        layeredPane.getChildren().add(agentCanvas);
-        layeredPane.getChildren().add(movingCanvas);
-
+        layeredPane.getChildren().addAll(agentPane, tileCanvas, agentCanvas, movingCanvas);
         tileCanvas.toFront();
         agentPane.toFront();
         movingCanvas.toFront();
         agentCanvas.toFront();
-
         simulationGroup.getChildren().add(layeredPane);
 
+        // setup top and side panels
         setupTopPanel();
-
         try
         {
             setupSidePanel();
@@ -112,7 +119,7 @@ public class GUI extends BorderPane
 
         timeStepLabel = new Label("Time step: 0"); // timestep
 
-        Label avgTime = new Label("Average search time: 0.001 ms"); // search time
+        avgSearchLabel = new Label("Average search time: 0.001 ms"); // search time
 
         // enter seed
         TextField seedTextField = new TextField();
@@ -121,7 +128,7 @@ public class GUI extends BorderPane
 
         Label seedLabel = new Label("Seed: 0");
 
-        box.getChildren().addAll(timeStepLabel, avgTime, seedLabel);
+        box.getChildren().addAll(timeStepLabel, avgSearchLabel, seedLabel);
     }
 
     private void setupSidePanel() throws IOException
@@ -139,6 +146,7 @@ public class GUI extends BorderPane
         ObservableList<Path> allMaps = FXCollections.observableArrayList();
         Files.list(Paths.get("maps")).forEach(allMaps::add);
         ComboBox<Path> mapComboBox = new ComboBox<>(allMaps);
+        mapComboBox.setOnAction(event -> System.out.println("Selected map: " + mapComboBox.getValue()));
 
         Button loadMapButton = new Button("Load Map");
         loadMapButton.setOnAction(event ->
@@ -165,21 +173,23 @@ public class GUI extends BorderPane
         });
 
 
-        // run button
+        HBox runAndPause = new HBox();
+        runAndPause.setSpacing(20);
         ImageView runImage = new ImageView(new Image("file:assets/images/play-button.png"));
         runImage.setPreserveRatio(true);
         runImage.setFitHeight(box.getPrefHeight());
         Button runButton = new Button("", runImage);
         runButton.setOnAction(event -> Main.getSimulation().isTicking = true);
 
-        // pause button
         ImageView pauseImage = new ImageView(new Image("file:assets/images/pause-button.png"));
         pauseImage.setPreserveRatio(true);
         pauseImage.setFitHeight(box.getPrefHeight());
         Button pauseButton = new Button("", pauseImage);
         pauseButton.setOnAction(event -> Main.getSimulation().isTicking = false);
 
-        box.getChildren().addAll(mapComboBox, loadMapButton, chooseFileButton, radioButton, runButton, pauseButton);
+        runAndPause.getChildren().addAll(runButton, pauseButton);
+
+        box.getChildren().addAll(mapComboBox, loadMapButton, chooseFileButton, radioButton, runAndPause);
     }
 
     private void onScrolled(ScrollEvent e)
@@ -206,7 +216,14 @@ public class GUI extends BorderPane
         }
     }
 
+    private void onClicked(MouseEvent e)
+    {
+        Main.getSimulation().map
+                .getSearchNodeAt((int) e.getX(), (int) e.getY())
+                .ifPresent(n -> n.tile.setFill(Color.RED));
+    }
+
     public GraphicsContext getLayer(RenderLayer layer) { return renderLayers.get(layer); }
 
-    public void setTimeStep(int timeStep) { timeStepLabel.setText("Time step: " + timeStep); }
+
 }
