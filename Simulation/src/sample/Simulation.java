@@ -3,6 +3,8 @@ package sample;
 import domains.GridMap;
 import domains.GridMapParser;
 import expanders.GridMapExpansionPolicy;
+import graphics.GUI;
+import graphics.GUI.RenderLayer;
 import heuristics.ManhattanHeuristic;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
@@ -13,6 +15,7 @@ import utils.ReservationTable;
 import warehouse.DriveUnit;
 import warehouse.PickingStation;
 import warehouse.StoragePod;
+import warehouse.Warehouse;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -29,15 +32,19 @@ public class Simulation
     public ReservationTable reservationTable;
     public int timeStep;
 
+    public Warehouse warehouse;
+    public boolean isTicking;
 
     public Simulation()
     {
+        isTicking = false;
         agents = new ArrayList<>();
         storagePods = new ArrayList<>();
         pickingStations = new ArrayList<>();
+        warehouse = new Warehouse();
     }
 
-    public void init(String mapPath)
+    public void init(String problemInstancePath)
     {
         ProblemInstance instance = new ProblemInstance("instances/warehouse1.instance");
         GridMapParser mapParser = new GridMapParser(instance);
@@ -57,31 +64,30 @@ public class Simulation
         for (Agent agent : agents)
         {
             agent.step();
-//            reservationTable.update(timeStep, agent);
         }
 
-//        reservationTable.findConflicts(timeStep);
-//        System.out.println(timeStep);
-//        reservationTable.print();
-//        System.out.println(reservationTable.table.size());
-
-        agents.forEach(a -> a.tick(0));
-
-        timeStep += 1;
+//        agents.forEach(a -> a.tick(0));
 
         // update rendering
         draw(gc);
         drawCollisions(gc);
+
+        // update time step
+        timeStep += 1;
+        Main.getGUI().setTimeStep(timeStep);
     }
 
     void tick(float dt)
     {
+        if (isTicking)
+            step(Main.getGUI().getLayer(RenderLayer.MOVING));
+
         agents.forEach(a -> a.tick(dt));
     }
 
     void draw(GraphicsContext gc)
     {
-        gc.clearRect(0, 0, Main.CANVAS_MAX_SIZE, Main.CANVAS_MAX_SIZE);
+        gc.clearRect(0, 0, GUI.CANVAS_MAX_SIZE, GUI.CANVAS_MAX_SIZE);
 
         // draw the agent id
         for (Agent agent : agents)
@@ -144,10 +150,10 @@ public class Simulation
         }
     }
 
-    void drawMap(GraphicsContext gc)
+    public void drawMap(GraphicsContext gc)
     {
         // draw the tiles
-        gc.clearRect(0, 0, Main.CANVAS_MAX_SIZE, Main.CANVAS_MAX_SIZE);
+        gc.clearRect(0, 0, GUI.CANVAS_MAX_SIZE, GUI.CANVAS_MAX_SIZE);
         for (Tile tile : map.tiles)
         {
             gc.setFill(tile.getFill());

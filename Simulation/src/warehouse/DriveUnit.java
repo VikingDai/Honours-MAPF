@@ -86,7 +86,6 @@ public class DriveUnit extends Agent
                 Collections.shuffle(Main.getSimulation().pickingStations);
                 goalNode = Main.getSimulation().pickingStations.get(0).node;
 
-
                 break;
             case DELIVERING:
 //                System.out.println("Returning storage pod");

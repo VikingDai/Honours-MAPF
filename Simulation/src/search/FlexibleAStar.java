@@ -3,11 +3,11 @@ package search;
 import expanders.GridMapExpansionPolicy;
 import heuristics.BaseHeuristic;
 import javafx.scene.paint.Color;
+import utils.ISearch;
 
 import java.util.*;
 
-
-public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPolicy>
+public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPolicy> implements ISearch
 {
     private Map<SearchNode, SearchNode> cameFrom;
     private Queue<SearchNode> open;
@@ -37,6 +37,9 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
         this.heuristic = heuristic;
         this.expander = expander;
         this.searching = false;
+        nodesExpanded = 0;
+        nodesGenerated = 0;
+        nodesTouched = 0;
     }
 
     public Stack<SearchNode> findPath(SearchNode start, SearchNode goal)
@@ -127,9 +130,14 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
             {
                 // add node to the fringe
                 int gVal = current.g + costToN;
+
                 cameFrom.put(node, current);
+
+                // update node
                 node.updateCost(gVal, heuristic.h(node, goal));
                 node.parent = current;
+
+
                 open.add(node);
                 nodesGenerated++;
             }

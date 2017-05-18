@@ -117,6 +117,11 @@ public class GridMap
             return checkPositionValid(x, y);
     }
 
+    public List<SearchNode> getNeighbours(SearchNode node)
+    {
+        return getNeighbours(node.x, node.y);
+    }
+
     public List<SearchNode> getNeighbours(int x, int y)
     {
         ArrayList<SearchNode> neighbours = new ArrayList<>();
