@@ -18,6 +18,7 @@ import javafx.util.converter.IntegerStringConverter;
 import math.Vector2d;
 import sample.Main;
 import sample.Simulation;
+import search.SearchNode;
 import utils.Globals;
 
 import java.io.IOException;
@@ -26,6 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class GUI extends BorderPane
 {
@@ -53,8 +55,11 @@ public class GUI extends BorderPane
 
     private Label avgSearchLabel;
 
-    public void setAvgSearch(double avgSearchTime) { avgSearchLabel.setText(String.format("Avg search: %.2f ms",
-            avgSearchTime)); }
+    public void setAvgSearch(double avgSearchTime)
+    {
+        avgSearchLabel.setText(String.format("Avg search: %.2f ms",
+                avgSearchTime));
+    }
 
     private Label nodesSearchedLabel;
 
@@ -199,7 +204,7 @@ public class GUI extends BorderPane
         Globals.RENDER_SCALE *= scaleDelta;
 
         // redraw graphics
-        Main.getSimulation().drawMap(getLayer(RenderLayer.BACKGROUND));
+        Main.getSimulation().drawMap();
     }
 
     private void onDragged(MouseEvent e)
@@ -218,9 +223,33 @@ public class GUI extends BorderPane
 
     private void onClicked(MouseEvent e)
     {
-        Main.getSimulation().map
-                .getSearchNodeAt((int) e.getX(), (int) e.getY())
-                .ifPresent(n -> n.tile.setFill(Color.RED));
+        Main.getSimulation().map.getNodeInWorld(e.getX(), e.getY()).ifPresent(node ->
+        {
+            int setGoal = -1; // do nothing if -1
+            switch (e.getButton())
+            {
+                case PRIMARY:
+                    setGoal = 1;
+                    break;
+                case SECONDARY:
+                    setGoal = 2;
+                    break;
+            }
+
+            System.out.println("Set " + node + " as start node");
+            if (setGoal == 1)
+            {
+                Main.getSimulation().start = node;
+                node.tile.setFill(Color.BLUE);
+            }
+            else if (setGoal == 2)
+            {
+                Main.getSimulation().goal = node;
+                node.tile.setFill(Color.RED);
+            }
+
+            Main.getSimulation().drawMap();
+        });
     }
 
     public GraphicsContext getLayer(RenderLayer layer) { return renderLayers.get(layer); }

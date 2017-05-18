@@ -158,4 +158,10 @@ public class GridMap
     {
         return nodePool.get(Globals.RNG.nextInt(nodePool.size()));
     }
+
+    public Optional<SearchNode> getNodeInWorld(double x, double y)
+    {
+        return getSearchNodeAt((int) (x / Globals.RENDER_SCALE), (int) (y / Globals.RENDER_SCALE));
+    }
+
 }

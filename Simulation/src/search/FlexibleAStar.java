@@ -60,11 +60,9 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
             if (maybePath.isPresent())
             {
                 path = maybePath.get();
-                return path;
+                break;
             }
         }
-
-        System.err.println("Failed to find a path!");
 
         long duration = Duration.between(startTime, Instant.now()).toNanos();
         totalSearchTime += duration;

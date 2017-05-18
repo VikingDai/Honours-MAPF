@@ -10,6 +10,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import search.FlexibleAStar;
 import search.ProblemInstance;
+import search.SearchNode;
 import utils.Globals;
 import utils.ReservationTable;
 import warehouse.DriveUnit;
@@ -23,6 +24,9 @@ import java.util.List;
 
 public class Simulation
 {
+    public SearchNode start;
+    public SearchNode goal;
+
     public GridMap map;
     public FlexibleAStar aStar;
     public List<Agent> agents;
@@ -53,7 +57,7 @@ public class Simulation
         aStar = new FlexibleAStar<>(new ManhattanHeuristic(mapParser.getMetaInfo()), new GridMapExpansionPolicy(map));
 
         // add actors to simulation
-        for (int i = 0; i < 1; i++)
+        for (int i = 0; i < 50; i++)
             agents.add(new DriveUnit(map.getRandomNode(), aStar));
 
         reservationTable = new ReservationTable();
@@ -150,8 +154,9 @@ public class Simulation
         }
     }
 
-    public void drawMap(GraphicsContext gc)
+    public void drawMap()
     {
+        GraphicsContext gc = Main.getGUI().getLayer(RenderLayer.BACKGROUND);
         // draw the tiles
         gc.clearRect(0, 0, GUI.CANVAS_MAX_SIZE, GUI.CANVAS_MAX_SIZE);
         for (Tile tile : map.tiles)

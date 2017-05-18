@@ -1,12 +1,10 @@
 package warehouse;
 
 import sample.Main;
-import sample.Simulation;
 import search.SearchNode;
 import utils.Globals;
 
 import java.util.List;
-import java.util.Optional;
 
 public class PickingStation
 {

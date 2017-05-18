@@ -48,11 +48,11 @@ public class DriveUnit extends Agent
 //                System.out.println("Getting storage pod");
                 action = UnitAction.GETTING;
 
-//                // next action: find storage pod containing new order
+                // next action: find storage pod containing new order
 //                Optional<StoragePod> goalStoragePod = Main.getSimulation().storagePods
 //                        .stream()
 //                        .filter(sp -> sp.product == order)
-//                        .sorted(Comparator.comparingInt(sp -> sp.homeNode.x - currentNode.x + sp.homeNode.y - currentNode.y))
+//                        .sorted(Comparator.comparingInt(sp -> Math.abs(sp.homeNode.x - currentNode.x) + Math.abs(sp.homeNode.y - currentNode.y)))
 //                        .findFirst();
 //
 //                goalStoragePod.ifPresent(storagePod ->
@@ -67,6 +67,7 @@ public class DriveUnit extends Agent
                 goalNode = currentPod.homeNode;
 
 
+
                 break;
             case GETTING:
                 Main.getSimulation().storagePods.remove(currentPod);
@@ -75,16 +76,15 @@ public class DriveUnit extends Agent
 
 
                 // find nearest picking station
-//                Optional<PickingStation> pickingStations = Main.getSimulation().pickingStations
-//                        .stream()
-//
-//                        .sorted(Comparator.comparingInt(ps -> ps.node.x - currentNode.x + ps.node.y - currentNode.y))
-//                        .findFirst();
-//                pickingStations.ifPresent(pickingStation -> goalNode = pickingStation.node);
+                Optional<PickingStation> pickingStations = Main.getSimulation().pickingStations
+                        .stream()
+                        .sorted(Comparator.comparingInt(ps -> Math.abs(ps.node.x - currentNode.x) + Math.abs(ps.node.y - currentNode.y)))
+                        .findFirst();
+                pickingStations.ifPresent(pickingStation -> goalNode = pickingStation.node);
 
                 // random picking station
-                Collections.shuffle(Main.getSimulation().pickingStations);
-                goalNode = Main.getSimulation().pickingStations.get(0).node;
+//                Collections.shuffle(Main.getSimulation().pickingStations);
+//                goalNode = Main.getSimulation().pickingStations.get(0).node;
 
                 break;
             case DELIVERING:

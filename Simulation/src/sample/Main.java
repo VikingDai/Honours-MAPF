@@ -67,7 +67,7 @@ public class Main extends Application
 
         simulation.init("maps/warehouse.map");
         simulation.agents.forEach(a -> gui.simulationGroup.getChildren().add(a.circle));
-        simulation.drawMap(gui.getLayer(RenderLayer.BACKGROUND));
+        simulation.drawMap();
     }
 
     private void OnTick(ActionEvent e)
