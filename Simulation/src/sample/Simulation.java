@@ -57,7 +57,7 @@ public class Simulation
         aStar = new FlexibleAStar<>(new ManhattanHeuristic(mapParser.getMetaInfo()), new GridMapExpansionPolicy(map));
 
         // add actors to simulation
-        for (int i = 0; i < 50; i++)
+//        for (int i = 0; i < 5; i++)
             agents.add(new DriveUnit(map.getRandomNode(), aStar));
 
         reservationTable = new ReservationTable();

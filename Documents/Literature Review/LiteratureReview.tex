@@ -119,7 +119,7 @@ Supervisors: \parbox[t]{50mm}{Daniel Harabor,\\Pierre Le Bodic}
 \section{Introduction}
 Order picking is a process in warehouse systems whereby products are retrieved from storage to satisfy incoming customer orders. This process has been identified by \cite{de2007design} as the most expensive process in operating a warehouse, estimated to take 55\% of the warehouse operating cost.
 
-Here we look at a method of order picking known as part-to-picker systems. Part-to-picker systems contain multiple picking stations located around the warehouse. Products are brought to picking stations where workers will manually pick and process the product. One of the disadvantages of part-to-picker systems is that there will be some downtime at the picking stations while waiting for an order to be delivered. To solve this, these systems often use an automated storage and retrieval system (AS/RS). \cite{introduction2015autostore} is a recent part-to-picker system where products are organized in a grid of stacked bins. Robots move around the top of the grid, lifting bins and delivering them to picking areas. Benefits of the AutoStore system include high storage density and expansion capability. While not much literature is published about the specifics of AutoStore, we suspect the major downsides are: slow, expensive order retrieval as well as high infrastructure and maintenance costs.
+Here we look at a method of order picking known as part-to-picker systems. Part-to-picker systems contain multiple picking stations located around the warehouse. Products are brought to picking stations where workers will manually pick and process the product. One of the disadvantages of part-to-picker systems is that there will be some downtime at the picking stations while waiting for an order to be delivered. To solve this, these systems often use an automated storage and retrieval system (AS/RS).
 
 In this project, we look at Kiva Systems (now known as Amazon Robotics). In Kiva systems, products are stored in mobile shelves known as storage pods. Robots known as drive units are responsible for retrieving and delivering storage pods to picking stations. A human worker is stationed at each picking station who picks the item off the pod before processing it (Fig \ref{kivaprocess}). Once the pod has been processed, the drive unit will return the pod to an appropriate location in the warehouse.
 
@@ -138,7 +138,19 @@ Kiva systems do not require a complex infrastructure to operate, a warehouse nee
 
 
 \section{Introduction 2}
-In this literature review, we will be looking at optimal search algorithms in MAPF and specifics in regards to Warehouse Automation.
+This project looks at improving multi-agent pathfinding (MAPF) system in the context of Kiva Systems. Our approach is focused on optimal MAPF and we will be looking at two major areas:
+
+\begin{enumerate}
+	\item Using Branch and Price to identify and resolve path-conflicts
+	\item Improving search speeds?
+\end{enumerate}
+
+The usage of branch and price is the focus of this project and as such this 
+literature review will cover a wide range of optimal MAPF algorithms. The major part of this section will show a comparison of these algorithms across a number of different measures / features. \textbf{Additionally we hope to find the difference between heuristic searches and reduction searches.}
+
+As for the search techniques, we will cover only those which we intend to implement into this project which are: Jump Point Search (JPS) and Compressed Path Databases. Here we will describe how the algorithm works, any major improvements and describe the speedups.
+
+Finally the last section of this review will overview literature on Warehouse Automation. There are many optimization aspects specific to Warehouse Automation. In this project a wide number of simplifications will be made in order to focus on MAPF. This section will recognize these as future work and briefly look at any past work that has been done.
 
 
 \newpage
@@ -151,7 +163,6 @@ We aim to explore two areas of Kiva systems, the layout and MAPF. These can be s
 		\item Adding an intermediate zone where drive units may drop off storage pods
 		\item Adding the capability for drive units to maneuver under storage pods
 		\item Implementing an optimized order process
-
 	\end{compactitem}
 
 \item How much faster will the MAPF search run by pre-computing paths and storing them in a path oracle?
@@ -412,6 +423,17 @@ Package-Exchange Robot-Routing (PERR)
 \cite{gu2007research} (Research on warehouse operation: A comprehensive review)
 
 \cite{gu2010research} (Research on warehouse design and performance evaluation: A comprehensive review)
+
+\subsection{Other factors}
+\cite{correll2016lessons}
+
+
+\section{Information outside of the literature}
+System and method for coordinating movement of mobile drive units  - https://www.google.com/patents/US7920962
+
+https://www-google-com/patents/US9511934
+
+ICAPS 2014 Invited Talk: Peter Wurman - https://www.youtube.com/watch?v=YSrnV0wZywU
 
 \subsection{Summary}
 

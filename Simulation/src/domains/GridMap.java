@@ -115,7 +115,7 @@ public class GridMap
 
     public boolean checkPositionValid(int x, int y, boolean hasStoragePod)
     {
-        if (hasStoragePod)
+        if (hasStoragePod) // can't move under storage pods when you have a storage pod
         {
             Optional<SearchNode> maybeNode = getSearchNodeAt(x, y);
             return maybeNode.isPresent() && !maybeNode.get().hasStoragePod;
@@ -137,7 +137,7 @@ public class GridMap
         if (!maybeNode.isPresent())
             return neighbours;
 
-        boolean hasStoragePod = maybeNode.get().hasStoragePod;
+        boolean hasStoragePod = maybeNode.get().hasStoragePod; // current node has a storage pod
 
         if (checkPositionValid(x + 1, y, hasStoragePod))
             getSearchNodeAt(x + 1, y).ifPresent(neighbours::add);
