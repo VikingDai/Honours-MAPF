@@ -6,18 +6,17 @@ import search.SearchNode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class GridMapExpansionPolicy
 {
-    private GridMap map;
-    private ArrayList<SearchNode> nodepool;
-    private int which; // current neighbour
-    private SearchNode[] neighbours;
-    int numNeighbours;
+    protected GridMap map;
+    protected List<SearchNode> neighbours = new ArrayList<>();
 
     public GridMapExpansionPolicy(GridMap map)
     {
         this.map = map;
+        neighbours = new ArrayList<>();
     }
 
     public SearchNode generate(int x, int y)
@@ -32,11 +31,39 @@ public class GridMapExpansionPolicy
 
     public List<SearchNode> getNeighbours(int x, int y)
     {
-        return map.getNeighbours(x, y);
+        neighbours.clear();
+        Optional<SearchNode> maybeNode = map.getSearchNodeAt(x, y);
+
+        if (!maybeNode.isPresent())
+            return neighbours;
+
+        if (map.checkPositionValid(x + 1, y))
+            map.getSearchNodeAt(x + 1, y).ifPresent(neighbours::add);
+
+        if (map.checkPositionValid(x - 1, y))
+            map.getSearchNodeAt(x - 1, y).ifPresent(neighbours::add);
+
+        if (map.checkPositionValid(x, y + 1))
+            map.getSearchNodeAt(x, y + 1).ifPresent(neighbours::add);
+
+        if (map.checkPositionValid(x, y - 1))
+            map.getSearchNodeAt(x, y - 1).ifPresent(neighbours::add);
+
+        return neighbours;
     }
 
     public void expand(SearchNode current, ProblemInstance instance)
     {
 
+    }
+
+    public List<SearchNode> expand(int searchId, SearchNode goal)
+    {
+        return expand(map.getX(searchId), map.getY(searchId), goal);
+    }
+
+    public List<SearchNode> expand(int x, int y, SearchNode goal)
+    {
+        return new ArrayList<>();
     }
 }

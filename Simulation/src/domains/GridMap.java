@@ -103,6 +103,11 @@ public class GridMap
         return Optional.empty();
     }
 
+    public Optional<SearchNode> getSearchNodeRelative(SearchNode node, int dx, int dy)
+    {
+        return getSearchNodeAt(node.x + dx, node.y + dy);
+    }
+
     public boolean doesSearchNodeExist(int x, int y)
     {
         return nodes[xyToSearchId(x, y)] != null;

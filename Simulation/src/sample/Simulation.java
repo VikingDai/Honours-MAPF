@@ -2,7 +2,6 @@ package sample;
 
 import domains.GridMap;
 import domains.GridMapParser;
-import expanders.GridMapExpansionPolicy;
 import graphics.GUI;
 import graphics.GUI.RenderLayer;
 import heuristics.ManhattanHeuristic;
@@ -54,7 +53,7 @@ public class Simulation
         GridMapParser mapParser = new GridMapParser(instance);
 
         map = new GridMap(mapParser);
-        aStar = new FlexibleAStar<>(new ManhattanHeuristic(mapParser.getMetaInfo()), new GridMapExpansionPolicy(map));
+        aStar = new FlexibleAStar<>(new ManhattanHeuristic(mapParser.getMetaInfo()));
 
         // add actors to simulation
 //        for (int i = 0; i < 5; i++)
@@ -131,9 +130,11 @@ public class Simulation
 
         // draw the storage pods
         gc.setLineWidth(0);
-        gc.setFill(Color.GREEN);
+
         for (StoragePod pod : storagePods)
         {
+            gc.setFill(pod.color);
+
             gc.fillRect(
                     pod.homeNode.x * Globals.RENDER_SCALE,
                     pod.homeNode.y * Globals.RENDER_SCALE,
@@ -143,7 +144,7 @@ public class Simulation
 
         // draw the picking stations
         gc.setLineWidth(0);
-        gc.setFill(Color.RED);
+//        gc.setFill(Color.RED);
         for (PickingStation station : pickingStations)
         {
             gc.fillRect(
@@ -152,6 +153,8 @@ public class Simulation
                     Globals.RENDER_SCALE * 0.8,
                     Globals.RENDER_SCALE * 0.8);
         }
+
+        Globals.debugPoints.forEach(d -> d.drawPoint(gc));
     }
 
     public void drawMap()

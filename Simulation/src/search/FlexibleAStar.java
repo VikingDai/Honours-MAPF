@@ -3,25 +3,25 @@ package search;
 import expanders.GridMapExpansionPolicy;
 import graphics.GUI;
 import heuristics.BaseHeuristic;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import sample.Main;
+import utils.DebugPoint;
+import utils.Globals;
 import utils.ISearch;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
-public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPolicy> implements ISearch
+public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPolicy>
 {
     private Map<SearchNode, SearchNode> cameFrom;
     private Queue<SearchNode> open;
     private List<SearchNode> closed;
 
     private H heuristic;
-    private E expander;
     private SearchNode current;
-    private int goalId;
-
 
     private boolean waitForInput;
     public boolean searching;
@@ -35,19 +35,18 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
     private long totalSearches;
     private long totalSearchTime;
 
-    public FlexibleAStar(H heuristic, E expander)
+    public FlexibleAStar(H heuristic)
     {
         closed = new ArrayList<>();
         cameFrom = new HashMap<>();
         open = new PriorityQueue<>(new SearchNodeComparator());
         this.heuristic = heuristic;
-        this.expander = expander;
         this.searching = false;
         nodesExpanded = nodesGenerated = nodesTouched = 0;
         totalSearches = totalSearchTime = 0;
     }
 
-    public Stack<SearchNode> findPath(SearchNode start, SearchNode goal)
+    public Stack<SearchNode> findPath(SearchNode start, SearchNode goal, E expander)
     {
         Instant startTime = Instant.now();
         Stack<SearchNode> path = new Stack<>();
@@ -56,7 +55,7 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
 
         while (!open.isEmpty())
         {
-            Optional<Stack<SearchNode>> maybePath = step(goal);
+            Optional<Stack<SearchNode>> maybePath = step(goal, expander);
             if (maybePath.isPresent())
             {
                 path = maybePath.get();
@@ -74,6 +73,12 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
 
     public void initSearch(SearchNode start, SearchNode goal)
     {
+
+
+        Globals.debugPoints.clear();
+//        Globals.debugPoints.add(new DebugPoint(start, Color.BLACK, 0.6));
+//        Globals.debugPoints.add(new DebugPoint(goal, Color.BLACK, 0.6));
+
         // reset tiles from last search
         closed.forEach(n -> n.hasExpanded = false);
         closed.clear();
@@ -89,7 +94,7 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
         open.add(start);
     }
 
-    public Optional<Stack<SearchNode>> step(SearchNode goal)
+    public Optional<Stack<SearchNode>> step(SearchNode goal, E expander)
     {
         if (open.peek().equals(goal)) // found path
         {
@@ -113,16 +118,18 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
         current.hasExpanded = true;
         closed.add(current);
 
-        expandCurrent(goal);
+//        Globals.debugPoints.add(new DebugPoint(current.x, current.y, Color.BLUE, 0.5));
+
+        expandCurrent(goal, expander);
 
         return Optional.empty();
     }
 
-    public void expandCurrent(SearchNode goal)
+    public void expandCurrent(SearchNode goal, E expander)
     {
         int costToN = 1; //current.getF();//Integer.MAX_VALUE;
 
-        for (SearchNode node : expander.getNeighbours(current.searchId))
+        for (SearchNode node : expander.expand(current.searchId, goal))
         {
             nodesTouched++;
             if (node.hasExpanded)
@@ -143,7 +150,7 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
             else
             {
                 // add node to the fringe
-                int gVal = current.g + costToN;
+                int gVal = current.g + heuristic.h(current, node);
 
                 cameFrom.put(node, current);
 
