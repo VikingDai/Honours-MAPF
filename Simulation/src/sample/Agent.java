@@ -9,8 +9,6 @@ import search.FlexibleAStar;
 import search.SearchNode;
 import utils.Globals;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Stack;
 
 public class Agent
@@ -20,6 +18,9 @@ public class Agent
     public Stack<SearchNode> path;
     public SearchNode nextNode;
     public SearchNode currentNode;
+    public SearchNode goalNode;
+
+    public GridMapExpansionPolicy expansionPolicy;
     boolean reachedNext;
 
     private FlexibleAStar<ManhattanHeuristic, GridMapExpansionPolicy> search;
@@ -39,34 +40,44 @@ public class Agent
         color = Color.color(Math.random(), Math.random(), Math.random());
 
         circle = new Circle(Globals.RENDER_SCALE, color);
+
+        goalNode = currentNode;
     }
 
     public void step()
     {
         if (path.isEmpty()) // reached destination
         {
-            OnReachDestination();
-            SearchNode nodeToMoveTo = GenerateGoalNode();
+            if (currentNode == goalNode)
+            {
+                OnReachDestination();
+            }
 
-            path = search.findPath(currentNode, nodeToMoveTo);
+            path = search.findPath(currentNode, goalNode, expansionPolicy);
             if (path.size() > 1) // skip first homeNode of the path (where you start)
                 path.pop();
             else
                 return; // failed to find a path
         }
 
-        nextNode = path.pop();
-        currentNode = nextNode;
+//        nextNode = path.pop();
+//        currentNode = nextNode;
+
+        if (currentNode == nextNode || nextNode == null)
+        {
+            nextNode = path.pop();
+        }
+//        else
+//        {
+            int dx = (int) Math.signum(nextNode.x - currentNode.x);
+            int dy = (int) Math.signum(nextNode.y - currentNode.y);
+            currentNode = Main.getSimulation().map.getSearchNodeRelative(currentNode, dx, dy).get();
+//        }
     }
 
     public void OnReachDestination()
     {
 
-    }
-
-    public SearchNode GenerateGoalNode()
-    {
-        return Main.getSimulation().map.getRandomNode();
     }
 
     public void tick(float dt)
