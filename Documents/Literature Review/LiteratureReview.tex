@@ -5,6 +5,7 @@
 \usepackage{natbib} % Use the natbib bibliography and citation package
 \usepackage{setspace} % This is used in the title page
 \usepackage{graphicx} % This is used to load the crest in the title page
+\usepackage{physics} % Used for \abs
 
 % non-template packages
 \usepackage{paralist}
@@ -23,6 +24,9 @@
 	citecolor=teal,
 	urlcolor=blue
 }
+
+\usepackage[english]{babel}
+\usepackage{blindtext}
 
 %tikz stuff
 \usepackage{tikz}
@@ -151,6 +155,62 @@ literature review will cover a wide range of optimal MAPF algorithms. The major 
 As for the search techniques, we will cover only those which we intend to implement into this project which are: Jump Point Search (JPS) and Compressed Path Databases. Here we will describe how the algorithm works, any major improvements and describe the speedups.
 
 Finally the last section of this review will overview literature on Warehouse Automation. There are many optimization aspects specific to Warehouse Automation. In this project a wide number of simplifications will be made in order to focus on MAPF. This section will recognize these as future work and briefly look at any past work that has been done.
+
+\section{Background}
+
+We will be looking at pathfinding in a orthogonal grid-based map. Formally we describe this as:
+
+
+\begin{itemize}
+	\item A graph $G = (V, E)$
+	\begin{itemize}
+		\item $V$ is a set of nodes
+		\item $E$ is a set of edges
+		\item $\abs{E} \le 4$
+	\end{itemize}
+\end{itemize}
+
+\noindent \textbf{Multi-agent Pathfinding.} In multi-agent pathfinding (MAPF) we look at a set of agents, $K$ where $location(k) \in V$. MAPF aims to find a path $p$ from start node $s$ to goal node $g$ for each agent in $K$. A path is a sequence specifying agent is on node $n$ at timestep $t$. Finally no path can conflict with another path.
+
+Formally defining this:
+	
+\begin{itemize}
+	\item $P$ is the set of all paths
+	\item $\forall K (location(k) \in V)$
+	\item $\forall K (\exists s (s \in V) \land \exists g(g \in V))$
+	\item $\forall (k_{1} \in K) \forall (k_{2} \in K) (k_1 \neq k_2) (\exists p \land \forall K)$
+	\item $\forall p_1 \in P, \forall p_2 \in P (\forall tl_1 \in p_1, \forall tl_2 \in p_2) tl_1 \neq tl_2$
+\end{itemize}
+
+MAPF describes pathfinding 
+
+
+
+Multi-agent pathfinding involves finding a path for each agent to their goal such that no path conflicts another.
+
+\subsection{Single agent pathfinding}
+Single-agent pathfinding involves searching for the shortest path from a start node, to goal node. We will refer to single-agent pathfinding as searching. There are a number of areas where searching can be sped up.
+
+\begin{enumerate}
+	\item Better Heuristics
+	\item Pruning the search space
+	\item Precomputating paths
+\end{enumerate}
+
+In this project we will be looking at \textit{Jump Point Search} within the area of pruning and
+\textit{Compressed Path Databases} for pre-computation.
+
+\subsection{Better Heuristics}
+Briefly covering the state of the art in heuristics.
+Heuristics - \textbf{List some new heuristic?} \blindtext
+
+\subsection{Pruning the search space}
+Pruning the search space is 
+
+\subsection{Precomputating paths}
+
+
+\cite{delling2009engineering} 
 
 
 \newpage
@@ -359,9 +419,7 @@ Branch and price is a method for solving integer programming problems
 
 Based on sliding tile puzzle. Always tries to keep a blank on an alternative path.
 
-\subsection{Push and Swap}
-
-\subsection{Push and Rotate}
+\subsection{Push and Swap and Push and Rotate}
 
 \subsection{Tree-based agent swapping strategy}
 
