@@ -13,6 +13,17 @@
 \usepackage{caption}
 \usepackage{tabularx, booktabs}
 \newcolumntype{Y}{>{\centering\arraybackslash}X}
+\usepackage{listings}
+\lstset{
+	numbers=left, 
+	numberstyle=\small, 
+	numbersep=8pt, 
+	frame = single, 
+	language=Python, 
+	framexleftmargin=17pt}
+
+\usepackage{tikz}
+\usepackage{smartdiagram}
 
 \usepackage[font={small,it}]{caption}
 \usepackage{hyperref}
@@ -170,35 +181,63 @@ We will be looking at pathfinding in a orthogonal grid-based map. Formally we de
 	\end{itemize}
 \end{itemize}
 
-\noindent \textbf{Multi-agent Pathfinding.} In multi-agent pathfinding (MAPF) we look at a set of agents, $K$ where $location(k) \in V$. MAPF aims to find a path $p$ from start node $s$ to goal node $g$ for each agent in $K$. A path is a sequence specifying agent is on node $n$ at timestep $t$. Finally no path can conflict with another path.
-
-Formally defining this:
+\noindent \textbf{Multi-agent Pathfinding.} In multi-agent pathfinding (MAPF) we look at a set of agents, $K$ where $\forall k \in K (location(k) \in V)$. MAPF aims to find a path $p$ from start node $s$ to goal node $g$ for each agent in $K$. A path is a sequence specifying agent is at node $n$ at timestep $t$. In MAPF no path can conflict with another path. State of the art MAPF techniques usually follow this generalized process.
 	
+%\begin{itemize}
+%	\item $P$ is the set of all paths
+%	\item $\forall K (location(k) \in V)$
+%	\item $\forall K (\exists s (s \in V) \land \exists g(g \in V))$
+%	\item $\forall (k_{1} \in K) \forall (k_{2} \in K) (k_1 \neq k_2) (\exists p \land \forall K)$
+%	\item $\forall p_1 \in P, \forall p_2 \in P (\forall tl_1 \in p_1, \forall tl_2 \in p_2) tl_1 \neq tl_2$
+%\end{itemize}
+
+\begin{figure}[H]
+\centering
+\smartdiagram[circular diagram:clockwise]{
+	Search,Conflicts,Resolve
+}
+\caption{High-level MAPF process}
+\end{figure}
+
+\subsection{Warehouse Automation}
+
+\begin{figure}[H]
+	\centering
+	\small
+%	\smartdiagramset{planet color=orange!60, distance planet-satellite=4cm, bubble node size=5cm}
+	\smartdiagram[bubble diagram]{
+		\Large Warehouse \\ \Large Automation, Order \\ assignment, Pod \\ Selection, Drive \\ Allocation, Storage Cell \\ Assignment, Charger \\ Allocation, Storage Pod \\ Replenishment, MAPF
+	}
+	\caption{Dimensions of the Warehouse Automation problem}
+	\label{wa-dimensions}
+\end{figure}
+
 \begin{itemize}
-	\item $P$ is the set of all paths
-	\item $\forall K (location(k) \in V)$
-	\item $\forall K (\exists s (s \in V) \land \exists g(g \in V))$
-	\item $\forall (k_{1} \in K) \forall (k_{2} \in K) (k_1 \neq k_2) (\exists p \land \forall K)$
-	\item $\forall p_1 \in P, \forall p_2 \in P (\forall tl_1 \in p_1, \forall tl_2 \in p_2) tl_1 \neq tl_2$
+	\item Grid based environment
+	\item $\ge 1000$ robots
+	\item Density of 1 robot in 6 cells
 \end{itemize}
 
-MAPF describes pathfinding 
+In this project we will be making a number of simplifications to the Warehouse Problem in order to focus on MAPF. Essentially this is all the areas in figure~\ref{wa-dimensions} aside from MAPF.
+
+\begin{itemize}
+	\item No replenishment, for both storage pods (inventory) and drive units (battery)
+	\item Storage pods contain only 1 order
+	\item Orders contain only 1 inventory
+\end{itemize}
 
 
 
-Multi-agent pathfinding involves finding a path for each agent to their goal such that no path conflicts another.
+\subsection{Improving Search}
+Search involves finding the shortest path from start to goal node. There are a number of dimensions which can improve the speed of searching. This project will cover the areas highlighted in bold.
 
-\subsection{Single agent pathfinding}
-Single-agent pathfinding involves searching for the shortest path from a start node, to goal node. We will refer to single-agent pathfinding as searching. There are a number of areas where searching can be sped up.
-
-\begin{enumerate}
+\begin{itemize}
 	\item Better Heuristics
-	\item Pruning the search space
-	\item Precomputating paths
-\end{enumerate}
+	\textbf{\item Pruning the search space}
+	\textbf{\item Precomputating paths}
+\end{itemize}
 
-In this project we will be looking at \textit{Jump Point Search} within the area of pruning and
-\textit{Compressed Path Databases} for pre-computation.
+In this project we will be looking at \textit{Jump Point Search} within the area of pruning and \textit{Compressed Path Databases} for pre-computation.
 
 \subsection{Better Heuristics}
 Briefly covering the state of the art in heuristics.
@@ -430,12 +469,29 @@ Based on sliding tile puzzle. Always tries to keep a blank on an alternative pat
 
 
 \subsubsection{Conflict-Based Search (CBS)}
+
+\begin{table}
+	\begin{tabular}{ c c }
+		Variants & Properties \\
+		\hline
+		ICBS &   \\
+		MA-CBS & \\
+		
+	\end{tabular}
+\end{table}
+	
+
+
 Conflict-Based Search (CBS) is a optimal search algorithm.
 
 When a collision occurs a constraint 
 Constraints describe the agent, time and location.
 
 The algorithm uses a constraint tree to describe these constraints and searches through this tree.
+
+ICBS
+
+MA-CBS
 
 \subsubsection*{Tree-based agent swapping strategy (TASS)}
 \textit{tree-based agent swapping strategy}
