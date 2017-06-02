@@ -116,22 +116,16 @@ Supervisors: \parbox[t]{50mm}{Daniel Harabor,\\Pierre Le Bodic}
 \setcounter{page}{1}
 \renewcommand{\thepage}{\arabic{page}}
 
-	\begin{abstract} %100-200 words
+
 	
-	% Why
-	\noindent The order picking process is the number one expense in the operating cost of warehouse systems. This project will look at \textit{part-to-picker}, a method of order picking where orders are retrieved and delivered to a number of picking areas located around the warehouse. Previous research has improved on multi-agent path finding (MAPF) algorithms but mostly overlooked the potential benefits gained by configuring the warehouse layout.
-	% What
-	Here, we will be exploring Kiva systems a part-to-picker system which uses autonomous vehicles and mobile storage. Our focus is to explore a number of adjustments and additions which we expect will greatly affect how we design warehouse layouts.
-	% How
-	These include: introducing an intermediate dropping zone, optimizing order processing and adding the capability for robots to maneuver under storage pods.
-	% Where
-	The results of this project will help identify how we should position storage and picking stations in a warehouse. Additionally, we will be looking at developing a MAPF method which uses a pre-computed path oracle.
-	
-	\noindent \\ \textbf{Keywords} \\
-	Cooperative Multi-agent pathfinding, Kiva systems
-	
-\end{abstract}
 \section{Introduction}
+The order picking process is the number one expense in the operating cost of warehouse systems. This project will look at \textit{part-to-picker}, a method of order picking where orders are retrieved and delivered to a number of picking areas located around the warehouse. Previous research has improved on multi-agent path finding (MAPF) algorithms but mostly overlooked the potential benefits gained by configuring the warehouse layout.
+
+% What
+Here, we will be exploring Kiva systems a part-to-picker system which uses autonomous vehicles and mobile storage. Our focus is to explore a number of adjustments and additions which we expect will greatly affect how we design warehouse layouts.
+
+
+
 Order picking is a process in warehouse systems whereby products are retrieved from storage to satisfy incoming customer orders. This process has been identified by \cite{de2007design} as the most expensive process in operating a warehouse, estimated to take 55\% of the warehouse operating cost.
 
 Here we look at a method of order picking known as part-to-picker systems. Part-to-picker systems contain multiple picking stations located around the warehouse. Products are brought to picking stations where workers will manually pick and process the product. One of the disadvantages of part-to-picker systems is that there will be some downtime at the picking stations while waiting for an order to be delivered. To solve this, these systems often use an automated storage and retrieval system (AS/RS).
@@ -153,23 +147,16 @@ Kiva systems do not require a complex infrastructure to operate, a warehouse nee
 
 
 \section{Introduction 2}
-This project looks at improving multi-agent pathfinding (MAPF) system in the context of Kiva Systems. Our approach is focused on optimal MAPF and we will be looking at two major areas:
 
-\begin{enumerate}
-	\item Using Branch and Price to identify and resolve path-conflicts
-	\item Improving search speeds?
-\end{enumerate}
+This project looks at improving multi-agent pathfinding (MAPF) in the context of Kiva Systems. Our approach is focused on finding an optimal solution to MAPF. We will primarily be looking at gains from reducing the problem to mixed-integer program. As such this literature review covers mostly optimal MAPF algorithms. A major part will show compare optimal MAPF algorithms across a number of different measures.
 
-The usage of branch and price is the focus of this project and as such this 
-literature review will cover a wide range of optimal MAPF algorithms. The major part of this section will show a comparison of these algorithms across a number of different measures / features. \textbf{Additionally we hope to find the difference between heuristic searches and reduction searches.}
+Secondarily we will look at applying single-agent pathfinding techniques to improve upon A*. In this section, we will cover only those which we intend to implement into this project which are: Jump Point Search, Compressed Path Databases. Here we will describe how the algorithm works and the major benefits or restrictions of the algorithms.
 
-As for the search techniques, we will cover only those which we intend to implement into this project which are: Jump Point Search (JPS) and Compressed Path Databases. Here we will describe how the algorithm works, any major improvements and describe the speedups.
-
-Finally the last section of this review will overview literature on Warehouse Automation. There are many optimization aspects specific to Warehouse Automation. In this project a wide number of simplifications will be made in order to focus on MAPF. This section will recognize these as future work and briefly look at any past work that has been done.
+The last section of this review will overview literature on Warehouse Automation. There are many dimensions specific to the area of Warehouse Automation. Here we will describe the simplifications we choose to make to these areas, recognize these as future work and briefly cover the literature.
 
 \section{Background}
 
-We will be looking at pathfinding in a orthogonal grid-based map. Formally we describe this as:
+Within Warehouse Automation we will be looking at pathfinding in a orthogonal grid-based map. Formally we describe this as:
 
 
 \begin{itemize}
@@ -226,6 +213,7 @@ In this project we will be making a number of simplifications to the Warehouse P
 	\item Orders contain only 1 inventory
 \end{itemize}
 
+Section~\ref{section:wa} will briefly cover past work on other aspects besides MAPF within the Warehouse Automation problem.
 
 
 \subsection{Improving Search}
@@ -253,19 +241,6 @@ Pruning the search space is
 
 
 \newpage
-\subsection{Research questions}
-We aim to explore two areas of Kiva systems, the layout and MAPF. These can be summarized in the following questions:
-
-\begin{enumerate}
-	\item How will the adjustments and additions below affect our decision when it comes to configuring the warehouse layout?
-	\begin{compactitem}
-		\item Adding an intermediate zone where drive units may drop off storage pods
-		\item Adding the capability for drive units to maneuver under storage pods
-		\item Implementing an optimized order process
-	\end{compactitem}
-
-\item How much faster will the MAPF search run by pre-computing paths and storing them in a path oracle?
-\end{enumerate}
 
 \section{Background}
 \label{background}
@@ -412,8 +387,8 @@ When looking at multi-agent pathfinding, we will be first considering whether it
 \textbf{\cite{surynek2016efficient} ``Many recent optimal solvers reduce MAPF to known problems such as COP [15], SAT [26], Inductive Logic Programming [33] and Answer Set Programming [9]. These papers mostly prove a polynomial-time reduction from MAPF to these problems. These reductions are usually designed for the makespan variant of MAPF; they are not applicable for the sum-of- costs variant.
 (2)''}
 
-\subsection{LP}
-Linear programming is commonly used when dealing with NP-hard problems. In pathfinding it excels at finding an optimal path. \textbf{In this technique, we look at an optimization function and constraints. A solver will work to find the optimal solution to the problem.}
+\subsection{Mixed Integer Programming}
+Mixed Integer Programming is commonly used when dealing with NP-hard problems. In pathfinding it excels at finding an optimal path. \textbf{In this technique, we look at an optimization function and constraints. A solver will work to find the optimal solution to the problem.}
 
 The book by \cite{ahuja1993network}, introduces many algorithms and applications, most related to this research is Section 4 which overviews shortest path searches. \cite{planes2009path} applies integer programming to search through a metabolic pathways. Here they find a series of biochemical reactions which a living organism will transform an compound to the target compound.
 
@@ -481,7 +456,6 @@ Based on sliding tile puzzle. Always tries to keep a blank on an alternative pat
 \end{table}
 	
 
-
 Conflict-Based Search (CBS) is a optimal search algorithm.
 
 When a collision occurs a constraint 
@@ -531,12 +505,13 @@ Package-Exchange Robot-Routing (PERR)
 \section{Other factors}
 \cite{honig2016multi} factored in kinematic constraints.
 
-\section{Warehouse}
+\section{Other aspects of Warehouse Automation} \label{section:wa}
 
 \subsection{Overview papers}
 \cite{gu2007research} (Research on warehouse operation: A comprehensive review)
-
 \cite{gu2010research} (Research on warehouse design and performance evaluation: A comprehensive review)
+
+Design and control of warehouse order picking: A literature review
 
 \subsection{Other factors}
 \cite{correll2016lessons}
