@@ -63,474 +63,83 @@
 %}
 
 \begin{document}
-
-% Set up a title page
-\thispagestyle{empty} % no page number on very first page
-% Use roman numerals for page numbers initially
-\renewcommand{\thepage}{\roman{page}}
-
-\begin{spacing}{1.5}
-\begin{center}
-{\Large \bfseries
-School of Computer Science (BICA) \\
-Monash University}
-
-
-\vspace*{30mm}
-
-\includegraphics[width=5cm]{graphics/MonashCrest.pdf}
-
-\vspace*{15mm}
-
-{\large \bfseries
-Literature Review, 2017
-}
-
-\vspace*{10mm}
-
-{\LARGE \bfseries
-Improving cooperative pathfinding using a path oracle
-}
-
-\vspace*{20mm}
-
-{\large \bfseries
-Phillip Wong
-
-\vspace*{20mm}
-
-
-Supervisors: \parbox[t]{50mm}{Daniel Harabor,\\Pierre Le Bodic}
-}
-
-\end{center}
-\end{spacing}
-
-\newpage
-
-\tableofcontents
-
-\newpage
-% Now reset page number counter,and switch to arabic numerals for remaining
-% page numbers 
-\setcounter{page}{1}
-\renewcommand{\thepage}{\arabic{page}}
-
-
 	
-\section{Introduction}
-The order picking process is the number one expense in the operating cost of warehouse systems. This project will look at \textit{part-to-picker}, a method of order picking where orders are retrieved and delivered to a number of picking areas located around the warehouse. Previous research has improved on multi-agent path finding (MAPF) algorithms but mostly overlooked the potential benefits gained by configuring the warehouse layout.
-
-% What
-Here, we will be exploring Kiva systems a part-to-picker system which uses autonomous vehicles and mobile storage. Our focus is to explore a number of adjustments and additions which we expect will greatly affect how we design warehouse layouts.
-
-
-
-Order picking is a process in warehouse systems whereby products are retrieved from storage to satisfy incoming customer orders. This process has been identified by \cite{de2007design} as the most expensive process in operating a warehouse, estimated to take 55\% of the warehouse operating cost.
-
-Here we look at a method of order picking known as part-to-picker systems. Part-to-picker systems contain multiple picking stations located around the warehouse. Products are brought to picking stations where workers will manually pick and process the product. One of the disadvantages of part-to-picker systems is that there will be some downtime at the picking stations while waiting for an order to be delivered. To solve this, these systems often use an automated storage and retrieval system (AS/RS).
-
-In this project, we look at Kiva Systems (now known as Amazon Robotics). In Kiva systems, products are stored in mobile shelves known as storage pods. Robots known as drive units are responsible for retrieving and delivering storage pods to picking stations. A human worker is stationed at each picking station who picks the item off the pod before processing it (Fig \ref{kivaprocess}). Once the pod has been processed, the drive unit will return the pod to an appropriate location in the warehouse.
-
-
-%\noindent The process of order retrieval for a drive unit is as follows:
-%\begin{compactenum}
-%	\item Unit is told to retrieve a product
-%	\item Unit moves to the storage pod containing the product and picks up the pod
-%	\item Unit carries the pod to a picking station
-%	\item Human worker picks the product from the pod and packs it
-%	\item Unit returns the pod back to where it was picked up
-%	\item Unit is told to retrieve a product
-%\end{compactenum}
-
-Kiva systems do not require a complex infrastructure to operate, a warehouse needs only a suitable number of storage pods, picking stations and drive units to operate. As long as the warehouse has space, more robots, pods or stations can be easily be added to the system to satisfy the incoming flow of customer orders. When a drive unit malfunctions it can be easily accessed and replaced. In summary, the main benefits of Kiva systems are their low initial and maintenance costs and their rapid deployment and flexibility (\cite{wurman2008coordinating}).
-
-
-\section{Introduction 2}
-
-This project looks at improving multi-agent pathfinding (MAPF) in the context of Kiva Systems. Our approach is focused on finding an optimal solution to MAPF. We will primarily be looking at gains from reducing the problem to mixed-integer program. As such this literature review covers mostly optimal MAPF algorithms. A major part will show compare optimal MAPF algorithms across a number of different measures.
-
-Secondarily we will look at applying single-agent pathfinding techniques to improve upon A*. In this section, we will cover only those which we intend to implement into this project which are: Jump Point Search, Compressed Path Databases. Here we will describe how the algorithm works and the major benefits or restrictions of the algorithms.
-
-The last section of this review will overview literature on Warehouse Automation. There are many dimensions specific to the area of Warehouse Automation. Here we will describe the simplifications we choose to make to these areas, recognize these as future work and briefly cover the literature.
-
-\section{Background}
-
-Within Warehouse Automation we will be looking at pathfinding in a orthogonal grid-based map. Formally we describe this as:
-
-
-\begin{itemize}
-	\item A graph $G = (V, E)$
-	\begin{itemize}
-		\item $V$ is a set of nodes
-		\item $E$ is a set of edges
-		\item $\abs{E} \le 4$
-	\end{itemize}
-\end{itemize}
-
-\noindent \textbf{Multi-agent Pathfinding.} In multi-agent pathfinding (MAPF) we look at a set of agents, $K$ where $\forall k \in K (location(k) \in V)$. MAPF aims to find a path $p$ from start node $s$ to goal node $g$ for each agent in $K$. A path is a sequence specifying agent is at node $n$ at timestep $t$. In MAPF no path can conflict with another path. State of the art MAPF techniques usually follow this generalized process.
+	% Set up a title page
+	\thispagestyle{empty} % no page number on very first page
+	% Use roman numerals for page numbers initially
+	\renewcommand{\thepage}{\roman{page}}
 	
-%\begin{itemize}
-%	\item $P$ is the set of all paths
-%	\item $\forall K (location(k) \in V)$
-%	\item $\forall K (\exists s (s \in V) \land \exists g(g \in V))$
-%	\item $\forall (k_{1} \in K) \forall (k_{2} \in K) (k_1 \neq k_2) (\exists p \land \forall K)$
-%	\item $\forall p_1 \in P, \forall p_2 \in P (\forall tl_1 \in p_1, \forall tl_2 \in p_2) tl_1 \neq tl_2$
-%\end{itemize}
-
-\begin{figure}[H]
-\centering
-\smartdiagram[circular diagram:clockwise]{
-	Search,Conflicts,Resolve
-}
-\caption{High-level MAPF process}
-\end{figure}
-
-\subsection{Warehouse Automation}
-
-\begin{figure}[H]
-	\centering
-	\small
-%	\smartdiagramset{planet color=orange!60, distance planet-satellite=4cm, bubble node size=5cm}
-	\smartdiagram[bubble diagram]{
-		\Large Warehouse \\ \Large Automation, Order \\ assignment, Pod \\ Selection, Drive \\ Allocation, Storage Cell \\ Assignment, Charger \\ Allocation, Storage Pod \\ Replenishment, MAPF
-	}
-	\caption{Dimensions of the Warehouse Automation problem}
-	\label{wa-dimensions}
-\end{figure}
-
-\begin{itemize}
-	\item Grid based environment
-	\item $\ge 1000$ robots
-	\item Density of 1 robot in 6 cells
-\end{itemize}
-
-In this project we will be making a number of simplifications to the Warehouse Problem in order to focus on MAPF. Essentially this is all the areas in figure~\ref{wa-dimensions} aside from MAPF.
-
-\begin{itemize}
-	\item No replenishment, for both storage pods (inventory) and drive units (battery)
-	\item Storage pods contain only 1 order
-	\item Orders contain only 1 inventory
-\end{itemize}
-
-Section~\ref{section:wa} will briefly cover past work on other aspects besides MAPF within the Warehouse Automation problem.
-
-
-\subsection{Improving Search}
-Search involves finding the shortest path from start to goal node. There are a number of dimensions which can improve the speed of searching. This project will cover the areas highlighted in bold.
-
-\begin{itemize}
-	\item Better Heuristics
-	\textbf{\item Pruning the search space}
-	\textbf{\item Precomputating paths}
-\end{itemize}
-
-In this project we will be looking at \textit{Jump Point Search} within the area of pruning and \textit{Compressed Path Databases} for pre-computation.
-
-\subsection{Better Heuristics}
-Briefly covering the state of the art in heuristics.
-Heuristics - \textbf{List some new heuristic?} \blindtext
-
-\subsection{Pruning the search space}
-Pruning the search space is 
-
-\subsection{Precomputating paths}
-
-
-\cite{delling2009engineering} 
-
-
-\newpage
-
-\section{Background}
-\label{background}
-% Description of MAPF problem, including objective function
-
-In Kiva systems, we face a multi-agent pathfinding (MAPF) problem. MAPF aims to find a path for each agent to their goal while ensuring that no path conflicts with another. MAPF has usage in video games, robotics (\cite{bennewitz2002finding}), search and rescue (\cite{konolige2006centibots}) and warehouse applications. When analyzing the efficiency of a MAPF algorithm we generally aim to reduce the makespan of the system. Additionally, in Kiva systems we want to reduce the downtime of picking stations.
-
-% How hard is it?
-Finding an optimal solution in MAPF is an NP-hard problem (\cite{yu2013structure}) and mostly has found usage in systems containing a small number agents. This is not an option as Kiva systems deal with hundreds of agents, for example the Office Supply company, Staples uses 500 robots in their $30000m^{2}$ center (\cite{guizzo2008three}). Here we look at finding a bounded suboptimal solution and this has been explored in Kiva systems by (\cite{cohen2016bounded}).
-
-% What are the main way people solve it?
-To improve MAPF, generally methods are created to simplify the problem, \cite{cohen2016bounded} define user-provided highways to help guide agents towards a specific direction, greatly reducing the chance of path collisions. \cite{wilt2014spatially} identifies bottlenecks in the environment and assigns a controller which handles agents who want to pass through the bottleneck, simplifying agent behaviour in high collision zones. Another common technique is grouping agents into teams. \cite{ma2016optimal} splits agents into teams of 5 and presents a Conflict-Based Min-Cost-Flow algorithm which and shows that they can achieve a correct, complete and optimal solution.
-
-% What are the main advantages and drawbacks of each approach?
-
-%\cite{de2007design} provides a great overview of picking
-Specific to the process of order picking, we will look at the method of order processing. Take an example where products of the same type are grouped together in a warehouse. If a large order of one product comes in, the agents will all try to find a path to this one area and create many collisions in the MAPF. We want the goal locations for our drive units to be spread evenly around the warehouse and order processing allows this by looking at two areas. Firstly, by evenly distributing products around the warehouse. If we place products of the same type across many different row around the warehouse, a large order of one product will be no issue. Secondly, is sequencing of incoming orders. Instead of processing the large orders of one product sequentially, we have some flexibility to interlace this large order with other orders which we know we will need to process. Essentially, we can move the mobile storage pods as well adjust the incoming ordering sequence to benefit the MAPF. \cite{boysen2017parts} looks at both these aspects in unison and found that with optimized order processing, only half the units are required to provide the supply given by a non-optimized system.
-
-\subsection{Objective function}
-
-\cite{yu2015optimal} looked at: 
-\begin{compactenum}
-	\item Total Arrival time: 
-	\item Makespan: The time between 
-	\item Total Distance: 
-	\item Maximum Distance: 
-\end{compactenum}
-
-\begin{enumerate}
-	\item Test
-\end{enumerate}
-
-
-
-\subsubsection{}
-
-\subsection{Improving A*}
-
-\subsubsection{Compressed Path Databases}
-
-\subsubsection{Jump Point Search}
-
-\cite{renukamurthy2016improving}
-
-
-
-
-
-
-
-\subsection{Comparing MAPF algorithms}
-
-{\setlength{\parindent}{0cm}
-
-\textbf{Completeness:} if a path to the goal exists, it is always found
-
-\textbf{Solution quality:}
-	\begin{compactitem}
-		\item Optimal: finds the shortest path to the goal
-		\item Bounded suboptimal: finds a path to the goal where the difference between the found path length and the optimal path length is always less than some bound
-		\item Suboptimal: finds a path to the goal with no guarantee of path length
-	\end{compactitem}
-
-\textbf{Anonymous:} which agent goes to which goal is interchangeable
-
-\textbf{Time complexity:}
-	\begin{compactitem}
-		\item Non-Polynomial (NP) / Intractable
-		\item Polynomial / Tractable
-	\end{compactitem}
-
-\textbf{Dynamic?:} If the environment is changed does anything need to be recomputed i.e. did the algorithm require preprocessing
-
-\textbf{Anytime:} The search can spend more computation to improve the solution quality or number of solutions. It can stop earlier at any time and return a path.
-
-\textbf{Centralized / Coupled:} \textit{A centralised approach (Barraquand \& Latombe 1991; LaValle \& Hutchin- son 1998) has a single global decision maker for all agents, is theoretically optimal but, as discussed before, it does not scale up to many agents due to a prohibitive complexity. A decoupled (decentralized) approach decomposes the problem into several subproblems. The latter approach is faster but yields suboptimal solutions and loses the completeness} \cite{wang2008fast}
-
-\textbf{Online / Offline} \textit{An online algorithm is one that can only process its input piece-by-piece in a serial fashion, in the order that the input is fed to the algorithm, without having the entire input available from the start. An offline algorithm is given the whole problem data from the beginning and is required to output an answer which solves the problem at hand.}
-} % End no indent
-\begin{figure}[H]
-\centering
-\small
-\begin{tabular}{ l c c c c c }
-	\textbf{Search} & \textbf{Centralised}  & \textbf{Complete} & \textbf{Tractable} & \textbf{SQ} & \textbf{Anon} \\
-	\hline
-	WHCA* 				& N & N & N & O  & No \\
-	FAR  				& N & Y & Y & BO & No \\
-	MAPP 				& N & N & O & BO &No \\
-	CBS 				& N & N & O & O  & \\
-	BCP					& N & & & & \\
-	Centralised A* 		& Y & & & & \\	
-\end{tabular}
-
-\caption{Comparison of MAPF algorithms}
-\end{figure}
-
-
-%\cite{wurman2008coordinating} provides an in depth overview of Kiva Systems, describing their benefits, usages and research areas.
-
-%\cite{gu2010research} provides a comprehensive review of warehouse design and performance. It covers 5 major aspects, overall structure, sizing and dimensioning, department layout, equipment selection and operation strategy selection.
-
-%\cite{de2007design} provides a survey on order picking
-
-%\cite{strasser2015compressing} uses Compressed Path Databases.
-
-%Unlike existing literature, in this project we aim looking at a number of other factors which are likely to simplify the pathfinding problem.
-
-%Windowed Hierarchical Cooperative A∗. Cooperative A*. Conflict-Oriented Windowed Hierarchical Cooperative A∗. Compressed Path Databases.
-
-\subsection{Cooperative Multi-agent pathfinding}
-
-
-
-When looking at multi-agent pathfinding, we will be first considering whether it is centralized. A centralized search usually indicates
-
-
-\section{Suboptimal}
-
-\subsubsection{CA*, HCA* and WHCA*}
-\cite{silver2005cooperative}
-\subsubsection*{Cooperative A*}
-\textit{The individual searches are performed in three dimensional space-time, and take account of the planned routes of other agents. A wait move is included in the agent’s action set, to enable it to remain stationary. After each agent’s route is calculated, the states along the route are marked into a reservation table. Entries in the reservation table are considered impassable and are avoided during searches by subsequent agents.
-}
-\subsubsection*{Hierarchical Cooperative A*}
-\textit{Hierarchical Cooperative A* (HCA*) uses a simple hierarchy containing a single domain abstraction, which ignores both the time dimension and the reservation table. In other words, the abstraction is a simple 2-dimensional map with all agents removed. Abstract distances can thus be viewed as perfect estimates of the distance to the destination, ig- noring any potential interactions with other agents. This is clearly an admissible and consistent heuristic.}
-
-
-\subsubsection*{Windowed Hierarchical Cooperative A*}
-\textit{The cooperative search is limited to a fixed depth specified by the current window. Each agent searches for a partial route to its destination, and then begins following the route. At regular intervals (e.g. when an agent is half-way through its partial route) the window is shifted forwards and a new partial route is computed}
-
-\subsection{Variants of optimal algorithms}
-
-\subsubsection{FAR}
-\cite{wang2008fast}
-
-\textit{When building a search graph from a grid map, FAR implements a flow restriction idea inspired by road networks. The movement along a given row (or column) is restricted to only one direction, avoiding head-to-head collisions. The movement direction alternates from one row (or column) to the next. Additional rules ensure that two locations reachable from each other on the original map remain connected (in both directions) in the graph. After building the search graph, an A* search is independently run for each mobile unit. Dur- ing plan execution, deadlocks are detected as cycles of units that wait for each other to move. A heuristic procedure for deadlock breaking attempts to repair plans locally, instead of running a larger scale, more expensive replanning step.}
-
-
-
-%==============================================
-
-\section{Reduction-based solvers}
-
-\textbf{\cite{surynek2016efficient} ``Many recent optimal solvers reduce MAPF to known problems such as COP [15], SAT [26], Inductive Logic Programming [33] and Answer Set Programming [9]. These papers mostly prove a polynomial-time reduction from MAPF to these problems. These reductions are usually designed for the makespan variant of MAPF; they are not applicable for the sum-of- costs variant.
-(2)''}
-
-\subsection{Mixed Integer Programming}
-Mixed Integer Programming is commonly used when dealing with NP-hard problems. In pathfinding it excels at finding an optimal path. \textbf{In this technique, we look at an optimization function and constraints. A solver will work to find the optimal solution to the problem.}
-
-The book by \cite{ahuja1993network}, introduces many algorithms and applications, most related to this research is Section 4 which overviews shortest path searches. \cite{planes2009path} applies integer programming to search through a metabolic pathways. Here they find a series of biochemical reactions which a living organism will transform an compound to the target compound.
-
-MAPF
-
-\cite{schouwenaars2001mixed} Multi-vehicle path planning. Mixed integer programming.
-
-\cite{richards2002aircraft} Aircraft collision avoidance. Mixed integer linear programming.
-
-\subsection{SAT}
-\cite{surynek2016efficient} applies Linear program and looks at MAPF as a Satisfiability problem (SAT). They create a SAT solver for the bounding sum-of-costs objective function.
-
-
-\begin{compactitem}
-	\item Cardinality Constraints [3, 19]
-	\item Time expansion graph [27, 28, 29] - Makespan variant
-	\item Uses Multi-value Decision Diagram from \cite{sharon2011increasing}
-\end{compactitem}
-
-
-\subsection{Multi-flow based integer linear programming}
-
-\cite{yu2013planning} Multi-robot path planning. Multiflow based integer linear programming (ILP).
-
-Branch and price is a method for solving integer programming problems
-
-
-
-
-
-\subsection{Answer Set Programming?}
-
-\section{Procedure based}
-
-\textbf{``Complete. Very fast. Far from optimal. Solve very large problems''}
-
-\subsection{Slidable}
-\subsubsection*{MAPP}
-\cite{wang2011mapp}
-
-\textit{For each problem instance, MAPP systematically identifies a set of units, which can contain all units in the instance, that are guaranteed to be solved within low-polynomial time} \\
-
-Based on sliding tile puzzle. Always tries to keep a blank on an alternative path.
-
-\subsection{Push and Swap and Push and Rotate}
-
-\subsection{Tree-based agent swapping strategy}
-
-%==============================================
-
-\section{Search trees}
-\subsubsection{Increasing cost search tree (ICTS)}
-
-
-\subsubsection{Conflict-Based Search (CBS)}
-
-\begin{table}
-	\begin{tabular}{ c c }
-		Variants & Properties \\
-		\hline
-		ICBS &   \\
-		MA-CBS & \\
-		
-	\end{tabular}
-\end{table}
+	\begin{spacing}{1.5}
+		\begin{center}
+			{\Large \bfseries
+				School of Computer Science (BICA) \\
+				Monash University}
+			
+			
+			\vspace*{30mm}
+			
+			\includegraphics[width=5cm]{graphics/MonashCrest.pdf}
+			
+			\vspace*{15mm}
+			
+			{\large \bfseries
+				Literature Review, 2017
+			}
+			
+			\vspace*{10mm}
+			
+			{\LARGE \bfseries
+				Improving cooperative pathfinding using a path oracle
+			}
+			
+			\vspace*{20mm}
+			
+			{\large \bfseries
+				Phillip Wong
+				
+				\vspace*{20mm}
+				
+				
+				Supervisors: \parbox[t]{50mm}{Daniel Harabor,\\Pierre Le Bodic}
+			}
+			
+		\end{center}
+	\end{spacing}
 	
-
-Conflict-Based Search (CBS) is a optimal search algorithm.
-
-When a collision occurs a constraint 
-Constraints describe the agent, time and location.
-
-The algorithm uses a constraint tree to describe these constraints and searches through this tree.
-
-ICBS
-
-MA-CBS
-
-\subsubsection*{Tree-based agent swapping strategy (TASS)}
-\textit{tree-based agent swapping strategy}
-
-%==============================================
-
-
-
-
-
-\section{Optimality}
-
-
-\subsection{Combined target assignment and pathfinding (TAPF)}
-
-\textit{Combined target assignment and pathfinding (TAPF) couples the target-assignment and the pathfinding problems and defines one common objective for both of them. Agents are partitioned into teams.
-Each team is given the same number of unique targets as there are agents in the team. The task of TAPF is to assign the targets to the agents and plan collision-free paths for the agents from their current vertices to their targets in a way such that each agent moves to exactly one target given to its team, all targets are visited and the makespan is minimized}
-
-\subsection{Conflict-based Min-cost flow (CBM)}
-Conflict-based Min-cost flow
-
-\textit{The anonymous variant of MAPF (also called goal- invariant MAPF). Agents can get assigned any target and are thus exchangeable. It can be solved optimally in polynomial time with flow-based MAPF methods}
-
-\subsection{Package-Exchange Robot-Routing (PERR)}
-Package-Exchange Robot-Routing (PERR)
-
-\subsection{Highways}
-\cite{cohen2016bounded}
-
-\subsection{Operator Decomposition (OD)}
-\textit{Standley proposes the mechanism of operator decomposition (OD) [30]. Instead of considering that the set of agents decides its joint action (operator), the agents decide their elementary action in turn, one after each other. With some care to special cases, A* associated with OD and a perfect heuristic is admissible and complete [30]}
-
-\subsection{Independance Detection (ID)}
-\textit{Each agent plans its optimal path to the goal with A*. Then conflicts are detected, and resolved if possible. When a conflict between two agents is not solvable, the two agents are gathered into a group, and an optimal solution is found for this group. Conflict between groups are detected and so forth. When few conflicts occur this method avoids the exponential size of the set of actions, but in the worst case, this method is inferior to any centralized method.}
-
-
-\section{Other factors}
-\cite{honig2016multi} factored in kinematic constraints.
-
-\section{Other aspects of Warehouse Automation} \label{section:wa}
-
-\subsection{Overview papers}
-\cite{gu2007research} (Research on warehouse operation: A comprehensive review)
-\cite{gu2010research} (Research on warehouse design and performance evaluation: A comprehensive review)
-
-Design and control of warehouse order picking: A literature review
-
-\subsection{Other factors}
-\cite{correll2016lessons}
-
-
-\section{Information outside of the literature}
-System and method for coordinating movement of mobile drive units  - https://www.google.com/patents/US7920962
-
-https://www-google-com/patents/US9511934
-
-ICAPS 2014 Invited Talk: Peter Wurman - https://www.youtube.com/watch?v=YSrnV0wZywU
-
-\subsection{Summary}
-
-
-\subsection{Further research}
-
-
-\bibliographystyle{dcu}
-\bibliography{bibliography}
-
+	\newpage
+	
+	\tableofcontents
+	
+	\newpage
+	% Now reset page number counter,and switch to arabic numerals for remaining
+	% page numbers 
+	\setcounter{page}{1}
+	\renewcommand{\thepage}{\arabic{page}}
+	
+	
+	
+	\section{Introduction}
+	
+	
+	\section{Background}
+	
+	
+	\section{Multi-agent Pathfinding}
+	
+	
+	\section{Mixed Integer Programming}
+	
+	
+	\section{Conflict-based Search}
+	
+	
+	\section{Other areas in Warehouse Automation}
+	
+	
+	\section{Conclusion}
+	
+	
+	\bibliographystyle{dcu}
+	\bibliography{bibliography}
+	
 \end{document}
