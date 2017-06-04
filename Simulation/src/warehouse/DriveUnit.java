@@ -2,6 +2,7 @@ package warehouse;
 
 import expanders.GridMapExpansionPolicy;
 import expanders.JPSExpansionPolicy;
+import expanders.JPSWarehouseExpansionPolicy;
 import expanders.WarehouseExpansionPolicy;
 import heuristics.ManhattanHeuristic;
 import sample.Agent;

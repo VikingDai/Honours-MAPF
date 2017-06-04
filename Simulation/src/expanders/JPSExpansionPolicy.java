@@ -25,8 +25,9 @@ public class JPSExpansionPolicy extends GridMapExpansionPolicy
         Optional<SearchNode> maybeCurrent = map.getSearchNodeAt(x + dx, y);
         while (nodeIsWalkable(maybeCurrent))
         {
+            if (!maybeCurrent.isPresent()) break;
             SearchNode current = maybeCurrent.get();
-            Globals.debugPoints.add(new DebugPoint(current.x, current.y, Color.BLUE, 0.15));
+//            Globals.debugPoints.add(new DebugPoint(current.x, current.y, Color.BLUE, 0.15));
 
             if (current == goal)
             {
@@ -69,7 +70,7 @@ public class JPSExpansionPolicy extends GridMapExpansionPolicy
         while (nodeIsWalkable(maybeCurrent))
         {
             SearchNode current = maybeCurrent.get();
-            Globals.debugPoints.add(new DebugPoint(current.x, current.y, Color.BLUE, 0.15));
+//            Globals.debugPoints.add(new DebugPoint(current.x, current.y, Color.BLUE, 0.15));
 
             if (current == goal)
             {

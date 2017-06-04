@@ -1,5 +1,6 @@
 package utils;
 
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import sample.Agent;
 import sample.Main;
@@ -16,10 +17,66 @@ public class ReservationTable
     // int => (x, y) => List<Agent>
     public Map<Integer, Map<Point, List<Agent>>> table;
 
+    public boolean isOccupied(int timestep, int x, int y)
+    {
+        if (!table.containsKey(timestep))
+            return false;
+        Point pos = new Point(x, y);
+
+        if (!table.get(timestep).containsKey(pos)) return false;
+
+        return table.get(timestep).get(pos).size() > 0;
+    }
+
+    public void addPath(Agent agent, Stack<SearchNode> path)
+    {
+        int count = 0;
+        SearchNode current = path.pop();//agent.currentNode;
+        if (path.empty()) return;
+
+        while (!path.empty())
+        {
+            SearchNode next = path.pop();
+            int dx = next.x == current.x ? 0 : (int) Math.signum(next.x - current.x);
+            int dy = next.y == current.y ? 0 : (int) Math.signum(next.y - current.y);
+
+            int cx = current.x;
+            int cy = current.y;
+            while (next.x != cx || next.y != cy)
+            {
+                System.out.println(cx + " " + cy + " ");
+                count += 1;
+                cx += dx;
+                cy += dy;
+
+                int timestep = Main.getSimulation().timeStep + count;
+                Point currPoint = new Point(cx, cy);
+
+                if (!table.containsKey(timestep))
+                    table.put(timestep, new HashMap<>());
+
+                if (!table.get(timestep).containsKey(currPoint))
+                    table.get(timestep).put(currPoint, new ArrayList<>());
+
+                table.get(timestep).get(currPoint).add(agent);
+            }
+            current = next;
+        }
+    }
+
     public ReservationTable()
     {
         collisions = new HashMap<>();
         table = new HashMap<>();
+    }
+
+    public void update(int timestep)
+    {
+        if (table.containsKey(timestep))
+        {
+            table.remove(timestep);
+            System.out.println("Removed " + timestep);
+        }
     }
 
     public void update(int timestep, List<Agent> agents)
@@ -95,6 +152,23 @@ public class ReservationTable
             {
                 List<Agent> agents = table.get(t).get(position);
                 System.out.println("\t" + agents.size() + "agents at {" + position.x + ", " + position.y + "}");
+            }
+        }
+    }
+
+    public void draw(GraphicsContext gc)
+    {
+        for (Map<Point, List<Agent>> pointListMap : table.values())
+        {
+            for (Point point : pointListMap.keySet())
+            {
+                boolean collision = pointListMap.get(point).size() > 1;
+                gc.setFill(collision ? Color.RED : Color.BLACK);
+                gc.fillOval(
+                        point.x * Globals.RENDER_SCALE + Globals.RENDER_SCALE / 2 - Globals.RENDER_SCALE * 0.25,
+                        point.y * Globals.RENDER_SCALE + Globals.RENDER_SCALE / 2 - Globals.RENDER_SCALE * 0.25,
+                        Globals.RENDER_SCALE * 0.5,
+                        Globals.RENDER_SCALE * 0.5);
             }
         }
     }

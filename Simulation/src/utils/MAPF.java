@@ -1,6 +1,8 @@
 package utils;
 
-import domains.GridMap;
+import domains.GridMapMetaInfo;
+import expanders.GridMapExpansionPolicy;
+import expanders.JPSExpansionPolicy;
 import heuristics.ManhattanHeuristic;
 import sample.Agent;
 import search.FlexibleAStar;
@@ -11,25 +13,46 @@ import java.util.Stack;
 
 public class MAPF
 {
-    public ReservationTable table;
-    public FlexibleAStar aStar;
+    public static ReservationTable table = new ReservationTable();
+    public static FlexibleAStar aStar;
 
-    public MAPF(GridMap gridMap)
+    public MAPF(GridMapMetaInfo mapMetaInfo)
     {
         table = new ReservationTable();
-//        aStar = new FlexibleAStar(new ManhattanHeuristic(gridMap.meta));
+        aStar = new FlexibleAStar<>(new ManhattanHeuristic(mapMetaInfo));
     }
 
-    public void UpdatePaths(List<Agent> agents, SearchNode start, SearchNode goal)
+    public static void init(GridMapMetaInfo mapMetaInfo)
     {
-        for (Agent agent : agents)
+        table = new ReservationTable();
+        aStar = new FlexibleAStar<>(new ManhattanHeuristic(mapMetaInfo));
+    }
+
+    public static Stack<SearchNode> FindPath(Agent agent, SearchNode start, SearchNode goal)
+    {
+        int i = 0;
+        while (i < 10)
         {
-            aStar.findPath(start, goal, null);
+            Stack<SearchNode> path = aStar.findPath(start, goal, agent.expansionPolicy);
+            if (!path.empty())
+            {
+                Stack<SearchNode> pathCopy = new Stack<>();
+                pathCopy.addAll(path);
+                table.addPath(agent, pathCopy);
+                return path;
+            }
         }
+
+        return new Stack<>();
     }
 
-    public void FindPath(Agent agent, SearchNode start, SearchNode goal)
+    public static void Update(int timestep)
     {
-        Stack path = aStar.findPath(start, goal, agent.expansionPolicy);
+        table.update(timestep);
     }
+
+//    public static void FindPath(Agent agent, SearchNode start, SearchNode goal)
+//    {
+//        Stack<SearchNode> path = aStar.findPath(start, goal, agent.expansionPolicy);
+//    }
 }

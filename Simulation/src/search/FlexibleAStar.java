@@ -80,7 +80,7 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
 //        Globals.debugPoints.add(new DebugPoint(goal, Color.BLACK, 0.6));
 
         // reset tiles from last search
-        closed.forEach(n -> n.hasExpanded = false);
+        closed.forEach(SearchNode::reset);
         closed.clear();
         cameFrom.clear();
         open.clear();
@@ -105,11 +105,18 @@ public class FlexibleAStar<H extends BaseHeuristic, E extends GridMapExpansionPo
             SearchNode current = open.poll();
             path.push(current);
 
-            while (cameFrom.keySet().contains(current))
+            while (true)
             {
                 current = cameFrom.get(current);
+                if (current == null) break;
                 path.push(current);
             }
+
+//            while (cameFrom.keySet().contains(current))
+//            {
+//                current = cameFrom.get(current);
+//                path.push(current);
+//            }
             return Optional.of(path);
         }
 

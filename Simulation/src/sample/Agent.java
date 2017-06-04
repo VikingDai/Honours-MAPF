@@ -8,6 +8,7 @@ import javafx.scene.shape.Circle;
 import search.FlexibleAStar;
 import search.SearchNode;
 import utils.Globals;
+import utils.MAPF;
 
 import java.util.Stack;
 
@@ -53,7 +54,9 @@ public class Agent
                 OnReachDestination();
             }
 
-            path = search.findPath(currentNode, goalNode, expansionPolicy);
+//            path = search.findPath(currentNode, goalNode, expansionPolicy);
+            path = MAPF.FindPath(this, currentNode, goalNode);
+
             if (path.size() > 1) // skip first homeNode of the path (where you start)
                 path.pop();
             else

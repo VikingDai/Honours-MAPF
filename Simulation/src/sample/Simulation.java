@@ -11,6 +11,7 @@ import search.FlexibleAStar;
 import search.ProblemInstance;
 import search.SearchNode;
 import utils.Globals;
+import utils.MAPF;
 import utils.ReservationTable;
 import warehouse.DriveUnit;
 import warehouse.PickingStation;
@@ -49,14 +50,17 @@ public class Simulation
 
     public void init(String problemInstancePath)
     {
+
         ProblemInstance instance = new ProblemInstance("instances/warehouse1.instance");
         GridMapParser mapParser = new GridMapParser(instance);
 
         map = new GridMap(mapParser);
         aStar = new FlexibleAStar<>(new ManhattanHeuristic(mapParser.getMetaInfo()));
 
+        MAPF.init(mapParser.getMetaInfo());
+
         // add actors to simulation
-//        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 5; i++)
             agents.add(new DriveUnit(map.getRandomNode(), aStar));
 
         reservationTable = new ReservationTable();
@@ -64,6 +68,8 @@ public class Simulation
 
     public void step(GraphicsContext gc)
     {
+        MAPF.Update(timeStep);
+
         for (Agent agent : agents)
         {
             agent.step();
@@ -155,6 +161,9 @@ public class Simulation
         }
 
         Globals.debugPoints.forEach(d -> d.drawPoint(gc));
+
+        // draw reservation table
+        MAPF.table.draw(gc);
     }
 
     public void drawMap()

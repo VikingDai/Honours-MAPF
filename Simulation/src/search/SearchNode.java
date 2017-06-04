@@ -13,14 +13,26 @@ public class SearchNode
     public boolean hasExpanded;
     public Tile tile;
     public int x, y;
+    public int pathLength;
 
     public SearchNode(int x, int y)
     {
         this.x = x;
         this.y = y;
-        parent = null;
+
+        reset();
+//        f = g = Integer.MAX_VALUE;
+//        parent = null;
+//        hasStoragePod = false;
+//        pathLength = -1;
+    }
+
+    public void reset()
+    {
         f = g = Integer.MAX_VALUE;
-        hasStoragePod = false;
+        parent = null;
+        hasExpanded = false;
+        pathLength = -1;
     }
 
     public void setSearchId(GridMap map)
