@@ -64,82 +64,111 @@
 
 \begin{document}
 	
-	% Set up a title page
-	\thispagestyle{empty} % no page number on very first page
-	% Use roman numerals for page numbers initially
-	\renewcommand{\thepage}{\roman{page}}
-	
-	\begin{spacing}{1.5}
-		\begin{center}
-			{\Large \bfseries
-				School of Computer Science (BICA) \\
-				Monash University}
-			
-			
-			\vspace*{30mm}
-			
-			\includegraphics[width=5cm]{graphics/MonashCrest.pdf}
-			
-			\vspace*{15mm}
-			
-			{\large \bfseries
-				Literature Review, 2017
-			}
-			
-			\vspace*{10mm}
-			
-			{\LARGE \bfseries
-				Improving cooperative pathfinding using a path oracle
-			}
+% Set up a title page
+\thispagestyle{empty} % no page number on very first page
+% Use roman numerals for page numbers initially
+\renewcommand{\thepage}{\roman{page}}
+
+\begin{spacing}{1.5}
+	\begin{center}
+		{\Large \bfseries
+			School of Computer Science (BICA) \\
+			Monash University}
+		
+		
+		\vspace*{30mm}
+		
+		\includegraphics[width=5cm]{graphics/MonashCrest.pdf}
+		
+		\vspace*{15mm}
+		
+		{\large \bfseries
+			Literature Review, 2017
+		}
+		
+		\vspace*{10mm}
+		
+		{\LARGE \bfseries
+			Improving cooperative pathfinding using a path oracle
+		}
+		
+		\vspace*{20mm}
+		
+		{\large \bfseries
+			Phillip Wong
 			
 			\vspace*{20mm}
 			
-			{\large \bfseries
-				Phillip Wong
-				
-				\vspace*{20mm}
-				
-				
-				Supervisors: \parbox[t]{50mm}{Daniel Harabor,\\Pierre Le Bodic}
-			}
 			
-		\end{center}
-	\end{spacing}
-	
-	\newpage
-	
-	\tableofcontents
-	
-	\newpage
-	% Now reset page number counter,and switch to arabic numerals for remaining
-	% page numbers 
-	\setcounter{page}{1}
-	\renewcommand{\thepage}{\arabic{page}}
-	
-	
-	
-	\section{Introduction}
-	
-	
-	\section{Background}
-	
-	
-	\section{Multi-agent Pathfinding}
-	
-	
-	\section{Mixed Integer Programming}
-	
-	
-	\section{Conflict-based Search}
-	
-	
-	\section{Other areas in Warehouse Automation}
-	
-	
-	\section{Conclusion}
-	
-	
-	\bibliographystyle{dcu}
-	\bibliography{bibliography}
+			Supervisors: \parbox[t]{50mm}{Daniel Harabor,\\Pierre Le Bodic}
+		}
+		
+	\end{center}
+\end{spacing}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+% Now reset page number counter,and switch to arabic numerals for remaining
+% page numbers 
+\setcounter{page}{1}
+\renewcommand{\thepage}{\arabic{page}}
+
+
+
+\section{Introduction}
+The order picking process is the number one expense in the operating cost of warehouse systems \cite{de2007design}. This project will look at warehouse automation, whereby the order-picking process is performed by automated vehicles. In particular we will we will be exploring Kiva systems which employs warehouse automation. More detail about Kiva systems is provided in Section~\ref{sec:background}.
+
+% What
+When improving on the part-to-picker systems, we look at the system as a Multi-agent pathfinding (MAPF) problem. 
+
+% How
+These include: introducing an intermediate dropping zone, optimizing order processing and adding the capability for robots to maneuver under storage pods.
+
+% Where
+The results of this project will help identify how we should position storage and picking stations in a warehouse. Additionally, we will be looking at developing a MAPF method which uses a pre-computed path oracle.
+\section{Background} \label{sec:background}
+
+
+\section{Multi-agent Pathfinding}
+Multi-agent pathfinding (MAPF) involves finding a path for every agent to their goal. Warehouse Automation is commonly modeled on an orthogonal undirected grid \cite{TODO}. Formally defining this, we look at $k$ agents on a graph $G = (V, E)$ where V is the set of vertices and E is the set of edges within the graph.
+
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.9\textwidth]{graphics/kivasystemlayout}
+	\caption{A Small Region of a Kiva Layout (\cite{wurman2008coordinating}). Picking stations located on the left and storage pods laid out in rows.}
+	\label{kivalayout1}
+\end{figure}
+
+Within MAPF, we are focusing on an optimal solution. The following sections will focus on optimal MAPF algorithms as well as suboptimal variants of these algorithms.
+
+\section{Conflict-based Search}
+The state-of-the-art in MAPF, Conflict-based search is 
+
+\section{Other optimal algorithms}
+ICTS
+
+\section{Mixed Integer Programming}
+Mixed-integer programming (MIP) is an optimization technique that looks at an objective function which is subject to a list of constraints.
+
+
+\section{Other reduction-based techniques}
+Answer set programming?
+
+\section{Other areas in Warehouse Automation}
+Warehouse layout?
+
+Order scheduling?
+
+Drive allocation?
+
+\section{Conclusion}
+
+
+\bibliographystyle{dcu}
+\bibliography{bibliography}
 	
 \end{document}
