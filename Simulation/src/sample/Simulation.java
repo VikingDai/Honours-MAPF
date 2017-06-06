@@ -108,31 +108,41 @@ public class Simulation
                     agent.circle.getCenterY());
         }
 
-        // draw the agent paths
-        gc.setStroke(Color.BLACK);
-        gc.setLineWidth(2f);
-        Point start;
-        Point end;
-        gc.setStroke(Color.BLACK);
-
-        for (Agent agent : agents)
-        {
-            for (int i = 1; i < agent.path.size() + 1; i++)
-            {
-                start = agent.path.get(i - 1).tile.tilePos;
-
-                if (i == agent.path.size())
-                    end = agent.currentNode.tile.tilePos;
-                else
-                    end = agent.path.get(i).tile.tilePos;
-
-                gc.strokeLine(
-                        start.x * Globals.RENDER_SCALE + Globals.RENDER_SCALE / 2,
-                        start.y * Globals.RENDER_SCALE + Globals.RENDER_SCALE / 2,
-                        end.x * Globals.RENDER_SCALE + Globals.RENDER_SCALE / 2,
-                        end.y * Globals.RENDER_SCALE + Globals.RENDER_SCALE / 2);
-            }
-        }
+//        // draw the agent paths
+//        gc.setStroke(Color.BLACK);
+//        gc.setLineWidth(2f);
+//        Point start = new Point();
+//        Point end = new Point();
+//        gc.setStroke(Color.BLACK);
+//
+//        for (Agent agent : agents)
+//        {
+//            boolean endNull = true;
+//            if (agent.path.isEmpty()) return;
+//
+//            start = agent.path.lastElement().tile.tilePos;
+//
+//            for (int i = agent.path.size() - 1; i > 0; i--)
+//            {
+//                if (endNull)
+//                {
+//                    start = end;
+//                    endNull = false;
+//                }
+////                start = agent.path.get(i).tile.tilePos;
+//                end = agent.path.get(i - 1).tile.tilePos;
+//                if (i == agent.path.size() - 1)
+//                    start = agent.currentNode.tile.tilePos;
+////                else
+////                    end = agent.path.get(i - 1).tile.tilePos;
+//
+//                gc.strokeLine(
+//                        start.x * Globals.RENDER_SCALE + Globals.RENDER_SCALE / 2,
+//                        start.y * Globals.RENDER_SCALE + Globals.RENDER_SCALE / 2,
+//                        end.x * Globals.RENDER_SCALE + Globals.RENDER_SCALE / 2,
+//                        end.y * Globals.RENDER_SCALE + Globals.RENDER_SCALE / 2);
+//            }
+//        }
 
         // draw the storage pods
         gc.setLineWidth(0);
@@ -149,16 +159,16 @@ public class Simulation
         }
 
         // draw the picking stations
-        gc.setLineWidth(0);
-//        gc.setFill(Color.RED);
-        for (PickingStation station : pickingStations)
-        {
-            gc.fillRect(
-                    station.node.x * Globals.RENDER_SCALE,
-                    station.node.y * Globals.RENDER_SCALE,
-                    Globals.RENDER_SCALE * 0.8,
-                    Globals.RENDER_SCALE * 0.8);
-        }
+//        gc.setLineWidth(0);
+//        gc.setFill(Color.BLACK);
+//        for (PickingStation station : pickingStations)
+//        {
+//            gc.fillRect(
+//                    station.node.x * Globals.RENDER_SCALE,
+//                    station.node.y * Globals.RENDER_SCALE,
+//                    Globals.RENDER_SCALE * 0.8,
+//                    Globals.RENDER_SCALE * 0.8);
+//        }
 
         Globals.debugPoints.forEach(d -> d.drawPoint(gc));
 

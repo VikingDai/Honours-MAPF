@@ -54,8 +54,8 @@ public class Agent
                 OnReachDestination();
             }
 
-//            path = search.findPath(currentNode, goalNode, expansionPolicy);
-            path = MAPF.FindPath(this, currentNode, goalNode);
+            path = search.findPath(currentNode, goalNode, expansionPolicy);
+//            path = MAPF.FindPath(this, currentNode, goalNode);
 
             if (path.size() > 1) // skip first homeNode of the path (where you start)
                 path.pop();
