@@ -89,7 +89,7 @@
 		\vspace*{10mm}
 		
 		{\LARGE \bfseries
-			Improving cooperative pathfinding using a path oracle
+			Review of optimal multi-agent Pathfinding algorithms and usage in warehouse automation
 		}
 		
 		\vspace*{20mm}
@@ -125,16 +125,17 @@ The order picking process is the number one expense in the operating cost of war
 When improving on the part-to-picker systems, we look at the system as a Multi-agent pathfinding (MAPF) problem. 
 
 % How
-These include: introducing an intermediate dropping zone, optimizing order processing and adding the capability for robots to maneuver under storage pods.
+
 
 % Where
-The results of this project will help identify how we should position storage and picking stations in a warehouse. Additionally, we will be looking at developing a MAPF method which uses a pre-computed path oracle.
+The results of this literature review will help identify how we should position storage and picking stations in a warehouse. Additionally, we will be looking at developing a MAPF method which uses a pre-computed path oracle.
+
+
 \section{Background} \label{sec:background}
 
+\cite{sturtevant2012benchmarks} provides a number of game maps to use for benchmarking and we will use these when comparing against other multi-agent pathfinding algorithms.
 
-\section{Multi-agent Pathfinding}
-Multi-agent pathfinding (MAPF) involves finding a path for every agent to their goal. Warehouse Automation is commonly modeled on an orthogonal undirected grid \cite{TODO}. Formally defining this, we look at $k$ agents on a graph $G = (V, E)$ where V is the set of vertices and E is the set of edges within the graph.
-
+In Warehouse Automation, we look at MAPF on an orthogonal grid-map.
 
 \begin{figure}[h]
 	\centering
@@ -143,27 +144,81 @@ Multi-agent pathfinding (MAPF) involves finding a path for every agent to their 
 	\label{kivalayout1}
 \end{figure}
 
+\section{Single-agent pathfinding}
+Single-agent pathfinding aims to find a path from start node to goal node. In this paper we won't cover the full details of single-agent pathfinding, it has been studying in detail by a number of papers.
+
+The \textit{grid-based path planning competition} (GPPC) is run by \cite{sturtevant2015grid}. The paper provides detailed results of the state of the art at the time in 2015. These are run on a number of game maps which are used for benchmarking \cite{sturtevant2012benchmarks}. While these results are a few years old, we are expecting the results from this year's GPPC.
+
+For our simulation we will aim to assist the MAPF algorithm and will consider looking at two algorithms: \textit{jump point search} and \textit{compressed path databases}.
+
+
+\section{Multi-agent pathfinding}
+Multi-agent pathfinding (MAPF) involves finding a path for every agent to their goal. Warehouse Automation is commonly modeled on an orthogonal undirected grid \cite{TODO}. 
+
+
 Within MAPF, we are focusing on an optimal solution. The following sections will focus on optimal MAPF algorithms as well as suboptimal variants of these algorithms.
 
-\section{Conflict-based Search}
-The state-of-the-art in MAPF, Conflict-based search is 
 
-\section{Other optimal algorithms}
-ICTS
+\section{Optimal multi-agent pathfinding algorithms}
+Here we look at multi-agent pathfinding algorithms which aim to find the optimal solution based on some objective function. The objective function will be noted per algorithm. Our main aim is to determine the benefits and downsides of each algorithm.
+
+
+Take a MAPF problem instance where we have $k$ agents on a graph with $n$ nodes. The possible state space is $n^k$ and branching factor is $5^k$. So the complexity of the MAPF problem is exponential in the number of agents and polynomial in the number of nodes on the graph.
+
+a NP-hard problem
+
+Coupled approach: All agents at one! A* ICTS
+
+Decoupled approach: Each agent individually (not optimal, not complete)
+
+\cite{krontiris2013feasibility} looked at the feasibility.
+
+\subsection{Conflict-based Search}
+The conflict-based search algorithm (\cite{sharon2015conflict})
+
+Constraint tree.
+Conflict tree.
+
+High level: conflict tree
+
+Low level: find optimal paths for each agent
+
+Although CBS is exponential in the number of conflicts, results found that compared against ICTS and A* they suggest it is best in maps with bottlenecks.
+
+\subsection{ICTS}
+
+Exponential in $\Delta$
+
+\subsection{A*}
+Exponential in number of agents
+
+\subsection{Push and Rotate}
+\cite{wilde2014push}
+
+
+\section{Bounded suboptimal variants}
+A \textit{bounded suboptimal variant} is a variant of an optimal MAPF algorithm. The defining feature of a bounded suboptimal variant is that we can guarantee that the cost of the solution, $B$ lies within the optimal cost $C$ and $w*C$ where $w$ is a user-defined parameter. Hence:
+
+\[C \le B \le w*C\]
+
+
+Our project is aiming to make a bounded suboptimal variant of our algorithm due to the large-scale of the simulation (Section~\ref{sec:background}). By adjusting $w$ we are able to relax the problem and find a solution faster at the loss of solution quality.
 
 \section{Mixed Integer Programming}
-Mixed-integer programming (MIP) is an optimization technique that looks at an objective function which is subject to a list of constraints.
+Mixed-integer programming (MIP) is an optimization technique. It looks at an objective function subject to a list of constraints and finds the optimal solution for each variable.
+
+\cite{yu2013planning}
 
 
 \section{Other reduction-based techniques}
 Answer set programming?
 
-\section{Other areas in Warehouse Automation}
-Warehouse layout?
 
-Order scheduling?
 
-Drive allocation?
+\section{Other improvements to Warehouse Automation}
+Independence detection
+
+Operator decomposition
 
 \section{Conclusion}
 
