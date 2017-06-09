@@ -87,7 +87,7 @@ public class GUI extends BorderPane
         simulationGroup = new Group();
         simulationGroup.setOnMouseDragged(this::onDragged);
         simulationGroup.setOnScroll(this::onScrolled);
-        simulationGroup.setOnMouseClicked(this::onClicked);
+// todo setup for start / end pos        simulationGroup.setOnMouseClicked(this::onClicked);
         simulationGroup.setOnMouseReleased(e -> hasClicked = false);
         setCenter(simulationGroup);
 

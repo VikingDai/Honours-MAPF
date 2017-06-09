@@ -36,7 +36,6 @@ public class DriveUnit extends Agent
         super(currentNode, search);
 
         action = UnitAction.IDLE;
-
         expansionPolicy = new JPSExpansionPolicy(Main.getSimulation().map, this);
     }
 
