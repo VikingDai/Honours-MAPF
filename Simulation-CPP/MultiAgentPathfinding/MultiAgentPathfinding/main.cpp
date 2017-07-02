@@ -15,41 +15,18 @@ GLFWwindow* window;
 
 // Include GLM
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 using namespace glm;
 
 #include <common/shader.hpp>
 
 #include <imgui.h>
 #include <imgui_impl_glfw_gl3.h>
+#include "Mesh.h"
 
 static double g_Time = 0.0f;
 static bool g_MousePressed[3] = { false, false, false };
 static float g_MouseWheel = 0.0f;
-
-
-
-#define checkImageWidth 64
-#define checkImageHeight 64
-static GLubyte checkImage[checkImageHeight][checkImageWidth][4];
-
-
-void makeCheckImage(void)
-{
-	int i, j, c;
-
-	for (i = 0; i < checkImageHeight; i++)
-	{
-		for (j = 0; j < checkImageWidth; j++)
-		{
-			c = ((((i & 0x8) == 0) ^ ((j & 0x8)) == 0)) * 255;
-			checkImage[i][j][0] = (GLubyte) c;
-			checkImage[i][j][1] = (GLubyte) c;
-			checkImage[i][j][2] = (GLubyte) c;
-			checkImage[i][j][3] = (GLubyte) 255;
-		}
-	}
-}
-
 
 int main(void)
 {
@@ -96,7 +73,35 @@ int main(void)
 	glBindVertexArray(vertexarray);
 
 	// Create and compile our GLSL program from the shaders
-	GLuint programID = LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
+	GLuint programID = LoadShaders("SimpleTransform.vertexshader", "SingleColor.fragmentshader");
+
+	// Get a handle for our "MVP" uniform
+	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
+
+	// Get a handle for our "Model" uniform
+	GLuint ModelID = glGetUniformLocation(programID, "Model");
+
+	// Get a handle for our "Color" uniform
+	GLuint ColorID = glGetUniformLocation(programID, "Color");
+
+	// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+	//glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
+	// Or, for an ortho camera :
+
+	float zoom = 50;
+	glm::mat4 Projection = glm::ortho(-zoom, zoom, -zoom, zoom, 0.0f, 100.0f); // In world coordinates
+
+	// Camera matrix
+	glm::mat4 View = glm::lookAt(
+		glm::vec3(0, 0, 1), // Camera is at (4,3,3), in World Space
+		glm::vec3(0, 0, 0), // and looks at the origin
+		glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
+	);
+	// Model matrix : an identity matrix (model will be at the origin)
+	glm::mat4 Model = glm::mat4(1.0f);
+
+	// Our ModelViewProjection : multiplication of our 3 matrices
+	glm::mat4 MVP = Projection * View * Model; // Remember, matrix multiplication is the other way around
 
 	static const GLfloat g_vertex_buffer_data[] = {
 		-0.5f, 0.5f, 0.0f,
@@ -110,7 +115,7 @@ int main(void)
 	glGenBuffers(1, &vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-	
+
 	// Create a texture buffer object (TBO)
 	GLuint texturebuffer;
 	glGenTextures(1, &texturebuffer);
@@ -118,8 +123,11 @@ int main(void)
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 600, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
 
 	// Create render buffer object (RBO)
 	GLuint renderbuffer;
@@ -141,22 +149,11 @@ int main(void)
 	// Set "renderedTexture" as our colour attachement #0
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texturebuffer, 0);
 
-	// attach the texture to FBO color attachment point
-	//glFramebufferTexture2D(GL_FRAMEBUFFER,	// 1. fbo target: GL_FRAMEBUFFER 
-	//	GL_COLOR_ATTACHMENT0,				// 2. attachment point
-	//	GL_TEXTURE_2D,						// 3. tex target: GL_TEXTURE_2D
-	//	texturebuffer,						// 4. tex ID
-	//	0);									// 5. mipmap level: 0(base)
-
 	// attach the renderbuffer to depth attachment point
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER,	// 1. fbo target: GL_FRAMEBUFFER
 		GL_DEPTH_ATTACHMENT,					// 2. attachment point
 		GL_RENDERBUFFER,						// 3. rbo target: GL_RENDERBUFFER
-		renderbuffer);									// 4. rbo ID
-
-	//// Set the list of draw buffers.
-	//GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
-	//glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+		renderbuffer);							// 4. rbo ID
 
 	// Check if the frame buffer is complete
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -167,24 +164,21 @@ int main(void)
 
 	ImVec4 clear_color = ImColor(114, 144, 154);
 
-	////////////////////////////////////////////////////////////////////////// TESTING
+	int NUM_MESHES = 2000;
+	int MAX_COLUMN_SIZE = 100;
+	Mesh* meshes[2000];
 
-	makeCheckImage();
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-	//glGenTextures(1, &texturebuffer);
-	//glBindTexture(GL_TEXTURE_2D, texturebuffer);
-
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, checkImageWidth, checkImageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, checkImage);
-
-	////////////////////////////////////////////////////////////////////////// TESTING
+	for (int i = 0; i < NUM_MESHES; i++)
+	{
+		int x = i % MAX_COLUMN_SIZE;
+		int y = round(i / MAX_COLUMN_SIZE);
+		meshes[i] = new Mesh(vec3(x * 2.5, y * 2.5, 0));//position.x = x * 1.1;
+		//position.y = y * 1.1;
+	}
 
 	do
 	{
+		
 		glfwPollEvents();
 		ImGui_ImplGlfwGL3_NewFrame();
 
@@ -220,14 +214,9 @@ int main(void)
 		// Fill the texture buffer
 		//////////////////////////////////////////////////////////////////////////
 
-		//glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-		//glBindVertexArray(vaoCube);
-		//glEnable(GL_DEPTH_TEST);
-		//glUseProgram(programID);
-
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-		glClearColor(0, 1, 0, 1);
+		glClearColor(0, 0, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//////////////////////////////////////////////////////////////////////////
@@ -249,8 +238,26 @@ int main(void)
 			(void*) 0            // array buffer offset
 		);
 
-		// Draw the triangle strip!
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // 3 indices starting at 0 -> 1 triangle
+		for (int i = 0; i < NUM_MESHES; i++)
+		{
+			meshes[i]->Update();
+			//mat4 meshProjection = MVP * meshes[i]->model;
+
+			// Send our transformation to the currently bound shader, 
+			// in the "MVP" uniform
+			glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+
+			glUniformMatrix4fv(ModelID, 1, GL_FALSE, &meshes[i]->model[0][0]);
+
+			// Send our color to the shader
+			glUniform3f(ColorID, 1, 1, 0);
+
+			// Draw the triangle strip!
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // 3 indices starting at 0 -> 1 triangle
+
+			// Draw a line
+			//glDrawArrays(GL_LINE_STRIP, 0, 4);
+		}
 
 		glDisableVertexAttribArray(0);
 		//////////////////////////////////////////////////////////////////////////
@@ -277,7 +284,7 @@ int main(void)
 		draw_list->PopTextureID();
 
 		ImGui::Text("Hello, yo!");
-		
+
 		ImGui::End();
 
 		////ImGui::GetWindowDrawList()->PopTextureID();
@@ -305,6 +312,12 @@ int main(void)
 	glDeleteBuffers(1, &vertexbuffer);
 	glDeleteVertexArrays(1, &vertexarray);
 	glDeleteProgram(programID);
+
+	// Cleanup texture buffer TBO
+	glDeleteBuffers(1, &texturebuffer);
+
+	// Cleanup render buffer RBO
+	glDeleteBuffers(1, &renderbuffer);
 
 	// Cleanup frame buffer FBO
 	glDeleteFramebuffers(1, &framebuffer);
