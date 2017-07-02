@@ -34,7 +34,6 @@ public class DriveUnit extends Agent
                      FlexibleAStar<ManhattanHeuristic, GridMapExpansionPolicy> search)
     {
         super(currentNode, search);
-
         action = UnitAction.IDLE;
         expansionPolicy = new JPSExpansionPolicy(Main.getSimulation().map, this);
     }

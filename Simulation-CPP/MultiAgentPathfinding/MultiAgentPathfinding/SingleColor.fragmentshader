@@ -1,0 +1,12 @@
+#version 330 core
+
+// Ouput data
+out vec3 color;
+
+in vec3 colorV;
+
+void main()
+{
+	// Output color = red 
+	color = colorV; //vec3(1,0,0);
+}

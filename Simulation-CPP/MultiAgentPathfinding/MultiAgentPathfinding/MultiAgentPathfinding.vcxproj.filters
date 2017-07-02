@@ -1,0 +1,143 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="common">
+      <UniqueIdentifier>{4c06c356-8af8-4863-a20b-2043642a9945}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{b4436a14-e211-458f-b8ba-15fef6cf8427}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\libs\opengl\common\controls.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\imgui\imgui.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\imgui\imgui_demo.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\imgui\imgui_draw.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\opengl\common\objloader.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\opengl\common\quaternion_utils.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\opengl\common\shader.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\opengl\common\tangentspace.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\opengl\common\text2D.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\opengl\common\texture.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\opengl\common\vboindexer.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="Actor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="imguiHelloWorld.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="simpleopengl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Stage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="JustImGui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="minimal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\imgui\imgui_impl_glfw_gl3.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\libs\opengl\common\vboindexer.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\opengl\common\controls.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\imgui\imconfig.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\imgui\imgui.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\imgui\imgui_internal.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\opengl\common\objloader.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\opengl\common\quaternion_utils.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\opengl\common\shader.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\opengl\common\tangentspace.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\opengl\common\text2D.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\opengl\common\texture.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="Actor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Stage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\imgui\imgui_impl_glfw_gl3.h">
+      <Filter>common</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SingleColor.fragmentshader">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="SimpleTransform.vertexshader">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>
