@@ -21,9 +21,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\libs\opengl\common\controls.cpp">
-      <Filter>common</Filter>
-    </ClCompile>
     <ClCompile Include="..\libs\imgui\imgui.cpp">
       <Filter>common</Filter>
     </ClCompile>
@@ -54,9 +51,6 @@
     <ClCompile Include="..\libs\opengl\common\vboindexer.cpp">
       <Filter>common</Filter>
     </ClCompile>
-    <ClCompile Include="Actor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -69,12 +63,27 @@
     <ClCompile Include="..\libs\imgui\imgui_impl_glfw_gl3.cpp">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="Agent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Environment.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Simulation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Input.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\libs\opengl\common\vboindexer.hpp">
-      <Filter>common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libs\opengl\common\controls.hpp">
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="..\libs\imgui\imconfig.h">
@@ -104,9 +113,6 @@
     <ClInclude Include="..\libs\opengl\common\texture.hpp">
       <Filter>common</Filter>
     </ClInclude>
-    <ClInclude Include="Actor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -115,6 +121,24 @@
     </ClInclude>
     <ClInclude Include="..\libs\imgui\imgui_impl_glfw_gl3.h">
       <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="Agent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Environment.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Simulation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Input.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

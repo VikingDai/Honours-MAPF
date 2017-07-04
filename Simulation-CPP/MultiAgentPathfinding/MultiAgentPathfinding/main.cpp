@@ -24,9 +24,16 @@ using namespace glm;
 #include <imgui_impl_glfw_gl3.h>
 #include "Mesh.h"
 
+#include "Simulation.h"
+Simulation* simulation;
+
+#include "Input.h"
+Input* input;
+
 static double g_Time = 0.0f;
 static bool g_MousePressed[3] = { false, false, false };
 static float g_MouseWheel = 0.0f;
+
 
 int main(void)
 {
@@ -39,7 +46,8 @@ int main(void)
 	}
 
 	// Open a window and create its OpenGL context
-	window = glfwCreateWindow(1024, 768, "Tutorial 02 - Red triangle", nullptr, nullptr);
+	window = glfwCreateWindow(1600, 900, "Tutorial 02 - Red triangle", nullptr, nullptr);
+
 	if (!window)
 	{
 		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
@@ -48,6 +56,11 @@ int main(void)
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
+	
+
+	// set window limits
+	glfwSetWindowSizeLimits(window, GLFW_DONT_CARE, GLFW_DONT_CARE, GLFW_DONT_CARE, 1600);
+	//glfwSetWindowAspectRatio(window, 16, 9);
 
 	// Initialize GLEW
 	glewExperimental = true; // Needed for core profile
@@ -61,7 +74,6 @@ int main(void)
 
 	// Ensure we can capture the escape key being pressed below
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-
 
 	ImGui_ImplGlfwGL3_Init(window, true);
 
@@ -93,9 +105,9 @@ int main(void)
 
 	// Camera matrix
 	glm::mat4 View = glm::lookAt(
-		glm::vec3(0, 0, 1), // Camera is at (4,3,3), in World Space
+		glm::vec3(0, 0, 1), // Camera is at (0, 0, 1), in World Space
 		glm::vec3(0, 0, 0), // and looks at the origin
-		glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
+		glm::vec3(0, 1, 0)  // Head is up (set to 0, -1, 0 to look upside-down)
 	);
 	// Model matrix : an identity matrix (model will be at the origin)
 	glm::mat4 Model = glm::mat4(1.0f);
@@ -162,29 +174,43 @@ int main(void)
 		return -1;
 	}
 
+	// create the Simulation
+	simulation = new Simulation();
+	input = new Input();
+
 	ImVec4 clear_color = ImColor(114, 144, 154);
 
 	int NUM_MESHES = 2000;
-	int MAX_COLUMN_SIZE = 100;
+	int MAX_COLUMN_SIZE = 50;
 	Mesh* meshes[2000];
 
 	for (int i = 0; i < NUM_MESHES; i++)
 	{
 		int x = i % MAX_COLUMN_SIZE;
 		int y = round(i / MAX_COLUMN_SIZE);
-		meshes[i] = new Mesh(vec3(x * 2.5, y * 2.5, 0));//position.x = x * 1.1;
+		meshes[i] = new Mesh(vec3(x * 2.5, -100 + y * 2.5, 0));//position.x = x * 1.1;
 		//position.y = y * 1.1;
 	}
 
 	do
 	{
-		
+		// Rendering
 		glfwPollEvents();
 		ImGui_ImplGlfwGL3_NewFrame();
 
+		int display_w, display_h;
+		glfwGetFramebufferSize(window, &display_w, &display_h);
+		
+		float aspectRatio = static_cast<float>(display_w) / static_cast<float>(display_h);
+		Projection = glm::ortho(-zoom, zoom, -zoom, zoom, 0.f, 100.f) * glm::scale(mat4(1.f), vec3(1.f / aspectRatio, 1.f, 1.f));
+		//Model = scale(mat4(3.0f), vec3(1.f / aspectRatio, 1, 1));
+		MVP = Projection * View * Model;
+
+		// update the simulation according to user input
+		input->Update(0.16f, simulation);
+
 		glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
 		glClear(GL_COLOR_BUFFER_BIT);
-
 
 		//////////////////////////////////////////////////////////////////////////
 		// Render a quad
@@ -214,15 +240,16 @@ int main(void)
 		// Fill the texture buffer
 		//////////////////////////////////////////////////////////////////////////
 
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
+		//glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 		glClearColor(0, 0, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//////////////////////////////////////////////////////////////////////////
 		// Use our shader
-
-		glViewport(0, 0, 600, 600);
+		int minSize = min(display_w, display_h);
+		int maxSize = max(display_w, display_h);
+		//glViewport((maxSize - minSize) / 2, 0, minSize, maxSize);
+		glViewport(0, 0, display_w, display_h);
 
 		glUseProgram(programID);
 
@@ -271,36 +298,37 @@ int main(void)
 		//////////////////////////////////////////////////////////////////////////
 		// Send the texture buffer to an ImGUI window
 
-		ImGui::SetNextWindowSize(ImVec2(600, 600), ImGuiSetCond_FirstUseEver);
-		ImGui::Begin("Window title Here");
+		bool open = true;
+
+		ImGui::SetNextWindowSize(ImVec2((maxSize - minSize) / 2, display_h));
+		//ImGui::SetNextWindowSize(ImVec2(300, 300));
+		ImGui::Begin("Window title Here", &open, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing);
 
 		ImVec2 pos = ImGui::GetWindowPos();
 		ImVec2 size = ImGui::GetWindowSize();
 
-		ImTextureID tex_id = (ImTextureID) texturebuffer;
-		ImDrawList* draw_list = ImGui::GetWindowDrawList();
-		draw_list->PushTextureID(tex_id);
-		draw_list->AddImage(tex_id, ImVec2(pos.x, pos.y), ImVec2(pos.x + size.x, pos.y + size.y));
-		draw_list->PopTextureID();
+		// Draw the texture to the main window
+		//ImTextureID tex_id = (ImTextureID) texturebuffer;
+		//ImDrawList* draw_list = ImGui::GetWindowDrawList();
+		//draw_list->PushTextureID(tex_id);
+		//draw_list->AddImage(tex_id, ImVec2(pos.x, pos.y), ImVec2(pos.x + size.x, pos.y + size.y));
+		//draw_list->PopTextureID();
 
-		ImGui::Text("Hello, yo!");
+		ImGui::Text("Helreally long text you know really longlo, yo!");
 
 		ImGui::End();
 
 		////ImGui::GetWindowDrawList()->PopTextureID();
 
 		//////////////////////////////////////////////////////////////////////////
-
-		ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
-		ImGui::Begin("Another Window");
+		ImGui::SetNextWindowSize(ImVec2((maxSize - minSize) / 2, display_h));
+		ImGui::SetNextWindowPos(ImVec2(display_w - (maxSize - minSize) / 2, 0));
+		//ImGui::Begin("Test");
+		ImGui::Begin("Testing", &open, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing);
 		ImGui::Text("Hello");
 		ImGui::Text("Hello, title!");
 		ImGui::End();
 
-
-		// Rendering
-		int display_w, display_h;
-		glfwGetFramebufferSize(window, &display_w, &display_h);
 		glViewport(0, 0, display_w, display_h);
 		ImGui::Render();
 		glfwSwapBuffers(window);
