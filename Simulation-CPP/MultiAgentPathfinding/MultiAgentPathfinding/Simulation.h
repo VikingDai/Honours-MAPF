@@ -4,9 +4,10 @@ class Simulation
 {
 private:
 	int timestep;
-	Environment environment;
+	
 
 public:
+	Environment environment;
 	Simulation();
 	~Simulation();
 

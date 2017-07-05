@@ -29,6 +29,6 @@ glm::mat4 Mesh::GetModelMatrix()
 
 void Mesh::Update()
 {
-	position.x -= 0.05f;
+	//position.x -= 0.05f;
 	model = glm::translate(glm::mat4(1), position);
 }

@@ -160,14 +160,18 @@
     <ClCompile Include="..\libs\opengl\common\text2D.cpp" />
     <ClCompile Include="..\libs\opengl\common\texture.cpp" />
     <ClCompile Include="..\libs\opengl\common\vboindexer.cpp" />
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="EObject.cpp" />
     <ClCompile Include="Agent.cpp" />
     <ClCompile Include="Environment.cpp" />
+    <ClCompile Include="Graphics.cpp" />
+    <ClCompile Include="GridMap.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Simulation.cpp" />
     <ClCompile Include="Stage.cpp" />
+    <ClCompile Include="Tile.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -182,13 +186,17 @@
     <ClInclude Include="..\libs\opengl\common\text2D.hpp" />
     <ClInclude Include="..\libs\opengl\common\texture.hpp" />
     <ClInclude Include="..\libs\opengl\common\vboindexer.hpp" />
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="EObject.h" />
     <ClInclude Include="Agent.h" />
     <ClInclude Include="Environment.h" />
+    <ClInclude Include="Graphics.h" />
+    <ClInclude Include="GridMap.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Simulation.h" />
     <ClInclude Include="Stage.h" />
+    <ClInclude Include="Tile.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
