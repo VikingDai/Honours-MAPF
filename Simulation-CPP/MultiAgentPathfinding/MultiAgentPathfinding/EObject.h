@@ -8,15 +8,13 @@ using namespace glm;
 	have to update every timestep. It must be rendered. */
 class EObject
 {
-	vec3 position;
 	mat4 worldMatrix;
-
 public:
-	EObject() {};
-	EObject(vec3 inPosition);
+	int x, y;
+
+	EObject(int inX, int inY);
+	EObject() : EObject(0, 0) {};
 
 	mat4 GetWorldMatrix() { return worldMatrix; }
-
-	virtual void Render() = 0;
 };
 

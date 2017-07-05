@@ -7,12 +7,13 @@
 
 class GridMap
 {
-	
 	std::string mapType;
 	int width, height;
 
 public:
+	std::vector<Tile*> walkableTiles;
 	std::vector<Tile*> tiles;
+	std::vector<Tile*> tileGrid;
 
 	GridMap();
 	~GridMap();
@@ -25,6 +26,4 @@ public:
 	Tile* getTileAt(int x, int y) const;
 	Tile* getTileRelativeTo(Tile* tile, int x, int y);
 	bool isWalkable(int x, int y) const;
-	
 };
-

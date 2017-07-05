@@ -34,7 +34,7 @@ void GridMap::loadMap(std::string filename)
 
 	getline(infile, mapType);
 
-	tiles.resize(width * height);
+	tileGrid.resize(width * height);
 
 	//int y = 0;
 	int index = 0;
@@ -45,12 +45,11 @@ void GridMap::loadMap(std::string filename)
 			int x = getTileX(index);
 			int y = getTileY(index);
 
-			switch (c)
-			{
-			case '@':
-				tiles[index] = new Tile(x, y);
-				break;
-			}
+			bool isWalkable = c == ' ';
+			Tile* tile = new Tile(x, y, isWalkable);
+			tileGrid[index] = tile;
+			tiles.push_back(tile);
+			if (isWalkable) walkableTiles.push_back(tile);
 
 			index += 1;
 		}
@@ -69,13 +68,13 @@ int GridMap::getTileX(int index) const
 
 int GridMap::getTileY(int index) const
 {
-	return index == 0 ? 0 : floor(static_cast<float>(index) / static_cast<float>(width));
+	return index == 0 ? 0 : static_cast<int>(floor(static_cast<float>(index) / static_cast<float>(width)));
 }
 
 Tile* GridMap::getTileAt(int index) const
 {
 	bool inBounds = index >= 0 && index < width * height;
-	return inBounds ? tiles[index] : nullptr;
+	return inBounds ? tileGrid[index] : nullptr;
 }
 
 Tile* GridMap::getTileAt(int x, int y) const

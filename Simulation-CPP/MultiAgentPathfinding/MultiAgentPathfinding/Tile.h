@@ -1,13 +1,20 @@
 #pragma once
-#include "Mesh.h"
 
+#include "EObject.h"
+#include <iostream>
 
-class Tile
+class Tile : public EObject
 {
-
 public:
-	Mesh* mesh;
-	int x, y;
-	Tile(int x, int y);
-};
+	bool isWalkable;
+	bool visited;
+	float estimate;
+	float cost;
+	float heuristic;
+	Tile* parent;
 
+	vec3 color;
+
+	Tile(int x, int y, bool inIsWalkable);
+	void Reset();
+};

@@ -2,9 +2,17 @@
 #include <iostream>
 #include <glm/vec3.hpp>
 
-Tile::Tile(int inX, int inY)
+Tile::Tile(int x, int y, bool inIsWalkable) : EObject(x, y)
 {
-	x = inX; y = inY;
-	mesh = new Mesh(glm::vec3(x, y, 0));
-	std::cout << "x:" << x << "y:" << y  << std::endl;
+	isWalkable = inIsWalkable;
+	Reset();
+}
+
+void Tile::Reset()
+{
+	visited = false;
+	estimate = 0;
+	cost = 0;
+	heuristic = 0;
+	parent = nullptr;
 }

@@ -2,13 +2,27 @@
 
 #include <common/shader.hpp>
 #include <iostream>
+#include <glm/matrix.hpp>
+#include <glm/vec3.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/detail/func_trigonometric.hpp>
+#include <GLFW/glfw3.h>
+#include <GL/glew.h>
+
+
+void Graphics::SetShaderUniforms(glm::vec3 inPosition, glm::vec3 inScale, glm::vec3 inColor)
+{
+	glm::mat4 model = glm::translate(mat4(1.f), inPosition) * glm::scale(mat4(1.f), inScale);
+	glUniformMatrix4fv(mvpId, 1, GL_FALSE, &camera->getMVP()[0][0]);
+	glUniformMatrix4fv(modelId, 1, GL_FALSE, &model[0][0]);
+	glUniform3f(colorId, inColor.x, inColor.y, inColor.z);
+}
 
 Graphics::Graphics()
 {
-	
+	isBatchActive = false;
+	camera = new Camera();
 }
-
-
 
 Graphics::~Graphics()
 {
@@ -16,36 +30,90 @@ Graphics::~Graphics()
 
 bool Graphics::initGraphics()
 {
+	// Initialize GLFW
+	if (!glfwInit())
+	{
+		fprintf(stderr, "Failed to initialize GLFW\n"); getchar();
+		return false;
+	}
+
+	// Open a window and create its OpenGL context
+	window = glfwCreateWindow(1600, 900, "Multi-agent Pathfinding", nullptr, nullptr);
+
+	if (!window)
+	{
+		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
+		getchar(); glfwTerminate(); 
+		return false;
+	}
+	glfwMakeContextCurrent(window);
+
+
+	// set window limits
+	glfwSetWindowSizeLimits(window, GLFW_DONT_CARE, GLFW_DONT_CARE, GLFW_DONT_CARE, 1600);
+	//glfwSetWindowAspectRatio(window, 16, 9);
+
+	// Initialize GLEW
+	glewExperimental = true; // Needed for core profile
+	if (glewInit() != GLEW_OK)
+	{
+		fprintf(stderr, "Failed to initialize GLEW\n");
+		getchar();
+		glfwTerminate();
+		return false;
+	}
+
+	// Ensure we can capture the escape key being pressed below
+	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+
+	// Set clear color
+	glClearColor(0.2f, 0.2f, 0.2f, 1.f);
+
+	// 
 	glGenVertexArrays(1, &vertexarray);
 	glBindVertexArray(vertexarray);
 
 	// Create and compile our GLSL program from the shaders
-	programID = LoadShaders("SimpleTransform.vertexshader", "SingleColor.fragmentshader");
+	singleColorShaderId = LoadShaders("SimpleColor.vertexshader", "SimpleColor.fragmentshader");
 
 	// Get a handle for our "MVP" uniform
-	MVPID = glGetUniformLocation(programID, "MVP");
+	mvpId = glGetUniformLocation(singleColorShaderId, "MVP");
 
 	// Get a handle for our "Model" uniform
-	ModelID = glGetUniformLocation(programID, "Model");
+	modelId = glGetUniformLocation(singleColorShaderId, "Model");
 
 	// Get a handle for our "Color" uniform
-	ColorID = glGetUniformLocation(programID, "Color");
+	colorId = glGetUniformLocation(singleColorShaderId, "Color");
 
-	static const GLfloat g_vertex_buffer_data[] = {
+	// Create quad vertex buffer object (VBO)
+	const GLfloat quadVertexBufferData[] = {
 		-0.5f, 0.5f, 0.0f,
 		0.5f, 0.5f, 0.0f,
 		-0.5f, -0.5f, 0.0f,
 		0.5f,  -0.5f, 0.0f,
 	};
 
-	// Create vertex buffer object (VBO)
-	vertexbuffer;
-	glGenBuffers(1, &vertexbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+	glGenBuffers(1, &squareVertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, squareVertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertexBufferData), quadVertexBufferData, GL_STATIC_DRAW);
+
+	// Create a circle vertex buffer object (VBO)
+	GLfloat circleVertexBufferData[48];
+	double piPortion = 2 * 3.142 / static_cast<float>(16);
+	for (int i = 0; i < 16; i++)
+	{
+		int base = i * 3;
+		circleVertexBufferData[base] = 0.5f * glm::cos(piPortion * i); // x 
+		circleVertexBufferData[base + 1] = 0.5f * glm::sin(piPortion * i); // y
+		circleVertexBufferData[base + 2] = 0; // z
+		printf("x: %f y: %f, z: %f\n", circleVertexBufferData[base], circleVertexBufferData[base + 1], circleVertexBufferData[base + 2]);
+	}
+
+	glGenBuffers(1, &circleVertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, circleVertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(circleVertexBufferData), circleVertexBufferData, GL_STATIC_DRAW);
 
 	// Create a texture buffer object (TBO)
-	texturebuffer;
 	glGenTextures(1, &texturebuffer);
 	glBindTexture(GL_TEXTURE_2D, texturebuffer);
 
@@ -92,10 +160,10 @@ bool Graphics::initGraphics()
 
 void Graphics::CleanUp()
 {
-	glDeleteProgram(programID);
+	glDeleteProgram(singleColorShaderId);
 
 	// Cleanup vertex buffer VBO
-	glDeleteBuffers(1, &vertexbuffer);
+	glDeleteBuffers(1, &squareVertexBuffer);
 	glDeleteVertexArrays(1, &vertexarray);
 
 	// Cleanup texture buffer TBO
@@ -104,14 +172,55 @@ void Graphics::CleanUp()
 	glDeleteFramebuffers(1, &framebuffer);
 }
 
-void Graphics::DrawSquare()
+void Graphics::DrawBatch(glm::vec3 inPosition, glm::vec3 inColor, glm::vec3 inScale)
 {
+	if (!isBatchActive)
+	{
+		std::cerr << "ERROR: Shape Batch must be active to draw a circle" << std::endl;
+		return;
+	}
+
+	SetShaderUniforms(inPosition, inScale, inColor);
+	switch (shapeTypeForBatch)
+	{
+	case SHAPE_SQUARE:
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // 3 indices starting at 0 -> 1 triangle
+		break;
+	case SHAPE_CIRCLE:
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 16); // 3 indices starting at 0 -> 1 triangle
+		break;
+	case SHAPE_NONE:
+		break;
+	default:
+		break;
+	}
+}
+
+void Graphics::ShapeBatchBegin(ShapeType inShape)
+{
+	isBatchActive = true;
+
 	// Use our shader
-	glUseProgram(programID);
+	glUseProgram(singleColorShaderId);
 
 	// 1rst attribute buffer : vertices
 	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+
+	shapeTypeForBatch = inShape;
+
+	GLfloat shapeVertexBuffer = squareVertexBuffer;
+	switch (shapeTypeForBatch)
+	{
+	case SHAPE_SQUARE:
+		shapeVertexBuffer = squareVertexBuffer;
+		break;
+	case SHAPE_CIRCLE:
+		shapeVertexBuffer = circleVertexBuffer;
+		break;
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, shapeVertexBuffer);
+
 	glVertexAttribPointer(
 		0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
 		3,                  // size
@@ -120,9 +229,11 @@ void Graphics::DrawSquare()
 		0,                  // stride
 		(void*) 0            // array buffer offset
 	);
+}
 
-	// Draw the triangle strip!
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // 3 indices starting at 0 -> 1 triangle
-
+void Graphics::ShapeBatchEnd()
+{
+	isBatchActive = false;
 	glDisableVertexAttribArray(0);
+	shapeTypeForBatch = SHAPE_NONE;
 }

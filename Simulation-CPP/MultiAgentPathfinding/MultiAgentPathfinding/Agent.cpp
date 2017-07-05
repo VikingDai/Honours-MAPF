@@ -4,8 +4,3 @@ void Agent::Step()
 {
 	
 }
-
-void Agent::Render()
-{
-	
-}

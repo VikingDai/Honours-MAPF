@@ -2,10 +2,14 @@
 #include <vector>
 #include "EObject.h"
 #include "GridMap.h"
+#include "Agent.h"
+
+class Graphics;
 
 class Environment
 {
 public:
+	std::vector<Agent*> agents;
 	std::vector<EObject*> objects;
 	GridMap gridMap;
 
@@ -14,6 +18,6 @@ public:
 	~Environment();
 
 	void Step();
-	void Render();
+	void Render(Graphics* graphics);
 };
 

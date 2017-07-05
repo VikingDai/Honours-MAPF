@@ -7,7 +7,7 @@ private:
 
 
 public:
+	Agent(int x, int y) : EObject(x, y) {};
 	virtual void Step();
-	virtual void Render() override;
 };
 
