@@ -2,6 +2,7 @@
 #include <iostream>
 #include "Graphics.h"
 #include "glm/vec3.hpp"
+#include "AStar.h"
 
 Environment::Environment()
 {
@@ -11,7 +12,7 @@ Environment::Environment()
 	//for (int i = 0; i < 5; i++)
 	{
 		Tile* randomTile = gridMap.walkableTiles[rand() % gridMap.walkableTiles.size()];
-		agents.push_back(new Agent(randomTile->x, randomTile->y));
+		agents.push_back(new Agent(&gridMap, new AStar(&gridMap), randomTile->x, randomTile->y));
 	}
 }
 
@@ -47,4 +48,16 @@ void Environment::Render(Graphics* graphics)
 		graphics->DrawBatch(vec3(agent->x, agent->y, 0), vec3(1, 0, 0), vec3(0.8f));
 	}
 	graphics->ShapeBatchEnd();
+
+
+	// draw agent's paths
+	for (Agent* agent : agents)
+	{
+		std::vector<ivec3> points;
+		for (Tile* tile : agent->path)
+		{
+			points.push_back(ivec3(tile->x, tile->y, 0));
+		}
+		graphics->DrawLine(points, vec3(1, 0, 0));
+	}
 }

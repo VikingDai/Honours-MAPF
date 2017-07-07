@@ -5,17 +5,24 @@
 class Tile;
 class GridMap;
 
+struct BaseHeuristic
+{
+	bool operator()(Tile* A, Tile* B);
+};
+
+typedef std::vector<Tile*> OpenQueue;
+
 class AStar
 {
 private:
 	GridMap* gridMap;
-	std::vector<Tile*> closed;
+	std::vector<Tile*> visited;
 
 public:
 	AStar(GridMap* inGridMap);
 	~AStar();
 
 	std::vector<Tile*> findPath(Tile* start, Tile* goal);
-	void AddToOpen(std::priority_queue<Tile*>& open, Tile* tile, int x, int y);
+	void AddToOpen(OpenQueue& open, Tile* from, Tile* tile, Tile* start, Tile* goal);
 };
 

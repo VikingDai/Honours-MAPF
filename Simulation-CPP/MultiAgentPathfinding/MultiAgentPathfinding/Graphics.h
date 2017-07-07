@@ -4,6 +4,7 @@
 #include <glm/vec3.hpp>
 
 #include "Camera.h"
+#include <vector>
 
 struct GLFWwindow;
 
@@ -22,14 +23,19 @@ private:
 
 
 public:
-	// Create and compile our GLSL program from the shaders
+	// single color shader
 	GLuint singleColorShaderId;
 	GLuint mvpId;
 	GLuint modelId;
 	GLuint colorId;
 
+	// texture shader
+	GLuint textureShaderId;
+	GLuint textureMvpId;
+
 	GLuint squareVertexBuffer;
 	GLuint circleVertexBuffer;
+	GLuint lineVertexBuffer;
 
 	GLuint texturebuffer;
 	GLuint renderbuffer;
@@ -48,7 +54,8 @@ public:
 	
 	bool initGraphics();
 	void CleanUp();
-	void DrawSquare(glm::vec3 inPosition, glm::vec3 inColor = glm::vec3(1.f), glm::vec3 inScale = glm::vec3(1.f));
+	void DrawTexture();
+	void DrawLine(const std::vector<glm::ivec3> points, glm::vec3 inColor = glm::vec3(1.f));
 	void DrawBatch(glm::vec3 inPosition, glm::vec3 inColor = glm::vec3(1.f), glm::vec3 inScale = glm::vec3(1.f));
 	void ShapeBatchBegin(ShapeType inShape);
 	void ShapeBatchEnd();

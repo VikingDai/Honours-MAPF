@@ -17,4 +17,6 @@ public:
 
 	void Step();
 	void Render(Graphics* graphics);
+	void LogInfo();
+	void BuildMenuBar();
 };

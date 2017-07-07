@@ -16,3 +16,12 @@ void Tile::Reset()
 	heuristic = 0;
 	parent = nullptr;
 }
+
+void Tile::CalculateEstimate(int inCost, Tile* start, Tile* goal)
+{
+	cost = inCost;
+	float dx = goal->x - x;
+	float dy = goal->y - y;
+	heuristic = sqrt(dx * dx + dy * dy);
+	estimate = cost + heuristic;
+}

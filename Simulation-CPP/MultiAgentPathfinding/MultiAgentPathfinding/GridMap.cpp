@@ -82,12 +82,18 @@ Tile* GridMap::getTileAt(int x, int y) const
 	return getTileAt(getTileIndex(x, y));
 }
 
-Tile* GridMap::getTileRelativeTo(Tile* tile, int x, int y)
+Tile* GridMap::getTileRelativeTo(const Tile* tile, int x, int y)
 {
 	return getTileAt(tile->x + x, tile->y + y);
 }
 
 bool GridMap::isWalkable(const int x, const int y) const
 {
-	return getTileAt(x, y) != nullptr;
+	Tile* tile = getTileAt(x, y);
+	return tile && tile->isWalkable;
+}
+
+Tile* GridMap::randomWalkableTile()
+{
+	return walkableTiles[rand() % walkableTiles.size()];
 }

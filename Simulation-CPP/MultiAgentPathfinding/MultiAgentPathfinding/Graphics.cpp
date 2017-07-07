@@ -69,7 +69,7 @@ bool Graphics::initGraphics()
 	// Set clear color
 	glClearColor(0.2f, 0.2f, 0.2f, 1.f);
 
-	// 
+	// Create the vertex array
 	glGenVertexArrays(1, &vertexarray);
 	glBindVertexArray(vertexarray);
 
@@ -113,6 +113,10 @@ bool Graphics::initGraphics()
 	glBindBuffer(GL_ARRAY_BUFFER, circleVertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(circleVertexBufferData), circleVertexBufferData, GL_STATIC_DRAW);
 
+	// Create a vertex buffer object for drawing a line (with points)
+	glGenBuffers(1, &lineVertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, lineVertexBuffer);
+
 	// Create a texture buffer object (TBO)
 	glGenTextures(1, &texturebuffer);
 	glBindTexture(GL_TEXTURE_2D, texturebuffer);
@@ -135,7 +139,7 @@ bool Graphics::initGraphics()
 	// Create frame buffer object (FBO)
 	framebuffer;
 	glGenFramebuffers(1, &framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	//glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
 	// Set the list of draw buffers.
 	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
@@ -172,6 +176,71 @@ void Graphics::CleanUp()
 	glDeleteFramebuffers(1, &framebuffer);
 }
 
+void Graphics::DrawTexture()
+{
+
+}
+
+void Graphics::DrawLine(const std::vector<glm::ivec3> points, glm::vec3 inColor /*= glm::vec3(1.f)*/)
+{
+	if (points.empty()) return;
+
+	// Use our shader
+	glUseProgram(singleColorShaderId);
+
+	// 1rst attribute buffer : vertices
+	glEnableVertexAttribArray(0);
+
+	const int numPoints = points.size();
+
+	//// Create vertex buffer object for all points on the line
+	//std::vector<GLuint> pointsVertexBufferVector;
+	//for (int i = 0; i < points.size(); i++)
+	//{
+	//	pointsVertexBufferVector.push_back((GLuint)points[i].x);
+	//	pointsVertexBufferVector.push_back((GLuint) points[i].y);
+	//	pointsVertexBufferVector.push_back((GLuint) points[i].z);
+
+	//	//std::cout << points[i].x << "," << points[i].y << std::endl;
+	//}
+
+	//GLuint* pointsVertexBufferData = &pointsVertexBufferVector[0];
+	//
+	//for (int i = 0; i < pointsVertexBufferVector.size(); i++)
+	//{
+	//	std::cout << pointsVertexBufferVector[i] << std::endl;
+	//	std::cout << pointsVertexBufferData[i] << std::endl;
+	//}
+
+
+	const GLfloat pointsVertexBufferData[] = {
+		0, 0, 0.0f,
+		0, 10, 0.0f,
+		15, 20, 0.0f,
+		5,  5, 0.0f,
+	};
+
+	glBindBuffer(GL_ARRAY_BUFFER, lineVertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(pointsVertexBufferData), pointsVertexBufferData, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(
+		0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+		3,                  // size
+		GL_FLOAT,           // type
+		GL_FALSE,           // normalized?
+		0,                  // stride
+		(void*) 0            // array buffer offset
+	);
+
+	glm::mat4 model = mat4(1.f);//glm::translate(mat4(1.f), inPosition) * glm::scale(mat4(1.f), inScale);
+	glUniformMatrix4fv(mvpId, 1, GL_FALSE, &camera->getMVP()[0][0]);
+	glUniformMatrix4fv(modelId, 1, GL_FALSE, &model[0][0]);
+	glUniform3f(colorId, inColor.x, inColor.y, inColor.z);
+	glDrawArrays(GL_LINE_STRIP, 0, 4); // 3 indices per point in the line
+
+	glDisableVertexAttribArray(0);
+}
+
 void Graphics::DrawBatch(glm::vec3 inPosition, glm::vec3 inColor, glm::vec3 inScale)
 {
 	if (!isBatchActive)
@@ -184,10 +253,10 @@ void Graphics::DrawBatch(glm::vec3 inPosition, glm::vec3 inColor, glm::vec3 inSc
 	switch (shapeTypeForBatch)
 	{
 	case SHAPE_SQUARE:
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4); // 3 indices starting at 0 -> 1 triangle
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		break;
 	case SHAPE_CIRCLE:
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 16); // 3 indices starting at 0 -> 1 triangle
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 16);
 		break;
 	case SHAPE_NONE:
 		break;
@@ -237,3 +306,11 @@ void Graphics::ShapeBatchEnd()
 	glDisableVertexAttribArray(0);
 	shapeTypeForBatch = SHAPE_NONE;
 }
+
+
+//glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+//glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind FBO
+//
+//glBindTexture(GL_TEXTURE_2D, graphics.texturebuffer);
+//glGenerateMipmap(GL_TEXTURE_2D);
+//glBindTexture(GL_TEXTURE_2D, 0);
