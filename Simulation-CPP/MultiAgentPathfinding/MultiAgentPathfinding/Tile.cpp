@@ -17,7 +17,7 @@ void Tile::Reset()
 	parent = nullptr;
 }
 
-void Tile::CalculateEstimate(int inCost, Tile* start, Tile* goal)
+void Tile::CalculateEstimate(float inCost, Tile* start, Tile* goal)
 {
 	cost = inCost;
 	float dx = goal->x - x;

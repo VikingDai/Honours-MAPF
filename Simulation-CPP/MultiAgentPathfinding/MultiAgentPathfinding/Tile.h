@@ -17,5 +17,5 @@ public:
 
 	Tile(int x, int y, bool inIsWalkable);
 	void Reset();
-	void CalculateEstimate(int cost, Tile* start, Tile* goal);
+	void CalculateEstimate(float cost, Tile* start, Tile* goal);
 };
