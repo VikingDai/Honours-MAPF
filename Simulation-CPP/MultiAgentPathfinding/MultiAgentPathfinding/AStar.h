@@ -22,7 +22,7 @@ public:
 	AStar(GridMap* inGridMap);
 	~AStar();
 
-	std::vector<Tile*> findPath(Tile* start, Tile* goal);
+	std::deque<Tile*> findPath(Tile* start, Tile* goal);
 	void AddToOpen(OpenQueue& open, Tile* from, Tile* tile, Tile* start, Tile* goal);
 };
 

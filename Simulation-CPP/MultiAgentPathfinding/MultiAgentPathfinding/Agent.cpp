@@ -2,28 +2,36 @@
 #include "AStar.h"
 #include "Tile.h"
 #include "GridMap.h"
+#include "MathUtils.h"
 
-Agent::Agent(GridMap* inMap, AStar* inSearch, int x, int y) : EObject(x, y)
+Agent::Agent(int x, int y) : EObject(x, y)
 {
-	search = inSearch;
-	map = inMap;
+	pathIndex = 0;
+	hasReachedGoal = false;
+
+	color = vec3(MathUtils::randomFloat(), MathUtils::randomFloat(), MathUtils::randomFloat());
 }
 
-void Agent::Step()
+void Agent::step()
 {
-	if (path.empty())
+	if (pathIndex < path.size())
 	{
-		Tile* currentTile = map->getTileAt(x, y);
-		Tile* randomTile = map->randomWalkableTile();
-		path = search->findPath(currentTile, randomTile);
-
-		if (path.empty()) return;
-	}
-	//else // move along current path
-	{
-		Tile* nextTile = path.back();
-		path.pop_back();
+		// move along current path assigned to us by the agent coordinator
+		Tile* nextTile = path[pathIndex];
 		x = nextTile->x;
 		y = nextTile->y;
+		pathIndex += 1;
+		//path.pop_front();
 	}
+	else
+	{
+		hasReachedGoal = true;
+	}
+}
+
+void Agent::setPath(std::deque<Tile*> inPath)
+{
+	path = inPath;
+	pathIndex = 0;
+	hasReachedGoal = false;
 }

@@ -185,6 +185,8 @@ void Graphics::DrawLine(const std::vector<glm::ivec3> points, glm::vec3 inColor 
 {
 	if (points.empty()) return;
 
+	glLineWidth(3.f);
+
 	// Use our shader
 	glUseProgram(singleColorShaderId);
 
@@ -211,14 +213,25 @@ void Graphics::DrawLine(const std::vector<glm::ivec3> points, glm::vec3 inColor 
 	//	std::cout << pointsVertexBufferVector[i] << std::endl;
 	//	std::cout << pointsVertexBufferData[i] << std::endl;
 	//}
+	GLfloat pointsVertexBufferData[1000];
 
+	for (int i = 0; i < points.size(); i++)
+	{
+		int newi = i * 3;
+		pointsVertexBufferData[newi] = points[i].x;
+		pointsVertexBufferData[newi + 1] = points[i].y;
+		pointsVertexBufferData[newi + 2] = points[i].z;
+	}
 
-	const GLfloat pointsVertexBufferData[] = {
-		0, 0, 0.0f,
-		0, 10, 0.0f,
-		15, 20, 0.0f,
-		5,  5, 0.0f,
-	};
+	//static int test = 0;
+	//if (test <= 1)
+	//{
+	//	for (int i = 0; i < numPoints * 3; i += 3)
+	//	{
+	//		std::cout << pointsVertexBufferData[i] << " " << pointsVertexBufferData[i + 1] << " " << pointsVertexBufferData[i + 2] << std::endl;
+	//	}
+	//	test++;
+	//}
 
 	glBindBuffer(GL_ARRAY_BUFFER, lineVertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(pointsVertexBufferData), pointsVertexBufferData, GL_STATIC_DRAW);
@@ -236,7 +249,7 @@ void Graphics::DrawLine(const std::vector<glm::ivec3> points, glm::vec3 inColor 
 	glUniformMatrix4fv(mvpId, 1, GL_FALSE, &camera->getMVP()[0][0]);
 	glUniformMatrix4fv(modelId, 1, GL_FALSE, &model[0][0]);
 	glUniform3f(colorId, inColor.x, inColor.y, inColor.z);
-	glDrawArrays(GL_LINE_STRIP, 0, 4); // 3 indices per point in the line
+	glDrawArrays(GL_LINE_STRIP, 0, numPoints); // 3 indices per point in the line
 
 	glDisableVertexAttribArray(0);
 }

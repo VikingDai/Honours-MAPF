@@ -3,6 +3,7 @@
 #include "EObject.h"
 #include <iostream>
 
+
 class Tile : public EObject
 {
 public:
@@ -18,4 +19,6 @@ public:
 	Tile(int x, int y, bool inIsWalkable);
 	void Reset();
 	void CalculateEstimate(float cost, Tile* start, Tile* goal);
+
+	friend std::ostream& operator<<(std::ostream& os, Tile& tile);
 };

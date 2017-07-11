@@ -1,5 +1,6 @@
 #pragma once
 #include "Environment.h"
+#include "AgentCoordinator.h"
 #include "AStar.h"
 
 class Graphics;
@@ -7,10 +8,14 @@ class Graphics;
 class Simulation
 {
 private:
-	int timestep;
+	
 	AStar* aStar;
+	AgentCoordinator* coordinator;
 
 public:
+
+	static int timestep;
+
 	Environment environment;
 	Simulation();
 	~Simulation();

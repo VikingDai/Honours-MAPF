@@ -1,6 +1,7 @@
 #include "AStar.h"
 #include "Tile.h"
 #include "GridMap.h"
+#include <deque>
 
 AStar::AStar(GridMap* inGridMap)
 {
@@ -11,11 +12,12 @@ AStar::~AStar()
 {
 }
 
-std::vector<Tile*> AStar::findPath(Tile* start, Tile* goal)
+std::deque<Tile*> AStar::findPath(Tile* start, Tile* goal)
 {
-	std::vector<Tile*> path;
+	std::deque<Tile*> path;
+	//std::cout << "Finding path from " << *start << " to " << *goal;
 
-	if (!start || !goal)
+	if (!start || !goal || start == goal)
 		return path;
 
 	if (!start->isWalkable || !goal->isWalkable)
@@ -35,13 +37,10 @@ std::vector<Tile*> AStar::findPath(Tile* start, Tile* goal)
 		open.pop_back();
 		//open.pop();
 
-		current->color = vec3(0, 0, 1);
+		//current->color = vec3(0, 0, 1);
 
-		if (current == goal)
-		{
-			std::cout << "Found path to goal!" << std::endl;
+		if (current == goal) // found path to goal!
 			break;
-		}
 
 		AddToOpen(open, current, gridMap->getTileRelativeTo(current, 0, 1), start, goal);
 		AddToOpen(open, current, gridMap->getTileRelativeTo(current, 1, 0), start, goal);
@@ -52,24 +51,22 @@ std::vector<Tile*> AStar::findPath(Tile* start, Tile* goal)
 	// rebuild the path
 	while (true)
 	{
-		std::cout << "Path: " << current->x << "," << current->y << std::endl;
-		path.push_back(current);
-		if (!current->parent)
-		{
-			std::cerr << "ERROR: Parent to goal is not valid" << std::endl;
-		}
-			
-		if (current->parent == start)
-		{
-			std::cout << "blururre" << std::endl;
+		path.push_front(current);
+
+		if (!current->parent) std::cerr << "ERROR: Parent to goal is not valid" << std::endl;
+		
+		if (current == start)
 			break;
-		}
 
 		current = current->parent;
 	}
 
 	// reset visited tiles
 	for (Tile* tile : visited) tile->Reset();
+
+	// print the path
+	/*for (Tile* tile : path)
+		std::cout << *tile << std::endl;*/
 
 	return path;
 }
@@ -85,7 +82,7 @@ void AStar::AddToOpen(OpenQueue& open, Tile* from, Tile* tile, Tile* start, Tile
 		tile->parent = from;
 		tile->CalculateEstimate(from->cost + 1, start, goal);
 
-		tile->color = vec3(0, 1, 1);
+		//tile->color = vec3(0, 1, 1);
 	}
 	
 	std::sort(open.begin(), open.end(), BaseHeuristic());

@@ -4,10 +4,13 @@
 #include "imgui.h"
 
 
+int Simulation::timestep;
+
 Simulation::Simulation()
 {
 	timestep = 0;
 	aStar = new AStar(&environment.gridMap);
+	coordinator = new AgentCoordinator(&environment.gridMap);
 }
 
 
@@ -17,11 +20,16 @@ Simulation::~Simulation()
 
 void Simulation::Step()
 {
-	for (Agent* agent : environment.agents)
+	for (Tile* tile : environment.gridMap.tiles)
 	{
-		agent->Step();
+		if (tile->isWalkable)
+			tile->color = vec3(1, 1, 1);
 	}
 
+	coordinator->UpdateAgents(environment.agents);
+
+	for (Agent* agent : environment.agents)
+		agent->step();
 
 	//Tile* start = environment.gridMap.getTileAt(1, 1);
 	//Tile* goal = environment.gridMap.getTileAt(15, 19);
@@ -59,7 +67,7 @@ void Simulation::BuildMenuBar()
 	{
 		if (ImGui::BeginMenu("Menu"))
 		{
-			ImGui::MenuItem("(dummy menu)", NULL, false, false);
+			ImGui::MenuItem("(dummy menu)", nullptr, false, false);
 			ImGui::EndMenu();
 		}
 	}

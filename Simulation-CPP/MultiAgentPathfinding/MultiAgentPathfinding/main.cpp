@@ -38,13 +38,14 @@ Input* input;
 #include <scip/scipexception.h>
 #include <scip/scipdefplugins.h>
 
+// create variables
+SCIP_VAR* xNum;
+
 SCIP_RETCODE SetupProblem(SCIP* scip)
 {
 	// create empty problem
 	SCIP_CALL_EXC(SCIPcreateProbBasic(scip, "string"));
 
-	// create variables
-	SCIP_VAR* xNum;
 	//SCIP_VAR* yNum;
 	SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &xNum, "xNum", 0.0, SCIPinfinity(scip), 0.0, SCIP_VARTYPE_CONTINUOUS));
 	//SCIP_CALL(SCIPcreateVarBasic(scip, &yNum, "yNum", 0.0, SCIPinfinity(scip), 0.0, SCIP_VARTYPE_CONTINUOUS));
@@ -63,15 +64,14 @@ SCIP_RETCODE SetupProblem(SCIP* scip)
 	const SCIP_Real MIN_X_VALUE = 3.0; // -SCIPinfinity(scip)
 	const SCIP_Real MAX_X_VALUE = 5.0;
 	SCIP_CONS* xMax;
-	SCIP_CALL_EXC(SCIPcreateConsBasicLinear(scip, &xMax, "xMax", 0, NULL, NULL, MIN_X_VALUE, MAX_X_VALUE));
+	SCIP_CALL_EXC(SCIPcreateConsBasicLinear(scip, &xMax, "xMax", 0, nullptr, nullptr, MIN_X_VALUE, MAX_X_VALUE));
 	SCIP_CALL_EXC(SCIPaddCoefLinear(scip, xMax, xNum, 1.0));
 
 	// apply constraint
 	SCIP_CALL_EXC(SCIPaddCons(scip, xMax));
 
-	// release variables and constraints
+	// release constraints
 	// the problem has captured them and we do not require them any more
-	SCIP_CALL_EXC(SCIPreleaseVar(scip, &xNum));
 	SCIP_CALL_EXC(SCIPreleaseCons(scip, &xMax));
 
 	return SCIP_OKAY;
@@ -83,33 +83,47 @@ void ScipTest()
 	SCIP_CALL_EXC(SCIPcreate(&scip));
 	SCIP_CALL_EXC(SCIPincludeDefaultPlugins(scip));
 
-	SCIPinfoMessage(scip, NULL, "\n");
-	SCIPinfoMessage(scip, NULL, "******************************\n");
-	SCIPinfoMessage(scip, NULL, "* Running Hello World solver *\n");
-	SCIPinfoMessage(scip, NULL, "******************************\n");
-	SCIPinfoMessage(scip, NULL, "\n");
+	SCIPinfoMessage(scip, nullptr, "\n");
+	SCIPinfoMessage(scip, nullptr, "******************************\n");
+	SCIPinfoMessage(scip, nullptr, "* Running Hello World solver *\n");
+	SCIPinfoMessage(scip, nullptr, "******************************\n");
+	SCIPinfoMessage(scip, nullptr, "\n");
 
 	SCIP_CALL_EXC(SetupProblem(scip));
 
 
-	SCIPinfoMessage(scip, NULL, "Original problem:\n");
-	SCIP_CALL_EXC(SCIPprintOrigProblem(scip, NULL, "cip", FALSE));
+	SCIPinfoMessage(scip, nullptr, "Original problem:\n");
+	SCIP_CALL_EXC(SCIPprintOrigProblem(scip, nullptr, "cip", FALSE));
 
-	SCIPinfoMessage(scip, NULL, "\n");
+	SCIPinfoMessage(scip, nullptr, "\n");
 	SCIP_CALL_EXC(SCIPpresolve(scip));
 
-	SCIPinfoMessage(scip, NULL, "\nSolving...\n");
+	SCIPinfoMessage(scip, nullptr, "\nSolving...\n");
 	SCIP_CALL_EXC(SCIPsolve(scip));
 
 	SCIP_CALL_EXC(SCIPfreeTransform(scip));
 
 	if (SCIPgetNSols(scip) > 0)
 	{
-		SCIPinfoMessage(scip, NULL, "\nSolution:\n");
-		SCIP_CALL_EXC(SCIPprintSol(scip, SCIPgetBestSol(scip), NULL, FALSE));
+		SCIPinfoMessage(scip, nullptr, "\nSolution:\n");
+		SCIP_CALL_EXC(SCIPprintSol(scip, SCIPgetBestSol(scip), nullptr, FALSE));
+
+		SCIP_SOL* Solution = SCIPgetBestSol(scip);
+		//Solution->vals
+		if (xNum)
+		{
+			double solution = SCIPgetSolVal(scip, Solution, xNum);
+			std::cout << "xNum: " << solution << std::endl;
+		}
 	}
 
+	// release variables
+	SCIP_CALL_EXC(SCIPreleaseVar(scip, &xNum));
+
 	SCIP_CALL_EXC(SCIPfree(&scip));
+
+	
+	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -152,7 +166,6 @@ int main(void)
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-
 		glViewport(0, 0, display_w, display_h);
 
 		simulation->Render(&graphics);

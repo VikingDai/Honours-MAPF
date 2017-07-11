@@ -7,12 +7,14 @@
 Environment::Environment()
 {
 	std::cout << "Loaded environment" << std::endl;
+	//gridMap.loadMap("../maps/squareMap.map");
 	gridMap.loadMap("../maps/warehouse.map");
+	//gridMap.loadMap("../maps/maze512-1-8.map");
 
-	//for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 15; i++)
 	{
 		Tile* randomTile = gridMap.walkableTiles[rand() % gridMap.walkableTiles.size()];
-		agents.push_back(new Agent(&gridMap, new AStar(&gridMap), randomTile->x, randomTile->y));
+		agents.push_back(new Agent(randomTile->x, randomTile->y));
 	}
 }
 
@@ -23,7 +25,7 @@ Environment::~Environment()
 void Environment::Step()
 {
 	for (Agent* agent : agents)
-		agent->Step();
+		agent->step();
 }
 
 void Environment::Render(Graphics* graphics)
@@ -45,19 +47,17 @@ void Environment::Render(Graphics* graphics)
 	graphics->ShapeBatchBegin(SHAPE_CIRCLE);
 	for (Agent* agent : agents)
 	{
-		graphics->DrawBatch(vec3(agent->x, agent->y, 0), vec3(1, 0, 0), vec3(0.8f));
+		graphics->DrawBatch(vec3(agent->x, agent->y, 0), agent->color, vec3(0.8f));
 	}
 	graphics->ShapeBatchEnd();
-
 
 	// draw agent's paths
 	for (Agent* agent : agents)
 	{
 		std::vector<ivec3> points;
-		for (Tile* tile : agent->path)
-		{
-			points.push_back(ivec3(tile->x, tile->y, 0));
-		}
-		graphics->DrawLine(points, vec3(1, 0, 0));
+		for (Tile* tile : agent->getPath())
+			points.emplace_back(vec3(tile->x, tile->y, 0));
+
+		graphics->DrawLine(points, agent->color);//vec3(0, 0, 0));
 	}
 }

@@ -45,7 +45,7 @@ void GridMap::loadMap(std::string filename)
 			int x = getTileX(index);
 			int y = getTileY(index);
 
-			bool isWalkable = c == ' ';
+			bool isWalkable = c == ' ' || c == '.';
 			Tile* tile = new Tile(x, y, isWalkable);
 			tileGrid[index] = tile;
 			tiles.push_back(tile);

@@ -25,3 +25,9 @@ void Tile::CalculateEstimate(float inCost, Tile* start, Tile* goal)
 	heuristic = sqrt(dx * dx + dy * dy);
 	estimate = cost + heuristic;
 }
+
+std::ostream& operator<<(std::ostream& os, Tile& tile)
+{
+	os << "Tile (" << tile.x << "," << tile.y << ")";
+	return os;
+}
