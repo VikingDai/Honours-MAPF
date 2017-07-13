@@ -11,7 +11,7 @@ Environment::Environment()
 	gridMap.loadMap("../maps/warehouse.map");
 	//gridMap.loadMap("../maps/maze512-1-8.map");
 
-	for (int i = 0; i < 15; i++)
+	for (int i = 0; i < 1; i++)
 	{
 		Tile* randomTile = gridMap.walkableTiles[rand() % gridMap.walkableTiles.size()];
 		agents.push_back(new Agent(randomTile->x, randomTile->y));
@@ -51,13 +51,13 @@ void Environment::Render(Graphics* graphics)
 	}
 	graphics->ShapeBatchEnd();
 
-	// draw agent's paths
-	for (Agent* agent : agents)
-	{
-		std::vector<ivec3> points;
-		for (Tile* tile : agent->getPath())
-			points.emplace_back(vec3(tile->x, tile->y, 0));
+	//// draw agent's paths
+	//for (Agent* agent : agents)
+	//{
+	//	std::vector<ivec3> points;
+	//	for (Tile* tile : agent->getPath())
+	//		points.emplace_back(vec3(tile->x, tile->y, 0));
 
-		graphics->DrawLine(points, agent->color);//vec3(0, 0, 0));
-	}
+	//	graphics->DrawLine(points, agent->color);//vec3(0, 0, 0));
+	//}
 }

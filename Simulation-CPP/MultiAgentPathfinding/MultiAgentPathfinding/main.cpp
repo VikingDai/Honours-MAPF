@@ -31,12 +31,15 @@ Simulation* simulation;
 Input* input;
 
 #include "Graphics.h"
+#include <chrono>
+#include <ctime>
 
 //////////////////////////////////////////////////////////////////////////
 // MOVE THIS INTO ITS OWN CLASS LATER
 #include <scip/scip.h>
 #include <scip/scipexception.h>
 #include <scip/scipdefplugins.h>
+
 
 // create variables
 SCIP_VAR* xNum;
@@ -122,17 +125,13 @@ void ScipTest()
 
 	SCIP_CALL_EXC(SCIPfree(&scip));
 
-	
-	
+
+
 }
 
 //////////////////////////////////////////////////////////////////////////
 
-
-static double g_Time = 0.0f;
-static bool g_MousePressed[3] = { false, false, false };
-static float g_MouseWheel = 0.0f;
-
+static double g_TimeAcc;
 
 int main(void)
 {
@@ -147,6 +146,8 @@ int main(void)
 	// create the Simulation
 	simulation = new Simulation();
 	input = new Input();
+
+	std::chrono::time_point<std::chrono::system_clock> prevTime = std::chrono::system_clock::now();
 
 	do
 	{
@@ -164,11 +165,17 @@ int main(void)
 		float aspectRatio = static_cast<float>(display_w) / static_cast<float>(display_h);
 		graphics.camera->update(0.16f);
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
-		glViewport(0, 0, display_w, display_h);
 
-		simulation->Render(&graphics);
+
+		//if (g_TimeAcc > .033)
+		{
+			//g_TimeAcc -= .033;
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			glViewport(0, 0, display_w, display_h);
+
+			simulation->Render(&graphics);
+		}
 
 		bool open = true;
 
@@ -179,14 +186,12 @@ int main(void)
 		simulation->BuildMenuBar();
 		ImGui::End();
 
-		
-
-
 		// Options window (on the left)
 		//ImGui::SetNextWindowSize(ImVec2((maxSize - minSize) / 2.f, static_cast<float>(display_h)), ImGuiSetCond_Always);
 		ImGui::SetNextWindowPos(ImVec2(0, 20), ImGuiSetCond_Once);
 		ImGui::Begin("Options", &open, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
-		ImGui::Text("testing text");
+		ImGui::Text("Test: %f", g_TimeAcc);
+		simulation->BuildOptions();
 		ImVec2 pos = ImGui::GetWindowPos();
 		ImVec2 size = ImGui::GetWindowSize();
 
@@ -219,10 +224,15 @@ int main(void)
 		ImGui::Text("Mouse Position: (%.1f,%.1f)", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
 		ImGui::End();*/
 
-
 		glViewport(0, 0, display_w, display_h);
 		ImGui::Render();
 		glfwSwapBuffers(graphics.window);
+
+		// delta time
+		std::chrono::time_point<std::chrono::system_clock> currentTime = std::chrono::system_clock::now();
+		std::chrono::duration<double> timeElapsed = currentTime - prevTime;
+		g_TimeAcc += timeElapsed.count();
+		prevTime = currentTime;
 
 	} // Check if the ESC key was pressed or the window was closed
 	while (glfwGetKey(graphics.window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(graphics.window) == 0);

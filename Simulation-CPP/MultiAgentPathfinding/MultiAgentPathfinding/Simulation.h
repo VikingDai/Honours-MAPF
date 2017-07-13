@@ -13,7 +13,6 @@ private:
 	AgentCoordinator* coordinator;
 
 public:
-
 	static int timestep;
 
 	Environment environment;
@@ -22,6 +21,7 @@ public:
 
 	void Step();
 	void Render(Graphics* graphics);
+	void BuildOptions();
 	void LogInfo();
 	void BuildMenuBar();
 };

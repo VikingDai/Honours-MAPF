@@ -2,6 +2,13 @@
 #include "Tile.h"
 #include "GridMap.h"
 #include <deque>
+#include <chrono>
+#include <ctime>
+#include "Statistics.h"
+
+double TIME_ACC = 0;
+int SEARCH_COUNT = 0;
+std::chrono::time_point<std::chrono::system_clock> TIME_START, TIME_END;
 
 AStar::AStar(GridMap* inGridMap)
 {
@@ -12,9 +19,13 @@ AStar::~AStar()
 {
 }
 
-std::deque<Tile*> AStar::findPath(Tile* start, Tile* goal)
+AStar::Path AStar::findPath(Tile* start, Tile* goal)
 {
-	std::deque<Tile*> path;
+	// calculate time
+	SEARCH_COUNT += 1;
+	TIME_START = std::chrono::system_clock::now();
+
+	Path path;
 	//std::cout << "Finding path from " << *start << " to " << *goal;
 
 	if (!start || !goal || start == goal)
@@ -49,15 +60,12 @@ std::deque<Tile*> AStar::findPath(Tile* start, Tile* goal)
 	}
 
 	// rebuild the path
-	while (true)
+	while (current != start)
 	{
 		path.push_front(current);
 
 		if (!current->parent) std::cerr << "ERROR: Parent to goal is not valid" << std::endl;
 		
-		if (current == start)
-			break;
-
 		current = current->parent;
 	}
 
@@ -67,6 +75,12 @@ std::deque<Tile*> AStar::findPath(Tile* start, Tile* goal)
 	// print the path
 	/*for (Tile* tile : path)
 		std::cout << *tile << std::endl;*/
+
+	// calculate time taken
+	TIME_END = std::chrono::system_clock::now();
+	std::chrono::duration<double> timeElapsed = TIME_END - TIME_START;
+	TIME_ACC += timeElapsed.count(); 
+	Stats::avgSearchTime = TIME_ACC / (double) SEARCH_COUNT;
 
 	return path;
 }

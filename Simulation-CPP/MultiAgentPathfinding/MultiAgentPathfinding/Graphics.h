@@ -55,6 +55,9 @@ public:
 	bool initGraphics();
 	void CleanUp();
 	void DrawTexture();
+	void LineBatchBegin();
+	void LineBatchEnd();
+
 	void DrawLine(const std::vector<glm::ivec3> points, glm::vec3 inColor = glm::vec3(1.f));
 	void DrawBatch(glm::vec3 inPosition, glm::vec3 inColor = glm::vec3(1.f), glm::vec3 inScale = glm::vec3(1.f));
 	void ShapeBatchBegin(ShapeType inShape);

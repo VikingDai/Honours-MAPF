@@ -2,12 +2,16 @@
 #include <iostream>
 #include "Graphics.h"
 #include "imgui.h"
+#include "Options.h"
+#include "Statistics.h"
 
 
 int Simulation::timestep;
 
 Simulation::Simulation()
 {
+	Stats::reset();
+
 	timestep = 0;
 	aStar = new AStar(&environment.gridMap);
 	coordinator = new AgentCoordinator(&environment.gridMap);
@@ -28,8 +32,7 @@ void Simulation::Step()
 
 	coordinator->UpdateAgents(environment.agents);
 
-	for (Agent* agent : environment.agents)
-		agent->step();
+	
 
 	//Tile* start = environment.gridMap.getTileAt(1, 1);
 	//Tile* goal = environment.gridMap.getTileAt(15, 19);
@@ -49,16 +52,30 @@ void Simulation::Step()
 	timestep += 1;
 }
 
+// #TODO  Move these options elsewhere
+
 void Simulation::Render(Graphics* graphics)
 {
+	if (!Options::shouldRender) return;
+
 	environment.Render(graphics);
+	if (Options::shouldShowPaths)
+		coordinator->DrawPotentialPaths(graphics);
+}
+
+void Simulation::BuildOptions()
+{
+	ImGui::Checkbox("Render", &Options::shouldRender);
+	ImGui::Checkbox("Show paths", &Options::shouldShowPaths);
 }
 
 void Simulation::LogInfo()
 {
+	ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	ImGui::Text("Timestep: %d", timestep);
 	ImGui::Text("Number of agents: %d", environment.agents.size());
 	ImGui::Text("Grid map dimensions: %d x %d", environment.gridMap.getWidth(), environment.gridMap.getHeight());
+	ImGui::Text("Avg Search Time: %.9f", Stats::avgSearchTime);
 }
 
 void Simulation::BuildMenuBar()
