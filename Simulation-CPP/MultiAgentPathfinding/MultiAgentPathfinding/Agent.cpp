@@ -49,6 +49,6 @@ void Agent::setPath(std::deque<Tile*> inPath)
 
 void Agent::update(float dt)
 {
-	renderPos.x += (x - renderPos.x) * dt;
-	renderPos.y += (y - renderPos.y) * dt;
+	renderPos.x += (x - renderPos.x) * dt * 10;
+	renderPos.y += (y - renderPos.y) * dt * 10;
 }

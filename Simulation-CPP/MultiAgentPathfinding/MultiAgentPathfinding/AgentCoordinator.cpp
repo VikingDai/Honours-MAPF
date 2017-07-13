@@ -6,9 +6,6 @@
 #include "Tile.h"
 #include "Simulation.h"
 
-//////////////////////////////////////////////////////////////////////////
-// Reservation table
-//////////////////////////////////////////////////////////////////////////
 
 void AgentCoordinator::AddPath(Agent* agent, AStar::Path& path)
 {
@@ -81,7 +78,6 @@ void AgentCoordinator::FindAdjustedPath(AStar::Path& path)
 
 void AgentCoordinator::UpdateAgents(std::vector<Agent*> agents)
 {
-	pathCollisions.clear();
 	PopTimestep();
 
 	// update the reservation table with any new paths
@@ -94,9 +90,24 @@ void AgentCoordinator::UpdateAgents(std::vector<Agent*> agents)
 			agent->setPath(aStar->findPath(currentTile, goalTile));
 			AddPath(agent, agent->path);
 		}
+	}
 
+
+	// #TODO pass the paths and which paths are in collisions to the solver
+	ScipSolve();
+
+	// we have successfully resolved all conflicts, now agents move along their paths
+	for (Agent* agent : agents)
+	{
 		agent->step();
 	}
+}
+
+std::vector<std::set<AStar::Path*>> AgentCoordinator::CheckCollisions()
+{
+	std::vector<std::set<AStar::Path*>> pathCollisions;
+
+	//std::set<AStar::Path*> pathCollisions;
 
 	// check for collisions by seeing if any tile is being used by more than one path
 	// at a timestep t
@@ -113,10 +124,12 @@ void AgentCoordinator::UpdateAgents(std::vector<Agent*> agents)
 				float v = 1.f / (float) (t + 1);
 				it->first->color = vec3(v, 0, v);
 
+				// get all paths involved in this collision
+				std::set<AStar::Path*> pathsInvolved;
 				for (AgentPath agentPath : it->second)
-				{
-					pathCollisions.emplace(agentPath.path);
-				}
+					pathsInvolved.emplace(agentPath.path);
+
+				pathCollisions.push_back(pathsInvolved);
 			}
 		}
 	}
@@ -135,7 +148,6 @@ void AgentCoordinator::UpdateAgents(std::vector<Agent*> agents)
 			for (int timestep = 0; timestep < (*path).size(); timestep++)
 			{
 				Tile* currentTile = (*path)[timestep];
-
 				Tile* previousTile = timestep > 0 ? (*path)[timestep - 1] : map->getTileAt(agent->x, agent->y);
 
 				// check all paths on this tile at the current timestep
@@ -159,8 +171,8 @@ void AgentCoordinator::UpdateAgents(std::vector<Agent*> agents)
 						currentTile->color = vec3(v, 0, v);
 						previousTile->color = vec3(v, 0, v);
 
-						pathCollisions.emplace(agentPath.path);
-						pathCollisions.emplace(path);
+						std::set<AStar::Path*> pathsInvolved = { agentPath.path, path };
+						pathCollisions.push_back(pathsInvolved);
 
 						std::cout << "COLLISION!" << std::endl;
 					}
@@ -168,7 +180,10 @@ void AgentCoordinator::UpdateAgents(std::vector<Agent*> agents)
 			}
 		}
 	}
+
+	return pathCollisions;
 }
+
 
 void AgentCoordinator::DrawPotentialPaths(Graphics* graphics)
 {
@@ -188,7 +203,7 @@ void AgentCoordinator::DrawPotentialPaths(Graphics* graphics)
 
 			numDraws += 1;
 
-			bool pathHasCollision = pathCollisions.find(path) != pathCollisions.end();
+			bool pathHasCollision = false;//pathCollisions.find(path) != pathCollisions.end();
 			vec3 color = pathHasCollision ? vec3(1, 0, 0) : vec3(0, 1, 0);
 			float lineWidth = pathHasCollision ? 4.f : 1.5f;
 
@@ -200,4 +215,135 @@ void AgentCoordinator::DrawPotentialPaths(Graphics* graphics)
 	graphics->LineBatchEnd();
 }
 
+SCIP_RETCODE AgentCoordinator::SetupProblem(SCIP* scip)
+{
+	// create empty problem
+	SCIP_CALL_EXC(SCIPcreateProbBasic(scip, "string"));
 
+	const SCIP_Real NEG_INFINITY = -SCIPinfinity(scip);
+	const SCIP_Real POS_INFINITY = SCIPinfinity(scip);
+
+	//////////////////////////////////////////////////////////////////////////
+	// create variables for paths as well as penalties and constraints
+	std::map<AStar::Path*, SCIP_VAR*> pathToSCIPvarMap;
+
+	AgentToPathsMap::iterator it;
+	for (it = agentToPathsMap.begin(); it != agentToPathsMap.end(); it++)
+	{
+		std::vector<SCIP_VAR*> agentVariables;
+
+		int agentId = it->first->getAgentId(); // get the agent's id
+		std::vector<AStar::Path*>& paths = it->second;
+		for (int i = 0; i < paths.size(); i++) // for each path construct a variable in the form 'a1p1'
+		{
+			// create variable describing path
+			SCIP_VAR* pathVar;
+			char pathVarName[50];
+			sprintf(pathVarName, "a%dp%d", agentId, i);
+
+			int pathSize = paths[i]->size();
+			SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &pathVar, pathVarName, 0, 1, pathSize, SCIP_VARTYPE_INTEGER));
+			SCIP_CALL_EXC(SCIPaddVar(scip, pathVar));
+			
+			// add it to the map
+			pathToSCIPvarMap[paths[i]] = pathVar;
+
+			// create variable describing penalty
+			SCIP_VAR* penaltyVar;
+			char penaltyVarName[50];
+			sprintf(penaltyVarName, "a%dq%d", agentId, i);
+			SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &penaltyVar, penaltyVarName, 0, 1, 1000, SCIP_VARTYPE_INTEGER));
+			SCIP_CALL_EXC(SCIPaddVar(scip, penaltyVar));
+
+			allVariables.push_back(pathVar);
+			allVariables.push_back(penaltyVar);
+
+			agentVariables.push_back(pathVar);
+			agentVariables.push_back(penaltyVar);
+		}
+
+		// create a constraint describing that an agent can pick one path or a penalty
+		SCIP_CONS* agentChoiceCons;
+		char choiceConsName[50];
+		sprintf(choiceConsName, "agentChoice%d", agentId);
+		SCIP_CALL_EXC(SCIPcreateConsBasicLinear(scip, &agentChoiceCons, choiceConsName, 0, nullptr, nullptr, 1, 1));
+		for (SCIP_VAR* var : agentVariables)
+			SCIP_CALL_EXC(SCIPaddCoefLinear(scip, agentChoiceCons, var, 1.0));
+
+		// add then release constraint
+		SCIP_CALL_EXC(SCIPaddCons(scip, agentChoiceCons));
+		SCIP_CALL_EXC(SCIPreleaseCons(scip, &agentChoiceCons));
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// #TODO create constraints for path collisions
+	std::vector<std::set<AStar::Path*>> pathCollisions = CheckCollisions();
+
+
+	int collisionCount = 0;
+	for (std::set<AStar::Path*>& paths : pathCollisions)
+	{
+		SCIP_CONS* collisionCons;
+		char collisionConsName[50];
+		sprintf(collisionConsName, "collision%d", collisionCount);
+		SCIP_CALL_EXC(SCIPcreateConsBasicLinear(scip, &collisionCons, collisionConsName, 0, nullptr, nullptr, 1, 1));
+
+		for (AStar::Path* path : paths)
+		{
+			SCIP_VAR* var = pathToSCIPvarMap[path];
+			SCIP_CALL_EXC(SCIPaddCoefLinear(scip, collisionCons, var, 1.0));
+		}
+
+		// add then release constraint
+		SCIP_CALL_EXC(SCIPaddCons(scip, collisionCons));
+		SCIP_CALL_EXC(SCIPreleaseCons(scip, &collisionCons));
+
+		collisionCount += 1;
+	}
+
+	return SCIP_OKAY;
+}
+
+void AgentCoordinator::ScipSolve()
+{
+	SCIP* scip;
+	SCIP_CALL_EXC(SCIPcreate(&scip));
+	SCIP_CALL_EXC(SCIPincludeDefaultPlugins(scip));
+
+	SCIPinfoMessage(scip, nullptr, "\n");
+	SCIPinfoMessage(scip, nullptr, "****************************\n");
+	SCIPinfoMessage(scip, nullptr, "* Running MAPF SCIP Solver *\n");
+	SCIPinfoMessage(scip, nullptr, "****************************\n");
+	SCIPinfoMessage(scip, nullptr, "\n");
+
+	SCIP_CALL_EXC(SetupProblem(scip));
+
+	SCIPinfoMessage(scip, nullptr, "Original problem:\n");
+	SCIP_CALL_EXC(SCIPprintOrigProblem(scip, nullptr, "cip", FALSE));
+
+	SCIPinfoMessage(scip, nullptr, "\n");
+	SCIP_CALL_EXC(SCIPpresolve(scip));
+
+	SCIPinfoMessage(scip, nullptr, "\nSolving...\n");
+	SCIP_CALL_EXC(SCIPsolve(scip));
+
+	SCIP_CALL_EXC(SCIPfreeTransform(scip));
+
+	if (SCIPgetNSols(scip) > 0)
+	{
+		SCIPinfoMessage(scip, nullptr, "\nSolution:\n");
+		SCIP_CALL_EXC(SCIPprintSol(scip, SCIPgetBestSol(scip), nullptr, FALSE));
+
+		SCIP_SOL* Solution = SCIPgetBestSol(scip);
+
+		//	double solution = SCIPgetSolVal(scip, Solution, xNum);
+		//	std::cout << "xNum: " << solution << std::endl;
+	}
+
+	// release variables
+	for (SCIP_VAR* var : allVariables)
+		SCIP_CALL_EXC(SCIPreleaseVar(scip, &var));
+	allVariables.clear();
+
+	SCIP_CALL_EXC(SCIPfree(&scip));
+}

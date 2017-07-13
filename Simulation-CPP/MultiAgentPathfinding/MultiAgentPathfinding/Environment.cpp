@@ -7,12 +7,12 @@
 Environment::Environment()
 {
 	std::cout << "Loaded environment" << std::endl;
-	gridMap.loadMap("../maps/straightMap.map");
+	//gridMap.loadMap("../maps/straightMap.map");
 	/*gridMap.loadMap("../maps/squareMap.map");*/
-	//gridMap.loadMap("../maps/warehouse.map");
+	gridMap.loadMap("../maps/warehouse.map");
 	//gridMap.loadMap("../maps/maze512-1-8.map");
 
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 5; i++)
 	{
 		Tile* randomTile = gridMap.walkableTiles[rand() % gridMap.walkableTiles.size()];
 		agents.push_back(new Agent(randomTile->x, randomTile->y));

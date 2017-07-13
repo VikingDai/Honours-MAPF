@@ -8,6 +8,11 @@
 #include "AStar.h"
 #include "Graphics.h"
 
+// scip includes
+#include <scip/scip.h>
+#include <scip/scipexception.h>
+#include <scip/scipdefplugins.h>
+
 class GridMap;
 class AStar;
 class Tile;
@@ -58,7 +63,7 @@ class AgentCoordinator
 
 	std::set<CollisionData> collisions;
 
-	std::set<AStar::Path*> pathCollisions;
+	std::vector<std::set<AStar::Path*>> CheckCollisions();
 
 	void AddPath(Agent* agent, std::deque<Tile*>& path);
 
@@ -71,9 +76,14 @@ class AgentCoordinator
 
 	void BuildTilePathsMap();
 
+	SCIP_RETCODE SetupProblem(SCIP* scip);
+	void ScipSolve();
+
 	AStar* aStar;
 	GridMap* map;
 	//ReservationTable table;
+
+	std::vector<SCIP_VAR*> allVariables;
 
 public:
 	AgentCoordinator(GridMap* map);
