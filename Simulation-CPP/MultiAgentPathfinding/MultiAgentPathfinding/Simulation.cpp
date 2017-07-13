@@ -56,6 +56,9 @@ void Simulation::Step()
 
 void Simulation::Render(Graphics* graphics)
 {
+	if (Options::tickSimulation)
+		Step();
+
 	if (!Options::shouldRender) return;
 
 	environment.Render(graphics);
@@ -65,6 +68,7 @@ void Simulation::Render(Graphics* graphics)
 
 void Simulation::BuildOptions()
 {
+	ImGui::Checkbox("Tick", &Options::tickSimulation);
 	ImGui::Checkbox("Render", &Options::shouldRender);
 	ImGui::Checkbox("Show paths", &Options::shouldShowPaths);
 }

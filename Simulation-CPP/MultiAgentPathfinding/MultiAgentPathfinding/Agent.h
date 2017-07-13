@@ -16,6 +16,8 @@ private:
 	
 	int agentId;
 
+	
+
 public:
 	vec3 color;
 	Agent(int x, int y);
@@ -27,5 +29,8 @@ public:
 	bool hasReachedGoal;
 
 	int getAgentId() { return agentId; }
+
+	vec3 renderPos;
+	void update(float dt);
 };
 

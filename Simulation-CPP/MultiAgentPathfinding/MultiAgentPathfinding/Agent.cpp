@@ -15,6 +15,9 @@ Agent::Agent(int x, int y) : EObject(x, y)
 
 	agentId = agentCount;
 	agentCount += 1;
+
+	renderPos = vec3(x, y, 0);
+
 }
 
 void Agent::step()
@@ -42,4 +45,10 @@ void Agent::setPath(std::deque<Tile*> inPath)
 	path = inPath;
 	pathIndex = 0;
 	hasReachedGoal = false;
+}
+
+void Agent::update(float dt)
+{
+	renderPos.x += (x - renderPos.x) * dt;
+	renderPos.y += (y - renderPos.y) * dt;
 }

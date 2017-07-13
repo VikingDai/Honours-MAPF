@@ -37,52 +37,28 @@ struct CollisionData
 	}
 };
 
-//struct ReservationTable
-//{
-//	using TileAgentsMap = std::map<Tile*, std::vector<Agent*>>;
-//	std::deque<TileAgentsMap> agentsOnMap;
-//
-//	using PathVector = std::vector<AStar::Path*>;
-//
-//	using TilePathMap = std::map<Tile*, PathVector>;
-//	std::deque<TilePathMap> tileToPathMapAtTimestep;
-//
-//	using AgentToPathsMap = std::map<Agent*, std::vector<AStar::Path>>;
-//	AgentToPathsMap agentToPathsMap;
-//
-//	std::set<CollisionData> collisions;
-//
-//	std::vector<PathVector> pathCollisions;
-//	
-//
-//	void AddPath(Agent* agent, std::deque<Tile*> path);
-//	void PopTimestep()
-//	{
-//		if (!agentsOnMap.empty()) agentsOnMap.pop_front();
-//
-//		if (!tileToPathMapAtTimestep.empty()) tileToPathMapAtTimestep.pop_front();
-//	}
-//};
-
 struct AgentPath
 {
 	Agent* agent;
 	AStar::Path* path;
+
+	AgentPath(Agent* agent, AStar::Path* path) : agent(agent), path(path)
+	{
+
+	}
 };
 
 class AgentCoordinator
 {
-	using PathVector = std::vector<AStar::Path*>;
-
-	using TileToPathMap = std::map<Tile*, PathVector>;
+	using TileToPathMap = std::map<Tile*, std::vector<AgentPath>>;
 	std::deque<TileToPathMap> tileToPathMapAtTimestep;
 
-	using AgentToPathsMap = std::map<Agent*, std::vector<AStar::Path>>;
+	using AgentToPathsMap = std::map<Agent*, std::vector<AStar::Path*>>;
 	AgentToPathsMap agentToPathsMap;
 
 	std::set<CollisionData> collisions;
 
-	std::vector<PathVector> pathCollisions;
+	std::set<AStar::Path*> pathCollisions;
 
 	void AddPath(Agent* agent, std::deque<Tile*>& path);
 
@@ -92,6 +68,8 @@ class AgentCoordinator
 			tileToPathMapAtTimestep.pop_front();
 	}
 
+
+	void BuildTilePathsMap();
 
 	AStar* aStar;
 	GridMap* map;

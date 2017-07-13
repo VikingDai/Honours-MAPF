@@ -187,8 +187,6 @@ void Graphics::DrawTexture()
 
 void Graphics::LineBatchBegin()
 {
-	glLineWidth(3.f);
-
 	// Use our shader
 	glUseProgram(singleColorShaderId);
 
@@ -205,9 +203,11 @@ void Graphics::LineBatchEnd()
 	glDisableVertexAttribArray(0);
 }
 
-void Graphics::DrawLine(const std::vector<glm::ivec3> points, glm::vec3 inColor /*= glm::vec3(1.f)*/)
+void Graphics::DrawLine(const std::vector<glm::ivec3> points, glm::vec3 inColor, float lineWidth)
 {
 	if (points.empty()) return;
+
+	glLineWidth(lineWidth);
 
 	const int numPoints = points.size();
 
