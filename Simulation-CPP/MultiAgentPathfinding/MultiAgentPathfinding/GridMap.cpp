@@ -79,7 +79,8 @@ Tile* GridMap::getTileAt(int index) const
 
 Tile* GridMap::getTileAt(int x, int y) const
 {
-	return getTileAt(getTileIndex(x, y));
+	bool inBounds = x >= 0 && x < width;
+	return inBounds ? getTileAt(getTileIndex(x, y)) : nullptr;
 }
 
 Tile* GridMap::getTileRelativeTo(const Tile* tile, int x, int y)

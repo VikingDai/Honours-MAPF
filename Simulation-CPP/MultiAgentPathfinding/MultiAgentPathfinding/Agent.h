@@ -2,6 +2,7 @@
 #include "EObject.h"
 #include <vector>
 #include <deque>
+#include <iostream>
 
 class AStar;
 class Tile;
@@ -32,5 +33,7 @@ public:
 
 	vec3 renderPos;
 	void update(float dt);
+
+	friend std::ostream& operator<<(std::ostream& os, Agent& agent);
 };
 

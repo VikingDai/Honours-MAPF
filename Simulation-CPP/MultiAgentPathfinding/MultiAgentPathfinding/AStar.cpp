@@ -26,13 +26,12 @@ AStar::Path AStar::findPath(Tile* start, Tile* goal)
 	TIME_START = std::chrono::system_clock::now();
 
 	Path path;
-	//std::cout << "Finding path from " << *start << " to " << *goal;
 
 	if (!start || !goal || start == goal)
-		return path;
+		return Path{ start };
 
 	if (!start->isWalkable || !goal->isWalkable)
-		return path;
+		return Path{ start };
 
 	visited.clear();
 	OpenQueue open;

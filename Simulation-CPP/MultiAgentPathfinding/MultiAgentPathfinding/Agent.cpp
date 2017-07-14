@@ -11,7 +11,7 @@ Agent::Agent(int x, int y) : EObject(x, y)
 	pathIndex = 0;
 	hasReachedGoal = false;
 
-	color = vec3(MathUtils::randomFloat() * 0.6, MathUtils::randomFloat() * 0.6, MathUtils::randomFloat()  * 0.6);
+	color = vec3(0, MathUtils::randomFloat(), MathUtils::randomFloat());
 
 	agentId = agentCount;
 	agentCount += 1;
@@ -49,6 +49,12 @@ void Agent::setPath(std::deque<Tile*> inPath)
 
 void Agent::update(float dt)
 {
-	renderPos.x += (x - renderPos.x) * dt * 10;
-	renderPos.y += (y - renderPos.y) * dt * 10;
+	renderPos.x += (x - renderPos.x) * dt;
+	renderPos.y += (y - renderPos.y) * dt;
+}
+
+std::ostream& operator<<(std::ostream& os, Agent& agent)
+{
+	os << "Agent " << agent.getAgentId() << ": (" << agent.x << "," << agent.y << ")";
+	return os;
 }
