@@ -12,35 +12,12 @@
 #include <scip/scip.h>
 #include <scip/scipexception.h>
 #include <scip/scipdefplugins.h>
+#include <scip/type_var.h>
+#include <scip/struct_var.h>
 
 class GridMap;
 class AStar;
 class Tile;
-
-struct CollisionData
-{
-	Agent* agent;
-	Tile* tile;
-	std::deque<Tile*> path;
-	int timestep;
-
-	CollisionData(Agent* agent, Tile* tile, int timestep) :
-		tile(tile), agent(agent), timestep(timestep)
-	{
-	}
-
-	friend bool operator==(const CollisionData& otherdata, const CollisionData& data)
-	{
-		return	data.agent == otherdata.agent &&
-			data.tile == otherdata.tile &&
-			data.timestep == otherdata.timestep;
-	}
-
-	friend bool operator<(const CollisionData& lhs, const CollisionData& rhs)
-	{
-		return lhs.agent->getAgentId() < rhs.agent->getAgentId();
-	}
-};
 
 struct AgentPath
 {
@@ -58,39 +35,39 @@ class AgentCoordinator
 	using TileToPathMap = std::map<Tile*, std::vector<AgentPath>>;
 	std::deque<TileToPathMap> tileToPathMapAtTimestep;
 
-	using AgentToPathsMap = std::map<Agent*, std::vector<AStar::Path*>>;
-	AgentToPathsMap agentToPathsMap;
-
-	std::set<CollisionData> collisions;
-
-	std::vector<std::set<AStar::Path*>> CheckCollisions();
+	std::vector<std::set<AStar::Path*>> CheckCollisions(std::vector<Agent*>& agents);
 
 	void AddPath(Agent* agent, std::deque<Tile*>& path);
 
 	void PopTimestep()
 	{
-		if (!tileToPathMapAtTimestep.empty()) 
+		if (!tileToPathMapAtTimestep.empty())
 			tileToPathMapAtTimestep.pop_front();
 	}
 
+	void BuildTable(std::vector<Agent*>& agents);
 
-	void BuildTilePathsMap();
-
-	SCIP_RETCODE SetupProblem(SCIP* scip);
-	void ScipSolve();
-
-	AStar* aStar;
-	GridMap* map;
-	//ReservationTable table;
+	// SCIP logics
+	SCIP_RETCODE SetupProblem(SCIP* scip, std::vector<Agent*>& agents);
+	void ResolveConflicts(std::vector<Agent*>& agents);
 
 	std::vector<SCIP_VAR*> allVariables;
+	std::map<SCIP_VAR*, Agent*> varToAgentMap;
+	std::map<SCIP_VAR*, AStar::Path*> varToPathMap;
+	std::map<SCIP_VAR*, char*> varNames;
+
+
+
+public:
+	AStar* aStar;
+	GridMap* map;
 
 public:
 	AgentCoordinator(GridMap* map);
 
-	void FindAdjustedPath(AStar::Path& path);
+	void UpdateAgents(std::vector<Agent*>& agents);
 
-	void UpdateAgents(std::vector<Agent*> agents);
+	void FindAdjustedPath(AStar::Path& path);
 
 	void DrawPotentialPaths(Graphics* graphics);
 };

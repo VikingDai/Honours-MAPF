@@ -32,7 +32,7 @@ void Simulation::Step()
 
 	coordinator->UpdateAgents(environment.agents);
 
-	
+
 
 	//Tile* start = environment.gridMap.getTileAt(1, 1);
 	//Tile* goal = environment.gridMap.getTileAt(15, 19);
@@ -63,7 +63,22 @@ void Simulation::Render(Graphics* graphics)
 
 	environment.Render(graphics);
 	if (Options::shouldShowPaths)
-		coordinator->DrawPotentialPaths(graphics);
+	{
+		//coordinator->DrawPotentialPaths(graphics);
+		for (Agent* agent : environment.agents)
+		{
+			for (AStar::Path& path : agent->allPaths)
+			{
+				std::vector<ivec3> points;
+
+				for (Tile* tile : path)
+					points.emplace_back(vec3(tile->x, tile->y, 0));
+
+				graphics->DrawLine(points, agent->color, 2.f);
+				points.clear();
+			}
+		}
+	}
 }
 
 void Simulation::BuildOptions()

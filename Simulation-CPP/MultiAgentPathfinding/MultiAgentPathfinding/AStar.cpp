@@ -63,7 +63,11 @@ AStar::Path AStar::findPath(Tile* start, Tile* goal)
 	{
 		path.push_front(current);
 
-		if (!current->parent) std::cerr << "ERROR: Parent to goal is not valid" << std::endl;
+		if (!current->parent)
+		{
+			std::cerr << "ERROR: Parent to goal is not valid" << std::endl;
+			return Path{ start };
+		}
 		
 		current = current->parent;
 	}

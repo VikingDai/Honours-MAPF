@@ -3,8 +3,8 @@
 #include <vector>
 #include <deque>
 #include <iostream>
+#include "AStar.h"
 
-class AStar;
 class Tile;
 class GridMap;
 
@@ -13,21 +13,17 @@ class Agent : public EObject
 private:
 	AStar* search;
 	GridMap* map;
-	int pathIndex;
-	
-	int agentId;
 
-	
+	int agentId;
 
 public:
 	vec3 color;
 	Agent(int x, int y);
 	virtual void step();
-	void setPath(std::deque<Tile*> path);
-	//std::deque<Tile*>& getPath() { return path; }
+	void setPath(AStar::Path& path);
 
-	std::deque<Tile*> path;
-	bool hasReachedGoal;
+	std::vector<AStar::Path> allPaths;
+	AStar::Path path;
 
 	int getAgentId() { return agentId; }
 

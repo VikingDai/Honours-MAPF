@@ -36,7 +36,7 @@ Input* input;
 
 static double g_TimeAcc;
 
-int main(void)
+int main()
 {
 	Graphics graphics;
 	if (!graphics.initGraphics())

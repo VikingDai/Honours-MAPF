@@ -8,7 +8,7 @@ Environment::Environment()
 {
 	std::cout << "Loaded environment" << std::endl;
 	gridMap.loadMap("../maps/straightMap.map");
-	/*gridMap.loadMap("../maps/squareMap.map");*/
+	//gridMap.loadMap("../maps/squareMap.map");
 	//gridMap.loadMap("../maps/warehouse.map");
 	//gridMap.loadMap("../maps/maze512-1-8.map");
 

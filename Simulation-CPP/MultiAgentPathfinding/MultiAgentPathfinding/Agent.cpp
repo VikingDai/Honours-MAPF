@@ -8,9 +8,6 @@ static int agentCount = 0;
 
 Agent::Agent(int x, int y) : EObject(x, y)
 {
-	pathIndex = 0;
-	hasReachedGoal = false;
-
 	color = vec3(0, MathUtils::randomFloat(), MathUtils::randomFloat());
 
 	agentId = agentCount;
@@ -25,32 +22,41 @@ void Agent::step()
 	if (!path.empty())
 	{
 		// move along current path assigned to us by the agent coordinator
-		/*Tile* nextTile = path[pathIndex];
-		
-		pathIndex += 1;*/
 		Tile* nextTile = path.front();
 		path.pop_front();
 
 		x = nextTile->x;
 		y = nextTile->y;
-	}
-	else
-	{
-		hasReachedGoal = true;
+
+		std::vector<AStar::Path> pathsToRemove;
+		for (AStar::Path& allPath : allPaths)
+		{
+			allPath.pop_front();
+			if (allPath.empty())
+				pathsToRemove.push_back(allPath);
+		}
+
+		for (AStar::Path& pathToRemove : pathsToRemove)
+		{
+			auto it = std::find(allPaths.begin(), allPaths.end(), pathToRemove);
+			if (it != allPaths.end())
+				allPaths.erase(it);
+		}
+
+		for (AStar::Path& allPath : allPaths)
+			assert(!allPath.empty());
 	}
 }
 
-void Agent::setPath(std::deque<Tile*> inPath)
+void Agent::setPath(AStar::Path& inPath)
 {
 	path = inPath;
-	pathIndex = 0;
-	hasReachedGoal = false;
 }
 
 void Agent::update(float dt)
 {
-	renderPos.x += (x - renderPos.x) * dt;
-	renderPos.y += (y - renderPos.y) * dt;
+	renderPos.x += (x - renderPos.x) * dt * 10.f;
+	renderPos.y += (y - renderPos.y) * dt * 10.f;
 }
 
 std::ostream& operator<<(std::ostream& os, Agent& agent)
