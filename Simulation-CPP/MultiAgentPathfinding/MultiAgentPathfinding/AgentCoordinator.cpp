@@ -21,30 +21,46 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 		{
 			agent->allPaths.clear();
 
-			Tile* currentTile = map->getTileAt(agent->x, agent->y);
-			Tile* goalTile = map->randomWalkableTile();
-
-			/*while (currentTile == goalTile)
-			goalTile = map->randomWalkableTile();*/
-
-			AddPath(agent, aStar->findPath(currentTile, goalTile));
+			GeneratePath(agent);
 			anyPathsChanged = true;
 		}
 	}
 
-	BuildTable(agents);
-
-	PrintAllPaths(agents);
-
 	// detect collisions and resolve them using the MIP solver
 	if (anyPathsChanged)
-		ResolveConflicts(agents);
+	{
+		do
+		{
+			BuildTable(agents);
+
+			vector<Agent*> agentsInConflicts = ResolveConflicts(agents);
+			if (agentsInConflicts.empty()) // no conflicts, agents can proceed on their path
+			{
+				break;
+			}
+			else // we need to feed the MIP, additional paths
+			{
+				for (Agent* agent : agentsInConflicts)
+					GeneratePath(agent);
+			}
+		}
+		while (true);
+	}
 
 	// we have successfully resolved all conflicts, now agents move along their paths
 	for (Agent* agent : agents)
 		agent->step();
 
 	PopTimestep();
+}
+
+void AgentCoordinator::GeneratePath(Agent* agent)
+{
+	Tile* currentTile = map->getTileAt(agent->x, agent->y);
+	if (!agent->goal)
+		agent->goal = map->randomWalkableTile();
+
+	AddPath(agent, aStar->findPath(currentTile, agent->goal));
 }
 
 void AgentCoordinator::AddPath(Agent* agent, AStar::Path& path)
@@ -58,20 +74,10 @@ void AgentCoordinator::AddPath(Agent* agent, AStar::Path& path)
 
 	// associate the path to the agent
 	agent->allPaths.push_back(path);
+	agent->path = path;
 
-	//// associate each tile in the path to a timestep and pointer to the path
-	//for (int timestep = 0; timestep < path.size(); timestep++)
-	//{
-	//	Tile* currentTile = path[timestep];
-	//	TileToPathMap& tilePathMap = tileToPathMapAtTimestep[timestep];
-	//	vector<AgentPath>& pathsUsingTile = tilePathMap[currentTile];
-	//	pathsUsingTile.push_back(AgentPath(agent, &path));
-	//}
-
-	for (Tile* tile : path)
-	{
-		std::cout << "Agent: " << agent->getAgentId() << *tile << std::endl;
-	}
+	/*for (Tile* tile : path)
+		std::cout << "Agent: " << agent->getAgentId() << *tile << std::endl;*/
 }
 
 AgentCoordinator::AgentCoordinator(GridMap* inMap)
@@ -93,7 +99,13 @@ vector<set<AStar::Path*>> AgentCoordinator::CheckCollisions(vector<Agent*>& agen
 		TileToPathMap::iterator it;
 		for (it = tilePathMap.begin(); it != tilePathMap.end(); it++)
 		{
-			if (it->second.size() > 1) // collision occurs
+			std::set<Agent*> seenAgents;
+			for (AgentPath& agentPath : it->second)
+			{
+				seenAgents.emplace(agentPath.agent);
+			}
+			
+			if (seenAgents.size() > 1) // collision occurs
 			{
 				cout << "Collision at " << *it->first << " at timestep " << t << endl;
 				float v = 1.f / (float) (t + 1);
@@ -130,7 +142,7 @@ vector<set<AStar::Path*>> AgentCoordinator::CheckCollisions(vector<Agent*>& agen
 				{
 					if (agentPath.agent == agent) continue; // skip any paths using the same agent
 
-					std::cout << "Checking " << *agent  << " against " << *agentPath.agent << std::endl;
+					std::cout << "Checking " << *agent << " against " << *agentPath.agent << std::endl;
 
 					if (!agentPath.path)
 					{
@@ -229,41 +241,6 @@ void AgentCoordinator::BuildTable(std::vector<Agent*>& agents)
 			}
 		}
 	}
-
-	//int longestPathSize = -1;
-
-	//// get the largest path size
-	//for (Agent* agent : agents)
-	//{
-	//	
-	//	for (AStar::Path& path : agent->allPaths)
-	//		longestPathSize = std::max(longestPathSize, (int) path.size());
-	//}
-	//
-	//for (Agent* agent : agents)
-	//{
-	//	// pad any agent's paths to match that of the longest path size
-	//	for (AStar::Path& path : agent->allPaths)
-	//	{
-	//		for (int i = path.size(); i < longestPathSize; i++)
-	//		{
-	//			Tile* lastTile = path.back();
-	//			path.push_back(lastTile);
-	//		}
-	//	}
-
-	//	// add these paths to the table
-	//	for (AStar::Path& path : agent->allPaths)
-	//	{
-	//		for (int timestep = 0; timestep < path.size(); timestep++)
-	//		{
-	//			Tile* currentTile = path[timestep];
-	//			TileToPathMap& tilePathMap = tileToPathMapAtTimestep[timestep];
-	//			vector<AgentPath>& pathsUsingTile = tilePathMap[currentTile];
-	//			pathsUsingTile.push_back(AgentPath(agent, &path));
-	//		}
-	//	}
-	//}
 }
 
 
@@ -301,6 +278,17 @@ SCIP_RETCODE AgentCoordinator::SetupProblem(SCIP* scip, vector<Agent*>& agents)
 		// get the agent's id
 		int agentId = agent->getAgentId();
 
+		// create variable describing penalty when an agent fails to find a path
+		SCIP_VAR* penaltyVar;
+		char penaltyVarName[50];
+		sprintf(penaltyVarName, "a%dq", agentId);
+		SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &penaltyVar, penaltyVarName, 0, 1, 1000, SCIP_VARTYPE_INTEGER));
+		SCIP_CALL_EXC(SCIPaddVar(scip, penaltyVar));
+		varToAgentMap[penaltyVar] = agent;
+
+		allVariables.push_back(penaltyVar);
+		agentVariables.push_back(penaltyVar);
+
 		vector<AStar::Path>& paths = agent->allPaths;//it->second;
 		for (int i = 0; i < paths.size(); i++) // for each path construct a variable in the form 'a1p1'
 		{
@@ -323,17 +311,6 @@ SCIP_RETCODE AgentCoordinator::SetupProblem(SCIP* scip, vector<Agent*>& agents)
 
 			allVariables.push_back(pathVar);
 			agentVariables.push_back(pathVar);
-
-			// create variable describing penalty
-			SCIP_VAR* penaltyVar;
-			char penaltyVarName[50];
-			sprintf(penaltyVarName, "a%dq%d", agentId, i);
-			SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &penaltyVar, penaltyVarName, 0, 1, 1000, SCIP_VARTYPE_INTEGER));
-			SCIP_CALL_EXC(SCIPaddVar(scip, penaltyVar));
-			varToAgentMap[penaltyVar] = agent;
-
-			allVariables.push_back(penaltyVar);
-			agentVariables.push_back(penaltyVar);
 		}
 
 		// create a constraint describing that an agent can pick one path or a penalty
@@ -377,7 +354,7 @@ SCIP_RETCODE AgentCoordinator::SetupProblem(SCIP* scip, vector<Agent*>& agents)
 	return SCIP_OKAY;
 }
 
-void AgentCoordinator::ResolveConflicts(vector<Agent*>& agents)
+vector<Agent*> AgentCoordinator::ResolveConflicts(vector<Agent*>& agents)
 {
 	SCIP* scip;
 	SCIP_CALL_EXC(SCIPcreate(&scip));
@@ -391,8 +368,8 @@ void AgentCoordinator::ResolveConflicts(vector<Agent*>& agents)
 
 	SCIP_CALL_EXC(SetupProblem(scip, agents));
 
-	//SCIPinfoMessage(scip, nullptr, "Original problem:\n");
-	//SCIP_CALL_EXC(SCIPprintOrigProblem(scip, nullptr, "cip", FALSE));
+	SCIPinfoMessage(scip, nullptr, "Original problem:\n");
+	SCIP_CALL_EXC(SCIPprintOrigProblem(scip, nullptr, "cip", FALSE));
 
 	SCIPinfoMessage(scip, nullptr, "\n");
 	SCIP_CALL_EXC(SCIPpresolve(scip));
@@ -402,6 +379,10 @@ void AgentCoordinator::ResolveConflicts(vector<Agent*>& agents)
 
 	SCIP_CALL_EXC(SCIPfreeTransform(scip));
 
+
+	// Check if the solution contains any penalty variables
+	vector<Agent*> agentsInConflict;
+
 	if (SCIPgetNSols(scip) > 0)
 	{
 		SCIPinfoMessage(scip, nullptr, "\nSolution:\n");
@@ -409,8 +390,6 @@ void AgentCoordinator::ResolveConflicts(vector<Agent*>& agents)
 
 		SCIP_SOL* Solution = SCIPgetBestSol(scip);
 
-		//	double solution = SCIPgetSolVal(scip, Solution, xNum);
-		//	cout << "xNum: " << solution << endl;
 		for (SCIP_VAR* var : allVariables)
 		{
 			if (!var) continue;
@@ -432,15 +411,15 @@ void AgentCoordinator::ResolveConflicts(vector<Agent*>& agents)
 				{
 					agent->setPath(AStar::Path{ map->getTileAt(agent->x, agent->y) });
 					cout << "Failed to find a solution!" << endl;
+
+					agentsInConflict.push_back(agent);
 				}
 			}
-
-
-			/*if (var->name)
-				cout << "solution for: " << var->name << " = " << varSolution << endl;
-			else
-				cout << "solution name not valid for var with " << varSolution << endl;*/
 		}
+	}
+	else
+	{
+		std::cout << "Why does this happen????" << std::endl;
 	}
 
 	// release variables
@@ -453,4 +432,6 @@ void AgentCoordinator::ResolveConflicts(vector<Agent*>& agents)
 	varNames.clear();
 
 	SCIP_CALL_EXC(SCIPfree(&scip));
+
+	return agentsInConflict;
 }

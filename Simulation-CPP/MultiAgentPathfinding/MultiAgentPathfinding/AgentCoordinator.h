@@ -51,7 +51,7 @@ class AgentCoordinator
 
 	// SCIP logics
 	SCIP_RETCODE SetupProblem(SCIP* scip, std::vector<Agent*>& agents);
-	void ResolveConflicts(std::vector<Agent*>& agents);
+	std::vector<Agent*> ResolveConflicts(std::vector<Agent*>& agents);
 
 	std::vector<SCIP_VAR*> allVariables;
 	std::map<SCIP_VAR*, Agent*> varToAgentMap;
@@ -69,7 +69,7 @@ public:
 
 	void UpdateAgents(std::vector<Agent*>& agents);
 
-	void FindAdjustedPath(AStar::Path& path);
+	void GeneratePath(Agent* agent);
 
 	void DrawPotentialPaths(Graphics* graphics, std::vector<Agent*> agents);
 };

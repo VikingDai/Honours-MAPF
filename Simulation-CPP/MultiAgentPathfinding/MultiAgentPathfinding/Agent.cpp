@@ -16,6 +16,8 @@ Agent::Agent(int x, int y) : EObject(x, y)
 
 	renderPos = vec3(x, y, 0);
 
+	goal = nullptr;
+
 }
 
 void Agent::step()
@@ -47,6 +49,10 @@ void Agent::step()
 		for (AStar::Path& allPath : allPaths)
 			assert(!allPath.empty());
 	}
+	
+	
+	if (path.empty()) // we have reached our goal
+		goal = nullptr;
 }
 
 void Agent::setPath(AStar::Path& inPath)
