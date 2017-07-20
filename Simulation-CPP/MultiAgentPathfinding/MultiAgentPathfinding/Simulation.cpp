@@ -4,6 +4,7 @@
 #include "imgui.h"
 #include "Options.h"
 #include "Statistics.h"
+#include <map>
 
 
 int Simulation::timestep;
@@ -54,6 +55,8 @@ void Simulation::Step()
 
 // #TODO  Move these options elsewhere
 
+std::map<Agent*, bool> debugAgents;
+
 void Simulation::Render(Graphics* graphics)
 {
 	if (Options::tickSimulation)
@@ -62,23 +65,15 @@ void Simulation::Render(Graphics* graphics)
 	if (!Options::shouldRender) return;
 
 	environment.Render(graphics);
-	if (Options::shouldShowPaths)
-	{
-		//coordinator->DrawPotentialPaths(graphics);
-		for (Agent* agent : environment.agents)
-		{
-			for (AStar::Path& path : agent->allPaths)
-			{
-				std::vector<ivec3> points;
+	//if (Options::shouldShowPaths)
+		//coordinator->DrawPotentialPaths(graphics, environment.agents);
 
-				for (Tile* tile : path)
-					points.emplace_back(vec3(tile->x, tile->y, 0));
+	graphics->LineBatchBegin();
+	for (Agent* agent : environment.agents)
+		if (Options::shouldShowPaths || debugAgents[agent])
+			agent->drawPaths(graphics);
 
-				graphics->DrawLine(points, agent->color, 2.f);
-				points.clear();
-			}
-		}
-	}
+	graphics->LineBatchEnd();
 }
 
 void Simulation::BuildOptions()
@@ -86,6 +81,13 @@ void Simulation::BuildOptions()
 	ImGui::Checkbox("Tick", &Options::tickSimulation);
 	ImGui::Checkbox("Render", &Options::shouldRender);
 	ImGui::Checkbox("Show paths", &Options::shouldShowPaths);
+
+	for (Agent* agent : environment.agents)
+	{
+		char agentName[50];
+		sprintf(agentName, "agent%d", agent->getAgentId());
+		ImGui::Checkbox(agentName, &debugAgents[agent]);
+	}
 }
 
 void Simulation::LogInfo()

@@ -3,6 +3,7 @@
 #include "Tile.h"
 #include "GridMap.h"
 #include "MathUtils.h"
+#include "Graphics.h"
 
 static int agentCount = 0;
 
@@ -57,6 +58,20 @@ void Agent::update(float dt)
 {
 	renderPos.x += (x - renderPos.x) * dt * 10.f;
 	renderPos.y += (y - renderPos.y) * dt * 10.f;
+}
+
+void Agent::drawPaths(Graphics* graphics)
+{
+	std::vector<ivec3> points;
+
+	for (AStar::Path& path : allPaths)
+	{
+		for (Tile* tile : path)
+			points.emplace_back(vec3(tile->x, tile->y, 0));
+
+		graphics->DrawLine(points, color, 5.f);
+		points.clear();
+	}
 }
 
 std::ostream& operator<<(std::ostream& os, Agent& agent)

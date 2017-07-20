@@ -4,6 +4,7 @@
 #include <deque>
 #include <iostream>
 #include "AStar.h"
+#include "Graphics.h"
 
 class Tile;
 class GridMap;
@@ -17,6 +18,8 @@ private:
 	int agentId;
 
 public:
+	Tile* goal;
+
 	vec3 color;
 	Agent(int x, int y);
 	virtual void step();
@@ -29,6 +32,8 @@ public:
 
 	vec3 renderPos;
 	void update(float dt);
+
+	void drawPaths(Graphics* graphics);
 
 	friend std::ostream& operator<<(std::ostream& os, Agent& agent);
 };

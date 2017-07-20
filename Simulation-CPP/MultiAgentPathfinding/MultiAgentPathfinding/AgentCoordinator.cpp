@@ -34,27 +34,15 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 
 	BuildTable(agents);
 
-	//// detect collisions and resolve them using the MIP solver
+	PrintAllPaths(agents);
+
+	// detect collisions and resolve them using the MIP solver
 	if (anyPathsChanged)
 		ResolveConflicts(agents);
-
-	//for (Agent* agent : agents)
-	//{
-	//	agent->setPath(agent->allPaths[0]);
-	//}
 
 	// we have successfully resolved all conflicts, now agents move along their paths
 	for (Agent* agent : agents)
 		agent->step();
-
-	for (Agent* agent : agents)
-	{
-		for (AStar::Path& path : agent->allPaths)
-		{
-			if (path.empty())
-				std::cout << "TEST" << std::endl;
-		}
-	}
 
 	PopTimestep();
 }
@@ -121,101 +109,113 @@ vector<set<AStar::Path*>> AgentCoordinator::CheckCollisions(vector<Agent*>& agen
 		}
 	}
 
-	//// check for collisions when two agents pass one another
-	//for (Agent* agent : agents)
-	//{
-	//	//Agent* agent = it->first;
-	//	for (AStar::Path& path : agent->allPaths) // check all our paths
-	//	{
-	//		if (path.empty()) continue;
+	// check for collisions when two agents pass one another
+	for (Agent* agent : agents)
+	{
+		//Agent* agent = it->first;
+		for (AStar::Path& path : agent->allPaths) // check all our paths
+		{
+			if (path.empty()) continue;
 
-	//		Tile* previousTile = map->getTileAt(agent->x, agent->y);
+			Tile* previousTile = map->getTileAt(agent->x, agent->y);
 
-	//		for (int timestep = 0; timestep < path.size(); timestep++)
-	//		{
-	//			Tile* currentTile = path[timestep];
+			for (int timestep = 0; timestep < path.size(); timestep++)
+			{
+				Tile* currentTile = path[timestep];
 
-	//			// check all paths on this tile at the current timestep
-	//			TileToPathMap& tileToPathMap = tileToPathMapAtTimestep[timestep];
-	//			vector<AgentPath>& paths = tileToPathMap[previousTile];
-	//			for (AgentPath& agentPath : paths) // check agents using our previous tile at the current timestep
-	//			{
-	//				if (agentPath.agent == agent) continue; // skip any paths using the same agent
+				// check all paths on this tile at the current timestep
+				TileToPathMap& tileToPathMap = tileToPathMapAtTimestep[timestep];
+				vector<AgentPath>& paths = tileToPathMap[previousTile];
+				for (AgentPath& agentPath : paths) // check agents using our previous tile at the current timestep
+				{
+					if (agentPath.agent == agent) continue; // skip any paths using the same agent
 
-	//				if (!agentPath.path)
-	//				{
-	//					cerr << "PATH NOT VALID" << endl;
-	//					continue;
-	//				}
+					std::cout << "Checking " << *agent  << " against " << *agentPath.agent << std::endl;
 
-	//				AStar::Path& otherPath = (*agentPath.path);
+					if (!agentPath.path)
+					{
+						cerr << "PATH NOT VALID" << endl;
+						continue;
+					}
 
-	//				if (timestep >= otherPath.size()) continue;
+					AStar::Path& otherPath = (*agentPath.path);
 
-	//				Tile* currentTileOther = otherPath[timestep];
-	//				Tile* previousTileOther = timestep > 0 ? otherPath[timestep - 1] : map->getTileAt(agentPath.agent->x, agentPath.agent->y);
+					if (timestep >= otherPath.size()) continue;
 
-	//				assert(currentTileOther == previousTile); // the line where we set paths should have made this true
+					Tile* currentTileOther = otherPath[timestep];
+					Tile* previousTileOther = timestep > 0 ? otherPath[timestep - 1] : map->getTileAt(agentPath.agent->x, agentPath.agent->y);
 
-	//				cout << "\t\t" << *currentTile << "  ||  " << *previousTileOther << endl;
+					cout << "\t\t" << *currentTile << "  ||  " << *previousTileOther << endl;
 
-	//				// there is a collision if two agents 'swap' position
-	//				if (currentTile == previousTileOther && previousTile == currentTileOther)
-	//				{
-	//					float v = 1.f / (float) (timestep + 1);
-	//					currentTile->color = vec3(v, 0, v);
-	//					previousTile->color = vec3(v, 0, v);
+					assert(currentTileOther == previousTile); // the line where we set paths should have made this true
 
-	//					set<AStar::Path*> pathsInvolved = { agentPath.path, &path };
-	//					pathCollisions.push_back(pathsInvolved);
+					// there is a collision if two agents 'swap' position
+					if (currentTile == previousTileOther && previousTile == currentTileOther)
+					{
+						float v = 1.f / (float) (timestep + 1);
+						currentTile->color = vec3(v, 0, v);
+						previousTile->color = vec3(v, 0, v);
 
-	//					cout << "COLLISION!" << endl;
-	//				}
-	//			}
+						set<AStar::Path*> pathsInvolved = { agentPath.path, &path };
+						pathCollisions.push_back(pathsInvolved);
 
-	//			previousTile = currentTile;
-	//		}
-	//	}
-	//}
+						cout << "COLLISION!" << endl;
+					}
+				}
+
+				previousTile = currentTile;
+			}
+		}
+	}
 
 	return pathCollisions;
 }
 
 
-void AgentCoordinator::DrawPotentialPaths(Graphics* graphics)
+void AgentCoordinator::DrawPotentialPaths(Graphics* graphics, vector<Agent*> agents)
 {
-	//graphics->LineBatchBegin();
-	//AgentToPathsMap::iterator it;
-	//int numDraws = 0;
-	//vector<ivec3> points;
-	//for (it = agentToPathsMap.begin(); it != agentToPathsMap.end(); it++)
-	//{
-	//	Agent* agent = it->first;
-	//	vector<AStar::Path*> paths = it->second;
+	graphics->LineBatchBegin();
 
-	//	for (AStar::Path* path : paths)
-	//	{
-	//		for (Tile* tile : *path)
-	//			points.emplace_back(vec3(tile->x, tile->y, 0));
+	int numDraws = 0;
+	vector<ivec3> points;
+	for (Agent* agent : agents)
+	{
+		for (AStar::Path& path : agent->allPaths)
+		{
+			for (Tile* tile : path)
+				points.emplace_back(vec3(tile->x, tile->y, 0));
 
-	//		numDraws += 1;
+			numDraws += 1;
 
-	//		bool pathHasCollision = false;//pathCollisions.find(path) != pathCollisions.end();
-	//		vec3 color = pathHasCollision ? vec3(1, 0, 0) : vec3(0, 1, 0);
-	//		float lineWidth = pathHasCollision ? 4.f : 1.5f;
+			bool pathHasCollision = false;//pathCollisions.find(path) != pathCollisions.end();
+			vec3 color = pathHasCollision ? vec3(1, 0, 0) : vec3(0, 1, 0);
+			float lineWidth = pathHasCollision ? 4.f : 1.5f;
 
-	//		graphics->DrawLine(points, color, lineWidth);
-	//		points.clear();
-	//	}
-	//}
+			graphics->DrawLine(points, color, lineWidth);
+			points.clear();
+		}
+	}
 
-	//graphics->LineBatchEnd();
+	graphics->LineBatchEnd();
 }
 
 void AgentCoordinator::BuildTable(std::vector<Agent*>& agents)
 {
-	// associate each tile in the path to a timestep and pointer to the path
+	tileToPathMapAtTimestep.clear();
 
+	int longestPathSize = -1;
+
+	// get the largest path size
+	for (Agent* agent : agents)
+	{
+		for (AStar::Path& path : agent->allPaths)
+			longestPathSize = std::max(longestPathSize, (int) path.size());
+	}
+
+	tileToPathMapAtTimestep.resize(longestPathSize);
+
+
+	// add these paths to the table
 	for (Agent* agent : agents)
 	{
 		for (AStar::Path& path : agent->allPaths)
@@ -226,6 +226,58 @@ void AgentCoordinator::BuildTable(std::vector<Agent*>& agents)
 				TileToPathMap& tilePathMap = tileToPathMapAtTimestep[timestep];
 				vector<AgentPath>& pathsUsingTile = tilePathMap[currentTile];
 				pathsUsingTile.push_back(AgentPath(agent, &path));
+			}
+		}
+	}
+
+	//int longestPathSize = -1;
+
+	//// get the largest path size
+	//for (Agent* agent : agents)
+	//{
+	//	
+	//	for (AStar::Path& path : agent->allPaths)
+	//		longestPathSize = std::max(longestPathSize, (int) path.size());
+	//}
+	//
+	//for (Agent* agent : agents)
+	//{
+	//	// pad any agent's paths to match that of the longest path size
+	//	for (AStar::Path& path : agent->allPaths)
+	//	{
+	//		for (int i = path.size(); i < longestPathSize; i++)
+	//		{
+	//			Tile* lastTile = path.back();
+	//			path.push_back(lastTile);
+	//		}
+	//	}
+
+	//	// add these paths to the table
+	//	for (AStar::Path& path : agent->allPaths)
+	//	{
+	//		for (int timestep = 0; timestep < path.size(); timestep++)
+	//		{
+	//			Tile* currentTile = path[timestep];
+	//			TileToPathMap& tilePathMap = tileToPathMapAtTimestep[timestep];
+	//			vector<AgentPath>& pathsUsingTile = tilePathMap[currentTile];
+	//			pathsUsingTile.push_back(AgentPath(agent, &path));
+	//		}
+	//	}
+	//}
+}
+
+
+void AgentCoordinator::PrintAllPaths(std::vector<Agent*>& agents)
+{
+	for (Agent* agent : agents)
+	{
+		for (AStar::Path& path : agent->allPaths)
+		{
+			cout << "Path for agent: " << agent->getAgentId() << endl;
+
+			for (Tile* tile : path)
+			{
+				std::cout << "\t" << *tile << std::endl;
 			}
 		}
 	}

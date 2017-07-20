@@ -41,11 +41,13 @@ class AgentCoordinator
 
 	void PopTimestep()
 	{
-		if (!tileToPathMapAtTimestep.empty())
-			tileToPathMapAtTimestep.pop_front();
+		//if (!tileToPathMapAtTimestep.empty())
+		//	tileToPathMapAtTimestep.pop_front();
 	}
 
 	void BuildTable(std::vector<Agent*>& agents);
+
+	void PrintAllPaths(std::vector<Agent*>& agents);
 
 	// SCIP logics
 	SCIP_RETCODE SetupProblem(SCIP* scip, std::vector<Agent*>& agents);
@@ -69,6 +71,6 @@ public:
 
 	void FindAdjustedPath(AStar::Path& path);
 
-	void DrawPotentialPaths(Graphics* graphics);
+	void DrawPotentialPaths(Graphics* graphics, std::vector<Agent*> agents);
 };
 
