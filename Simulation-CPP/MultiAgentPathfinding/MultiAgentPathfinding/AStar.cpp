@@ -19,7 +19,7 @@ AStar::~AStar()
 {
 }
 
-AStar::Path AStar::findPath(Tile* start, Tile* goal)
+AStar::Path AStar::findPath(Tile* start, Tile* goal, std::map<Tile*, float>& customCosts)
 {
 	// calculate time
 	SEARCH_COUNT += 1;
@@ -52,10 +52,10 @@ AStar::Path AStar::findPath(Tile* start, Tile* goal)
 		if (current == goal) // found path to goal!
 			break;
 
-		AddToOpen(open, current, gridMap->getTileRelativeTo(current, 0, 1), start, goal);
-		AddToOpen(open, current, gridMap->getTileRelativeTo(current, 1, 0), start, goal);
-		AddToOpen(open, current, gridMap->getTileRelativeTo(current, 0, -1), start, goal);
-		AddToOpen(open, current, gridMap->getTileRelativeTo(current, -1, 0), start, goal);
+		AddToOpen(open, current, gridMap->getTileRelativeTo(current, 0, 1), start, goal, customCosts);
+		AddToOpen(open, current, gridMap->getTileRelativeTo(current, 1, 0), start, goal, customCosts);
+		AddToOpen(open, current, gridMap->getTileRelativeTo(current, 0, -1), start, goal, customCosts);
+		AddToOpen(open, current, gridMap->getTileRelativeTo(current, -1, 0), start, goal, customCosts);
 	}
 
 	// rebuild the path
@@ -75,10 +75,6 @@ AStar::Path AStar::findPath(Tile* start, Tile* goal)
 	// reset visited tiles
 	for (Tile* tile : visited) tile->Reset();
 
-	// print the path
-	/*for (Tile* tile : path)
-		std::cout << *tile << std::endl;*/
-
 	// calculate time taken
 	TIME_END = std::chrono::system_clock::now();
 	std::chrono::duration<double> timeElapsed = TIME_END - TIME_START;
@@ -88,7 +84,7 @@ AStar::Path AStar::findPath(Tile* start, Tile* goal)
 	return path;
 }
 
-void AStar::AddToOpen(OpenQueue& open, Tile* from, Tile* tile, Tile* start, Tile* goal)
+void AStar::AddToOpen(OpenQueue& open, Tile* from, Tile* tile, Tile* start, Tile* goal, TileCosts& customCosts)
 {
 	if (tile && !tile->visited && tile->isWalkable)
 	{
@@ -97,7 +93,13 @@ void AStar::AddToOpen(OpenQueue& open, Tile* from, Tile* tile, Tile* start, Tile
 
 		open.push_back(tile);
 		tile->parent = from;
-		tile->CalculateEstimate(from->cost + 1, start, goal);
+
+		bool hasCustomCost = customCosts.count(tile);
+
+		float tileDist = 1;
+		float cost = from->cost + (hasCustomCost ? customCosts[tile] : tileDist);
+
+		tile->CalculateEstimate(cost, start, goal);
 
 		//tile->color = vec3(0, 1, 1);
 	}

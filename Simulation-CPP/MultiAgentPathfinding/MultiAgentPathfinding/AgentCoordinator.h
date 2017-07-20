@@ -16,7 +16,6 @@
 #include <scip/struct_var.h>
 
 class GridMap;
-class AStar;
 class Tile;
 
 struct AgentPath
@@ -36,8 +35,7 @@ class AgentCoordinator
 	std::deque<TileToPathMap> tileToPathMapAtTimestep;
 
 	std::vector<std::set<AStar::Path*>> CheckCollisions(std::vector<Agent*>& agents);
-
-	void AddPath(Agent* agent, std::deque<Tile*>& path);
+	std::vector<Tile*> TilesInCollision(Agent* agent, AStar::Path& path);
 
 	void PopTimestep()
 	{
@@ -48,6 +46,7 @@ class AgentCoordinator
 	void BuildTable(std::vector<Agent*>& agents);
 
 	void PrintAllPaths(std::vector<Agent*>& agents);
+	void PrintPath(Agent* agent, AStar::Path& path);
 
 	// SCIP logics
 	SCIP_RETCODE SetupProblem(SCIP* scip, std::vector<Agent*>& agents);
@@ -69,7 +68,7 @@ public:
 
 	void UpdateAgents(std::vector<Agent*>& agents);
 
-	void GeneratePath(Agent* agent);
+	void GeneratePath(Agent* agent, bool useCollisions);
 
 	void DrawPotentialPaths(Graphics* graphics, std::vector<Agent*> agents);
 };
