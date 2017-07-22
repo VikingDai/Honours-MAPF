@@ -87,6 +87,6 @@ void Agent::drawPaths(Graphics* graphics)
 
 std::ostream& operator<<(std::ostream& os, Agent& agent)
 {
-	os << "Agent " << agent.getAgentId() << ": (" << agent.x << "," << agent.y << ")" << " | Goal: " << *agent.goal;
+	os << "Agent " << agent.getAgentId() << "[" << agent.x << "," << agent.y << " | Goal " << *agent.goal << "]";
 	return os;
 }

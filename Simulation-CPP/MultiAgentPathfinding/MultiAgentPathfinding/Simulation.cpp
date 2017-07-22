@@ -19,7 +19,7 @@ Simulation::Simulation()
 	coordinator = new AgentCoordinator(&environment.gridMap);
 
 	Scenario scenario;
-	scenario.LoadScenario("../scenarios/padding.scenario", environment);
+	scenario.LoadScenario("../scenarios/alternative.scenario", environment);
 }
 
 
@@ -79,7 +79,7 @@ void Simulation::BuildOptions()
 	for (Agent* agent : environment.agents)
 	{
 		char agentName[50];
-		sprintf(agentName, "agent %d : %d paths", agent->getAgentId(), agent->allPaths.size());
+		sprintf(agentName, "agent %d : %d paths (%d)", agent->getAgentId(), agent->allPaths.size(), agent->currentPath.size());
 		ImGui::Checkbox(agentName, &debugAgents[agent]);
 	}
 }
