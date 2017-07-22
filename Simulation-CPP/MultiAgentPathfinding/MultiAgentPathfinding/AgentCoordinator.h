@@ -32,7 +32,9 @@ class AgentCoordinator
 	std::deque<TileToPathMap> tileToPathMapAtTimestep;
 
 	std::vector<std::set<AStar::Path*>> CheckCollisions(std::vector<Agent*>& agents);
-	std::vector<Tile*> TilesInCollision(Agent* agent, AStar::Path& path);
+	std::vector<std::pair<Tile*, int>> TilesInCollision(Agent* agent, AStar::Path& path);
+
+	std::set<Agent*> agentsInCollision;
 
 	void PopTimestep()
 	{

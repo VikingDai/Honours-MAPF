@@ -5,23 +5,24 @@
 #include "AStar.h"
 #include "Tile.h"
 #include "Simulation.h"
+//#include "Options.h"
 
 using namespace std;
-
 
 /* Gives each agent a path*/
 void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 {
 	bool anyPathsChanged = false;
 
+	vector<Agent*> agentsInConflicts;
+
 	// update the reservation table with any new paths
 	for (Agent* agent : agents)
 	{
-		if (agent->path.empty())
+		if (agent->goal && agent->currentPath.empty()) // if the agent has a goal to reach but does not have a path, generate a path
 		{
+			agentsInConflicts.push_back(agent);
 			agent->allPaths.clear();
-
-			GeneratePath(agent, false);
 			anyPathsChanged = true;
 		}
 	}
@@ -34,26 +35,46 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 		{
 			if (i++ > 20) break;
 
+			
+			// we need to feed the MIP, additional paths
+			for (Agent* agent : agentsInConflicts)
+			{
+				GeneratePath(agent, true);
+			}
+
+			// pad each agents path so that they update the collision table
+			for (Agent* agent : agentsInConflicts)
+			{
+				for (AStar::Path& path : agent->allPaths)
+				{
+					int paddingRequired = tileToPathMapAtTimestep.size() - path.size();
+					std::cout << *agent << " PADDINGGGGG, " << paddingRequired << std::endl;
+					for (int i = 0; i < paddingRequired; i++)
+						path.push_back(path[path.size() - 1]);
+
+					PrintPath(agent, path);
+				}
+			}
+
 			BuildTable(agents);
+			agentsInConflicts = ResolveConflicts(agents);
 
-			vector<Agent*> agentsInConflicts = ResolveConflicts(agents);
-			if (agentsInConflicts.empty()) // no conflicts, agents can proceed on their path
+			/*if (!agentsInConflicts.empty()) // # TODO Work on this to generate a path for ever agent in collision!
 			{
-				break;
-			}
-			else // we need to feed the MIP, additional paths
-			{
-				for (Agent* agent : agentsInConflicts)
-					GeneratePath(agent, true);
-			}
+				agentsInConflicts.clear();
+				for (Agent* agent : agentsInCollision)
+				{
+					agentsInConflicts.push_back(agent);
+				}
+
+				agentsInCollision.clear();
+			}*/
+
+			i++;
+
+
 		}
-		while (true);
-	}
-
-	for (Agent* agent : agents)
-	{
-		agent->allPaths.clear();
-		agent->allPaths.push_back(agent->path);
+		while (!agentsInConflicts.empty());
 	}
 
 	// we have successfully resolved all conflicts, now agents move along their paths
@@ -69,16 +90,19 @@ void AgentCoordinator::GeneratePath(Agent* agent, bool useCollisions)
 	if (!agent->goal)
 		agent->goal = map->randomWalkableTile();
 
-	std::deque<AStar::TileCosts> customCosts;
+	// check any collisions in the path
+	AStar::TileCosts customCosts;
 	if (useCollisions)
 	{
 		for (AStar::Path& path : agent->allPaths)
 		{
-			std::vector<Tile*> tilesInCollision = TilesInCollision(agent, path);
-			for (int i = 0; i <= tilesInCollision.size(); i++)
+			std::vector<std::pair<Tile*, int>> tilesInCollision = TilesInCollision(agent, path);
+			for (std::pair<Tile*, int> tileCollision : tilesInCollision)
 			{
-				Tile* tile = tilesInCollision[i];
-				customCosts[i][tile] = 1000;
+				Tile* tile = tileCollision.first;
+				int time = tileCollision.second;
+				std::cout << "Collision occurs at timestep " << time << " on " << *tile << std::endl;
+				customCosts[time][tile] = 1000;
 			}
 		}
 	}
@@ -93,7 +117,7 @@ void AgentCoordinator::GeneratePath(Agent* agent, bool useCollisions)
 
 	// associate the path to the agent
 	agent->allPaths.push_back(path);
-	agent->path = path;
+	agent->currentPath = path;
 }
 
 AgentCoordinator::AgentCoordinator(GridMap* inMap)
@@ -106,6 +130,8 @@ AgentCoordinator::AgentCoordinator(GridMap* inMap)
 /* Check if any paths are in collision ~ that is they share the same tile at the same timestep */
 vector<set<AStar::Path*>> AgentCoordinator::CheckCollisions(vector<Agent*>& agents)
 {
+	agentsInCollision.clear();
+
 	vector<set<AStar::Path*>> pathCollisions;
 
 	for (int t = 0; t < tileToPathMapAtTimestep.size(); t++)
@@ -118,7 +144,10 @@ vector<set<AStar::Path*>> AgentCoordinator::CheckCollisions(vector<Agent*>& agen
 			// count unique agents with paths on this tile
 			std::set<Agent*> seenAgents;
 			for (AgentPath& agentPath : it->second)
+			{
 				seenAgents.emplace(agentPath.agent);
+				agentsInCollision.emplace(agentPath.agent);
+			}
 
 			if (seenAgents.size() > 1)
 			{
@@ -187,6 +216,8 @@ vector<set<AStar::Path*>> AgentCoordinator::CheckCollisions(vector<Agent*>& agen
 						set<AStar::Path*> pathsInvolved = { agentPath.path, &path };
 						pathCollisions.push_back(pathsInvolved);
 
+						agentsInCollision.emplace(agentPath.agent);
+
 						cout << "COLLISION!" << endl;
 					}
 				}
@@ -200,22 +231,22 @@ vector<set<AStar::Path*>> AgentCoordinator::CheckCollisions(vector<Agent*>& agen
 }
 
 
-std::vector<Tile*> AgentCoordinator::TilesInCollision(Agent* agent, AStar::Path& path)
+std::vector<std::pair<Tile*, int>> AgentCoordinator::TilesInCollision(Agent* agent, AStar::Path& path)
 {
-	std::vector<Tile*> tilesInCollision;
+	std::vector<std::pair<Tile*, int>> tilesInCollision;
 
-	for (int i = 0; i < path.size(); i++)
+	for (int timestep = 0; timestep < path.size(); timestep++)
 	{
-		Tile* tile = path[i];
+		Tile* tile = path[timestep];
 
-		vector<AgentPath> agentsOnTile = tileToPathMapAtTimestep[i][tile];
+		vector<AgentPath> agentsOnTile = tileToPathMapAtTimestep[timestep][tile];
 		// count unique agents with paths on this tile
 		std::set<Agent*> seenAgents;
 		for (AgentPath& agentPath : agentsOnTile)
 			seenAgents.emplace(agentPath.agent);
 
 		if (seenAgents.size() > 1)
-			tilesInCollision.push_back(tile);
+			tilesInCollision.push_back(std::pair<Tile*, int>(tile, timestep));
 	}
 
 	// check for collisions when two agents pass one another
@@ -223,7 +254,7 @@ std::vector<Tile*> AgentCoordinator::TilesInCollision(Agent* agent, AStar::Path&
 
 	for (int timestep = 0; timestep < path.size(); timestep++)
 	{
-		Tile* currentTile = path[timestep];
+		Tile* tile = path[timestep];
 
 		// check all paths on this tile at the current timestep
 		TileToPathMap& tileToPathMap = tileToPathMapAtTimestep[timestep];
@@ -248,17 +279,17 @@ std::vector<Tile*> AgentCoordinator::TilesInCollision(Agent* agent, AStar::Path&
 			assert(currentTileOther == previousTile); // the line where we set paths should have made this true
 													  // there is a collision if two agents 'swap' position
 
-			if (currentTile == previousTileOther && previousTile == currentTileOther)
+			if (tile == previousTileOther && previousTile == currentTileOther)
 			{
 				float v = 1.f / (float) (timestep + 1);
-				currentTile->color = vec3(v, 0, v);
+				tile->color = vec3(v, 0, v);
 				previousTile->color = vec3(v, 0, v);
 
-				tilesInCollision.push_back(currentTile);
+				tilesInCollision.push_back(std::pair<Tile*, int>(tile, timestep));
 			}
 		}
 
-		previousTile = currentTile;
+		previousTile = tile;
 	}
 
 	return tilesInCollision;
@@ -269,7 +300,7 @@ void AgentCoordinator::DrawPotentialPaths(Graphics* graphics, vector<Agent*> age
 	graphics->LineBatchBegin();
 
 	int numDraws = 0;
-	vector<ivec3> points;
+	vector<vec3> points;
 	for (Agent* agent : agents)
 	{
 		for (AStar::Path& path : agent->allPaths)
@@ -322,7 +353,6 @@ void AgentCoordinator::BuildTable(std::vector<Agent*>& agents)
 		}
 	}
 }
-
 
 void AgentCoordinator::PrintAllPaths(std::vector<Agent*>& agents)
 {
@@ -463,7 +493,6 @@ vector<Agent*> AgentCoordinator::ResolveConflicts(vector<Agent*>& agents)
 	SCIP_CALL_EXC(SCIPsolve(scip));
 
 	SCIP_CALL_EXC(SCIPfreeTransform(scip));
-
 
 	// Check if the solution contains any penalty variables
 	vector<Agent*> agentsInConflict;

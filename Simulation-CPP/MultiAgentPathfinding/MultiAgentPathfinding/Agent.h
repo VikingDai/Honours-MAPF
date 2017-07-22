@@ -21,12 +21,12 @@ public:
 	Tile* goal;
 
 	vec3 color;
-	Agent(int x, int y);
+	Agent(Tile* startTile, Tile* goalTile = nullptr);
 	virtual void step();
 	void setPath(AStar::Path& path);
 
 	std::vector<AStar::Path> allPaths;
-	AStar::Path path;
+	AStar::Path currentPath;
 
 	int getAgentId() { return agentId; }
 

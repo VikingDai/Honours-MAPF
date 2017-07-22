@@ -203,7 +203,7 @@ void Graphics::LineBatchEnd()
 	glDisableVertexAttribArray(0);
 }
 
-void Graphics::DrawLine(const std::vector<glm::ivec3> points, glm::vec3 inColor, float lineWidth)
+void Graphics::DrawLine(const std::vector<glm::vec3> points, glm::vec3 inColor, float lineWidth)
 {
 	if (points.empty()) return;
 
