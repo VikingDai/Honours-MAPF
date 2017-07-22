@@ -11,8 +11,6 @@ struct BaseHeuristic
 	bool operator()(Tile* A, Tile* B);
 };
 
-
-
 class AStar
 {
 public:
@@ -28,7 +26,7 @@ public:
 	AStar(GridMap* inGridMap);
 	~AStar();
 
-	Path findPath(Tile* start, Tile* goal, TileCosts& customCosts = TileCosts());
+	Path findPath(Tile* start, Tile* goal, std::deque<TileCosts>& customCostTable = std::deque<TileCosts>());
 	void AddToOpen(OpenQueue& open, Tile* from, Tile* tile, Tile* start, Tile* goal, TileCosts& customCosts);
 };
 

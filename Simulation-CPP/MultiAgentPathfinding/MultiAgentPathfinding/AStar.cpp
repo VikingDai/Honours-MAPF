@@ -19,7 +19,7 @@ AStar::~AStar()
 {
 }
 
-AStar::Path AStar::findPath(Tile* start, Tile* goal, std::map<Tile*, float>& customCosts)
+AStar::Path AStar::findPath(Tile* start, Tile* goal, std::deque<TileCosts>& customCostTable)
 {
 	// calculate time
 	SEARCH_COUNT += 1;
@@ -51,6 +51,9 @@ AStar::Path AStar::findPath(Tile* start, Tile* goal, std::map<Tile*, float>& cus
 
 		if (current == goal) // found path to goal!
 			break;
+
+		int time = 0;
+		TileCosts& customCosts = customCostTable[time];
 
 		AddToOpen(open, current, gridMap->getTileRelativeTo(current, 0, 1), start, goal, customCosts);
 		AddToOpen(open, current, gridMap->getTileRelativeTo(current, 1, 0), start, goal, customCosts);
@@ -94,10 +97,11 @@ void AStar::AddToOpen(OpenQueue& open, Tile* from, Tile* tile, Tile* start, Tile
 		open.push_back(tile);
 		tile->parent = from;
 
-		bool hasCustomCost = customCosts.count(tile);
-
 		float tileDist = 1;
-		float cost = from->cost + (hasCustomCost ? customCosts[tile] : tileDist);
+		float cost = from->cost + tileDist;
+
+		bool hasCustomCost = customCosts.count(tile);
+		if (hasCustomCost) cost += customCosts[tile];
 
 		tile->CalculateEstimate(cost, start, goal);
 

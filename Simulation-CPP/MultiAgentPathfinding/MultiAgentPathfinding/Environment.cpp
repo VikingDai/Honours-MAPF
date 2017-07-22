@@ -12,7 +12,7 @@ Environment::Environment()
 	gridMap.loadMap("../maps/warehouse.map");
 	//gridMap.loadMap("../maps/maze512-1-8.map");
 
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < 1; i++)
 	{
 		Tile* randomTile = gridMap.walkableTiles[rand() % gridMap.walkableTiles.size()];
 		agents.push_back(new Agent(randomTile->x, randomTile->y));

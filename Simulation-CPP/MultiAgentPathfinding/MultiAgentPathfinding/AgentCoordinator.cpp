@@ -32,7 +32,7 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 		int i = 0;
 		do
 		{
-			if (i++ > 10) break;
+			if (i++ > 20) break;
 
 			BuildTable(agents);
 
@@ -69,15 +69,16 @@ void AgentCoordinator::GeneratePath(Agent* agent, bool useCollisions)
 	if (!agent->goal)
 		agent->goal = map->randomWalkableTile();
 
-	AStar::TileCosts customCosts;
-
+	std::deque<AStar::TileCosts> customCosts;
 	if (useCollisions)
 	{
 		for (AStar::Path& path : agent->allPaths)
 		{
-			for (Tile* tile : TilesInCollision(agent, path))
+			std::vector<Tile*> tilesInCollision = TilesInCollision(agent, path);
+			for (int i = 0; i <= tilesInCollision.size(); i++)
 			{
-				customCosts[tile] = 1000;
+				Tile* tile = tilesInCollision[i];
+				customCosts[i][tile] = 1000;
 			}
 		}
 	}

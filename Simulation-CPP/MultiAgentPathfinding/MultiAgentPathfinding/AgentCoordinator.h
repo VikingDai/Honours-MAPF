@@ -23,10 +23,7 @@ struct AgentPath
 	Agent* agent;
 	AStar::Path* path;
 
-	AgentPath(Agent* agent, AStar::Path* path) : agent(agent), path(path)
-	{
-
-	}
+	AgentPath(Agent* agent, AStar::Path* path) : agent(agent), path(path) {}
 };
 
 class AgentCoordinator
