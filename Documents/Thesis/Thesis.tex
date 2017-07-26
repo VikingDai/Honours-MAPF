@@ -1,0 +1,153 @@
+\documentclass[a4paper,11pt]{article}
+
+% set up sensible margins (same as for cssethesis)
+\usepackage[paper=a4paper,left=30mm,right=30mm,top=25mm,bottom=25mm]{geometry}
+\usepackage{natbib} % Use the natbib bibliography and citation package
+\usepackage{setspace} % This is used in the title page
+\usepackage{graphicx} % This is used to load the crest in the title page
+\usepackage{physics} % Used for \abs
+
+% non-template packages
+\usepackage{paralist}
+\usepackage{multicol}
+\usepackage{caption}
+\usepackage{tabularx, booktabs}
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
+\usepackage{listings}
+\lstset{
+	numbers=left, 
+	numberstyle=\small, 
+	numbersep=8pt, 
+	frame = single, 
+	language=Python, 
+	framexleftmargin=17pt}
+
+\usepackage{tikz}
+\usepackage{smartdiagram}
+
+\usepackage[font={small,it}]{caption}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{lscape}
+\hypersetup{
+	colorlinks,
+	linkcolor=teal,
+	citecolor=teal,
+	urlcolor=blue
+}
+
+\usepackage[english]{babel}
+\usepackage{blindtext}
+\usepackage{footnote}
+\makesavenoteenv{tabular}
+\makesavenoteenv{table}
+
+%tikz stuff
+\usepackage{tikz}
+\usetikzlibrary{shapes, arrows, trees}
+\tikzstyle{decision} = [diamond, draw, fill=green!20, text width=4.5em, text badly centered, node distance=3cm, inner sep=0pt]
+\tikzstyle{block} = [rectangle, draw, fill=yellow!20, text width=3cm, text centered, rounded corners, minimum height=4em]
+\tikzstyle{line} = [draw, -latex']
+\tikzstyle{straight} = [draw]
+
+
+\usepackage{array}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+\usepackage{float}
+
+%\hypersetup{
+%	colorlinks,
+%	linkcolor={red!50!black},
+%	citecolor={blue!50!black},
+%	urlcolor={blue!80!black}
+%}
+
+\begin{document}
+	
+% Set up a title page
+\thispagestyle{empty} % no page number on very first page
+% Use roman numerals for page numbers initially
+\renewcommand{\thepage}{\roman{page}}
+
+\begin{spacing}{1.5}
+	\begin{center}
+		{\Large \bfseries
+			School of Computer Science (BICA) \\
+			Monash University}
+		
+		
+		\vspace*{30mm}
+		
+		\includegraphics[width=5cm]{graphics/MonashCrest.pdf}
+		
+		\vspace*{15mm}
+		
+		{\large \bfseries
+			Literature Review, 2017
+		}
+		
+		\vspace*{10mm}
+		
+		{\LARGE \bfseries
+			Review of optimal multi-agent Pathfinding algorithms and usage in warehouse automation
+		}
+		
+		\vspace*{20mm}
+		
+		{\large \bfseries
+			Phillip Wong
+			
+			\vspace*{20mm}
+			
+			
+			Supervisors: \parbox[t]{50mm}{Daniel Harabor,\\Pierre Le Bodic}
+		}
+		
+	\end{center}
+\end{spacing}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+% Now reset page number counter,and switch to arabic numerals for remaining
+% page numbers 
+\setcounter{page}{1}
+\renewcommand{\thepage}{\arabic{page}}
+
+\section{Introduction} \label{sec:introduction}
+
+In our multi-agent pathfinding problem, we have an environment containing a set of $k$ agents on a grid-map. Each agent aims to find a path to their goal without colliding with another agent (a path collision).
+
+Hence we have a centralized agent coordinator which aims to resolve path collisions.
+
+\section{Resolving conflicts}
+\begin{compactenum}
+	\item Given a set of paths, \textit{S} which contains all agent's path, find a new path for each agent their goal and add it to \textit{S}
+	\item Detect any path collision for each path
+	\item Convert the paths to MIP variables and path collisions to constraints
+	\item Repeat 1. if there is not a valid solution found i.e the optimal solution contains a path collision
+\end{compactenum}
+
+\section{Master problem formulation?}
+Each agent is given \textit{one or more} paths to their goal. The master problem aims to assign one path to every agent while minimizing the path distance and avoiding path collisions. 
+
+\begin{compactitem}
+	\item \textbf{Potential paths}: A set of paths from an agent's position to their goal. We generate a variable for each path and the cost is set to the path length.
+	\item \textbf{Penalty}: A penalty variable is added for every agent in the case that all the agent's paths are in collision. The cost of the penalty is set to be larger than the expected maximum path length (here it is 1000).
+\end{compactitem}
+
+For example \cite{put example!}, our generated variables are: $5a_0p_0 + 5a_0p_1 + 1000q_0 + 2a_1p_0 + 2a_1p_1 + 1000q_1$.
+
+Agents are assigned
+
+
+
+\bibliographystyle{dcu}
+\bibliography{bibliography}
+	
+\end{document}
