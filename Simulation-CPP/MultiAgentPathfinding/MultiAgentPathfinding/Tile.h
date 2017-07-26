@@ -2,6 +2,7 @@
 
 #include "EObject.h"
 #include <iostream>
+#include <map>
 
 
 class Tile : public EObject
@@ -12,7 +13,10 @@ public:
 	float estimate;
 	float cost;
 	float heuristic;
-	Tile* parent;
+
+	int numberOfTimesVisited;
+	int timeVisited;
+	std::map<int, Tile*> parentsByTime;
 
 	vec3 color;
 

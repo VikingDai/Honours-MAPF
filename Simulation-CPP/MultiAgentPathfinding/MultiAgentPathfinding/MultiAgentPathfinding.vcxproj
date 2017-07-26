@@ -171,6 +171,7 @@
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="Scenario.cpp" />
     <ClCompile Include="Simulation.cpp" />
     <ClCompile Include="Stage.cpp" />
     <ClCompile Include="Statistics.cpp" />
@@ -201,6 +202,7 @@
     <ClInclude Include="MathUtils.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Options.h" />
+    <ClInclude Include="Scenario.h" />
     <ClInclude Include="Simulation.h" />
     <ClInclude Include="Stage.h" />
     <ClInclude Include="Statistics.h" />

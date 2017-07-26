@@ -8,7 +8,6 @@ class Graphics;
 class Simulation
 {
 private:
-	
 	AStar* aStar;
 	AgentCoordinator* coordinator;
 
@@ -17,7 +16,6 @@ public:
 
 	Environment environment;
 	Simulation();
-	~Simulation();
 
 	void Step();
 	void Render(Graphics* graphics);

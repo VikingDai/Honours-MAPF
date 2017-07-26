@@ -19,7 +19,7 @@ AStar::~AStar()
 {
 }
 
-AStar::Path AStar::findPath(Tile* start, Tile* goal, std::map<Tile*, float>& customCosts)
+AStar::Path AStar::findPath(Tile* start, Tile* goal, TileCosts& customCosts)
 {
 	// calculate time
 	SEARCH_COUNT += 1;
@@ -44,8 +44,10 @@ AStar::Path AStar::findPath(Tile* start, Tile* goal, std::map<Tile*, float>& cus
 	while (!open.empty())
 	{
 		current = open[open.size() - 1];
+
+		std::cout << "AStar expanding " << *current << std::endl;
+
 		open.pop_back();
-		//open.pop();
 
 		//current->color = vec3(0, 0, 1);
 
@@ -56,20 +58,26 @@ AStar::Path AStar::findPath(Tile* start, Tile* goal, std::map<Tile*, float>& cus
 		AddToOpen(open, current, gridMap->getTileRelativeTo(current, 1, 0), start, goal, customCosts);
 		AddToOpen(open, current, gridMap->getTileRelativeTo(current, 0, -1), start, goal, customCosts);
 		AddToOpen(open, current, gridMap->getTileRelativeTo(current, -1, 0), start, goal, customCosts);
+		//AddToOpen(open, current, gridMap->getTileRelativeTo(current, 0, 0), start, goal, customCosts);
 	}
+
+	int time = current->timeVisited;
 
 	// rebuild the path
 	while (current != start)
 	{
 		path.push_front(current);
 
-		if (!current->parent)
+		if (!current->parentsByTime.count(time))
 		{
 			std::cerr << "ERROR: Parent to goal is not valid" << std::endl;
 			return Path{ start };
 		}
 		
-		current = current->parent;
+		current = current->parentsByTime[time];
+		time -= 1;
+
+		std::cout << "A* building path: " << *current << " timestep: " << time << std::endl;
 	}
 
 	// reset visited tiles
@@ -86,18 +94,36 @@ AStar::Path AStar::findPath(Tile* start, Tile* goal, std::map<Tile*, float>& cus
 
 void AStar::AddToOpen(OpenQueue& open, Tile* from, Tile* tile, Tile* start, Tile* goal, TileCosts& customCosts)
 {
-	if (tile && !tile->visited && tile->isWalkable)
+	int newTime = from->timeVisited + 1;
+
+	if ((tile && !tile->visited && tile->isWalkable) || from == tile)
 	{
 		tile->visited = true;
 		visited.push_back(tile);
 
 		open.push_back(tile);
-		tile->parent = from;
-
-		bool hasCustomCost = customCosts.count(tile);
-
+		tile->parentsByTime[newTime] = from;
+		tile->timeVisited = newTime;
+		
 		float tileDist = 1;
-		float cost = from->cost + (hasCustomCost ? customCosts[tile] : tileDist);
+		float cost = from->cost + tileDist + tile->numberOfTimesVisited;
+
+		tile->numberOfTimesVisited += 1;
+		tile->color = vec3(tile->numberOfTimesVisited * 0.05f);
+
+		std::cout << *from << " " << *tile << " " << newTime << std::endl;
+
+		if (!customCosts.empty())
+		{
+			std::cout << "Checking timestep " << newTime << " " << *tile << std::endl;
+
+			bool hasCustomCost = customCosts.count(newTime) && customCosts[newTime].count(tile);
+			if (hasCustomCost) 
+				cost += customCosts[newTime][tile];
+
+			if (hasCustomCost)
+				std::cout << "Using cost!" << std::endl;
+		}
 
 		tile->CalculateEstimate(cost, start, goal);
 

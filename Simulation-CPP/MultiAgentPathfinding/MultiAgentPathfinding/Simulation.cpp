@@ -5,6 +5,7 @@
 #include "Options.h"
 #include "Statistics.h"
 #include <map>
+#include "Scenario.h"
 
 
 int Simulation::timestep;
@@ -16,12 +17,11 @@ Simulation::Simulation()
 	timestep = 0;
 	aStar = new AStar(&environment.gridMap);
 	coordinator = new AgentCoordinator(&environment.gridMap);
+
+	Scenario scenario;
+	scenario.LoadScenario("../scenarios/alternative.scenario", environment);
 }
 
-
-Simulation::~Simulation()
-{
-}
 
 void Simulation::Step()
 {
@@ -32,21 +32,6 @@ void Simulation::Step()
 	}
 
 	coordinator->UpdateAgents(environment.agents);
-
-
-
-	//Tile* start = environment.gridMap.getTileAt(1, 1);
-	//Tile* goal = environment.gridMap.getTileAt(15, 19);
-	//std::vector<Tile*> path = aStar->findPath(start, goal);
-
-	//for (Tile* tile : path)
-	//{
-	//	tile->color = vec3(0, 1, 0);
-	//	std::cout << tile->x << "," << tile->y << std::endl;
-	//}
-
-	//start->color = vec3(1, 0, 0);
-	//goal->color = vec3(1, 0, 0);
 
 	std::cout << "Updating timestep: " << timestep << std::endl;
 
@@ -70,10 +55,19 @@ void Simulation::Render(Graphics* graphics)
 
 	graphics->LineBatchBegin();
 	for (Agent* agent : environment.agents)
+	{
 		if (Options::shouldShowPaths || debugAgents[agent])
 			agent->drawPaths(graphics);
-
+	}
 	graphics->LineBatchEnd();
+
+	// draw goals
+	graphics->ShapeBatchBegin(SHAPE_SQUARE);
+	for (Agent* agent : environment.agents)
+		if (agent->goal)
+			graphics->DrawBatch(glm::ivec3(agent->goal->x, agent->goal->y, 0), agent->color, glm::vec3(0.5f));
+	graphics->ShapeBatchEnd();
+	
 }
 
 void Simulation::BuildOptions()
@@ -85,7 +79,7 @@ void Simulation::BuildOptions()
 	for (Agent* agent : environment.agents)
 	{
 		char agentName[50];
-		sprintf(agentName, "agent %d : %d paths", agent->getAgentId(), agent->allPaths.size());
+		sprintf(agentName, "agent %d : %d paths (%d)", agent->getAgentId(), agent->allPaths.size(), agent->currentPath.size());
 		ImGui::Checkbox(agentName, &debugAgents[agent]);
 	}
 }

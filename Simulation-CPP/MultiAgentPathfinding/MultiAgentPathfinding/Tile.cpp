@@ -14,7 +14,9 @@ void Tile::Reset()
 	estimate = 0;
 	cost = 0;
 	heuristic = 0;
-	parent = nullptr;
+	parentsByTime.clear();
+	timeVisited = -1;
+	numberOfTimesVisited = 0;
 }
 
 void Tile::CalculateEstimate(float inCost, Tile* start, Tile* goal)

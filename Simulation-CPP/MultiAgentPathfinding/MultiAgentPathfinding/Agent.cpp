@@ -7,26 +7,27 @@
 
 static int agentCount = 0;
 
-Agent::Agent(int x, int y) : EObject(x, y)
+Agent::Agent(Tile* startTile, Tile* goalTile) : EObject(startTile->x, startTile->y)
 {
+	assert(startTile);
+
 	color = vec3(0, MathUtils::randomFloat(), MathUtils::randomFloat());
 
 	agentId = agentCount;
 	agentCount += 1;
 
-	renderPos = vec3(x, y, 0);
-
-	goal = nullptr;
-
+	renderPos = vec3(startTile->x, startTile->y, 0);
+	
+	goal = goalTile;
 }
 
 void Agent::step()
 {
-	if (!path.empty())
+	if (!currentPath.empty())
 	{
 		// move along current path assigned to us by the agent coordinator
-		Tile* nextTile = path.front();
-		path.pop_front();
+		Tile* nextTile = currentPath.front();
+		currentPath.pop_front();
 
 		x = nextTile->x;
 		y = nextTile->y;
@@ -51,13 +52,13 @@ void Agent::step()
 	}
 	
 	
-	if (path.empty()) // we have reached our goal
+	if (currentPath.empty()) // we have reached our goal
 		goal = nullptr;
 }
 
 void Agent::setPath(AStar::Path& inPath)
 {
-	path = inPath;
+	currentPath = inPath;
 }
 
 void Agent::update(float dt)
@@ -68,20 +69,24 @@ void Agent::update(float dt)
 
 void Agent::drawPaths(Graphics* graphics)
 {
-	std::vector<ivec3> points;
+	std::vector<vec3> points;
 
-	for (AStar::Path& path : allPaths)
+	for (int i = 0; i < allPaths.size(); i++) //AStar::Path& path : allPaths)
 	{
+		AStar::Path& path = allPaths[i];
+		float pathSep = .4 / allPaths.size();
 		for (Tile* tile : path)
-			points.emplace_back(vec3(tile->x, tile->y, 0));
-
-		graphics->DrawLine(points, color, 5.f);
+		{
+			points.emplace_back(vec3(tile->x + pathSep * i - 0.2f, tile->y + pathSep * i - 0.2f, 0));
+		}
+		float thickness = currentPath == path ? 5.f : 2.f;
+		graphics->DrawLine(points, color, thickness);
 		points.clear();
 	}
 }
 
 std::ostream& operator<<(std::ostream& os, Agent& agent)
 {
-	os << "Agent " << agent.getAgentId() << ": (" << agent.x << "," << agent.y << ")";
+	os << "Agent " << agent.getAgentId() << "[" << agent.x << "," << agent.y << " | Goal " << *agent.goal << "]";
 	return os;
 }

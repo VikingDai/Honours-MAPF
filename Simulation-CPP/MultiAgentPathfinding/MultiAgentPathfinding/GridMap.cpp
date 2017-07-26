@@ -17,6 +17,8 @@ void GridMap::loadMap(std::string filename)
 {
 	std::fstream infile(filename);
 
+	assert(infile);
+
 	// line #1: type mapType
 	// line #2: height h
 	// line #3: width w
