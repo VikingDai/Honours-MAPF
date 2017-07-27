@@ -7,6 +7,11 @@
 #include "Simulation.h"
 //#include "Options.h"
 
+#include <chrono>
+#include <ctime>
+#include "Statistics.h"
+
+
 using namespace std;
 
 /* Gives each agent a path*/
@@ -72,7 +77,14 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 			std::cout << "--- Building Table ---" << std::endl;
 			BuildTable(agents);
 
+			std::chrono::time_point<std::chrono::system_clock> TIME_START, TIME_END;
+			TIME_START = std::chrono::system_clock::now();
 			std::vector<Agent*> temp = ResolveConflicts(agents);
+			TIME_END = std::chrono::system_clock::now();
+			std::chrono::duration<double> timeElapsed = TIME_END - TIME_START;
+			std::cout << "SCIP took " << timeElapsed.count() << " ms" << std::endl;
+
+
 			for (Agent* agent : temp)
 			{
 				agentsInConflicts.emplace(agent);
@@ -172,8 +184,6 @@ vector<set<AStar::Path*>> AgentCoordinator::CheckCollisions(vector<Agent*>& agen
 
 			if (seenAgents.size() > 1)
 			{
-				cout << "Collision at " << *it->first << " at timestep " << t << endl;
-
 				for (Agent* agent : seenAgents)
 				{
 					agentsInCollision[agent].emplace(std::pair<Tile*, int>(it->first, t));
@@ -393,9 +403,9 @@ void AgentCoordinator::PrintAllPaths(std::vector<Agent*>& agents)
 
 void AgentCoordinator::PrintPath(Agent* agent, AStar::Path& path)
 {
-	cout << "Path for agent: " << agent->getAgentId() << endl;
-	for (Tile* tile : path)
-		std::cout << "\t" << *tile << std::endl;
+	cout << "Path for " << *agent << " of length " << path.size() << endl;
+	//for (Tile* tile : path)
+		//std::cout << "\t" << *tile << std::endl;
 }
 
 SCIP_RETCODE AgentCoordinator::SetupProblem(SCIP* scip, vector<Agent*>& agents)
@@ -522,7 +532,7 @@ vector<Agent*> AgentCoordinator::ResolveConflicts(vector<Agent*>& agents)
 
 	if (SCIPgetNSols(scip) > 0)
 	{
-		//SCIPinfoMessage(scip, nullptr, "\nSolution:\n");
+		SCIPinfoMessage(scip, nullptr, "\nSolution:\n");
 		SCIP_CALL_EXC(SCIPprintSol(scip, SCIPgetBestSol(scip), nullptr, FALSE));
 
 		SCIP_SOL* Solution = SCIPgetBestSol(scip);

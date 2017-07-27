@@ -10,6 +10,10 @@ double TIME_ACC = 0;
 int SEARCH_COUNT = 0;
 std::chrono::time_point<std::chrono::system_clock> TIME_START, TIME_END;
 
+int NODES_EXPANDED = 0;
+
+#define DEBUG_VERBOSE 0
+
 AStar::AStar(GridMap* inGridMap)
 {
 	gridMap = inGridMap;
@@ -21,6 +25,7 @@ AStar::~AStar()
 
 AStar::Path AStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
 {
+	NODES_EXPANDED = 0;
 	// calculate time
 	SEARCH_COUNT += 1;
 	TIME_START = std::chrono::system_clock::now();
@@ -43,19 +48,18 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
 
 	while (!open.empty())
 	{
+#if DEBUG_VERBOSE
 		if (current)
-			std::cout << "Currently: " << *current->tile << std::endl;
-
-		current = open[open.size() - 1];
-
+			std::cout << "Currently: " << current << std::endl;
 		std::cout << "\n### OPEN LIST ###" << std::endl;
-
 		for (TileInfo* info : open)
 		{
 			std::cout << "\t" << *info->tile << " at Time " << info->timestep << " with Estimate " << info->estimate << std::endl;
 		}
-
 		std::cout << std::endl << std::endl;
+#endif
+		current = open[open.size() - 1];
+		NODES_EXPANDED += 1;
 
 		if (current->timestep > 500)
 		{
@@ -63,7 +67,9 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
 			break;
 		}
 
+#if DEBUG_VERBOSE
 		std::cout << "A* CHOSE TO EXPAND: " << *current->tile << " at Time " << current->timestep << " with Estimate " << current->estimate << std::endl;
+#endif
 
 		open.pop_back();
 
@@ -79,51 +85,29 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
 		AddToOpen(open, current, gridMap->getTileRelativeTo(current->tile, 0, 0), start, goal, customCosts);
 	}
 
-	int time = current->timestep;
-	std::cout << "> FOUND GOAL: " << *current->tile << " at Time " << current->timestep << " with Estimate " << current->estimate << std::endl;
-
-	// bulding path 2
+	// build the path
 	while (cameFrom.find(current) != cameFrom.end())
 	{
+#if DEBUG_VERBOSE
 		std::cout << "A* building path: " << *current->tile << " timestep: " << current->timestep << std::endl;
+#endif
 		path.push_front(current->tile);
-
-		//if (cameFrom.count[current] == 0)
-		//{
-		//	std::cout << "ERROR" << std::endl;
-		//	return Path{ start };
-		//}
 
 		current = cameFrom[current];
 	}
 
-
-	//Tile* tempTile = current->tile;
-
-	//// rebuild the path
-	//while (tempTile != start)
-	//{
-	//	std::cout << "A* building path: " << *tempTile << " timestep: " << time << std::endl;
-	//	path.push_front(tempTile);
-
-	//	if (!tempTile->parentsByTime.count(time))
-	//	{
-	//		std::cerr << "ERROR: Parent to goal is not valid" << std::endl;
-	//		return Path{ start };
-	//	}
-	//	
-	//	tempTile = tempTile->parentsByTime[time];
-	//	time -= 1;
-	//}
-
-	// reset visited tiles
-	for (Tile* tile : modifiedTiles) tile->Reset();
-
+	assert(current->tile == start);
+	
 	// calculate time taken
 	TIME_END = std::chrono::system_clock::now();
 	std::chrono::duration<double> timeElapsed = TIME_END - TIME_START;
 	TIME_ACC += timeElapsed.count(); 
 	Stats::avgSearchTime = TIME_ACC / (double) SEARCH_COUNT;
+
+	std::cout << "Search visited: " << modifiedTiles.size() << " tiles | Expanded: " << NODES_EXPANDED << " tiles. Took " << timeElapsed.count() << " ms" << std::endl;
+
+	// reset visited tiles
+	for (Tile* tile : modifiedTiles) tile->Reset();
 
 	return path;
 }
@@ -140,12 +124,9 @@ void AStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* tile, Tile* 
 
 	if ((tile && !tile->visited[timestep] && tile->isWalkable))
 	{
-		//std::cout << *tile << " at " << " time: " << timestep << std::endl;
-
-		if (from == tile)
-		{
-			std::cout << "Stay Action!" << std::endl;
-		}
+#if DEBUG_VERBOSE
+		std::cout << *tile << " at " << " time: " << timestep << std::endl;
+#endif
 
 		tile->visited[timestep] = true;
 		modifiedTiles.push_back(tile);
@@ -153,7 +134,6 @@ void AStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* tile, Tile* 
 		tile->parentsByTime[timestep] = from;
 		
 		float tileDist = 1;
-		//float cost = from->cost[timestep] + tileDist; //+ tile->numberOfTimesVisited;
 		//cost += tileDist;
 
 		tile->numberOfTimesVisited += 1;

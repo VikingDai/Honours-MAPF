@@ -31,6 +31,8 @@ void GridMap::loadMap(std::string filename)
 	infile >> dummyText >> width;
 	infile >> dummyText;
 
+	numTiles = width * height;
+
 	printf("Loaded map: %s | Map Type: %s | Width: %d | Height %d\n", 
 		filename.c_str(), mapType.c_str(), width, height);
 

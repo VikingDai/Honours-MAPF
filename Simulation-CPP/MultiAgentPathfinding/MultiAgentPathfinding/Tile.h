@@ -8,6 +8,7 @@
 
 
 class Tile : public EObject
+
 {
 public:
 	bool isWalkable;

@@ -10,9 +10,11 @@ class GridMap
 private:
 	std::string mapType;
 	int width, height;
+	int numTiles;
 public:
-	int getWidth() { return width; }
-	int getHeight() { return height; }
+	const int getNumTiles() { return numTiles; }
+	const int getWidth() { return width; }
+	const int getHeight() { return height; }
 
 public:
 	std::vector<Tile*> walkableTiles;
