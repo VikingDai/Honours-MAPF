@@ -39,7 +39,7 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 			std::cout << "**** RESOLVING RUN " << i << " ****" << std::endl;
 			std::cout << "************************" << std::endl;
 
-			if (i > 10)
+			if (i > 30)
 			{
 				std::cout << "Exceeded the search limit: failed to resolve path conflicts" << std::endl;
 				break;

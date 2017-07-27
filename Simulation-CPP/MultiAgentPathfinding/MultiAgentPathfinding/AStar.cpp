@@ -131,7 +131,11 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
 void AStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* tile, Tile* start, Tile* goal, TileCosts& customCosts)
 {
 	int timestep = currentInfo->timestep + 1;
-	float cost = currentInfo->cost + 1;
+	bool isWaitAction = currentInfo->tile == tile;
+
+	float actionCost = isWaitAction ? 0.75f : 1.f;
+	float newCost = currentInfo->cost + actionCost;
+
 	Tile* from = currentInfo->tile;
 
 	if ((tile && !tile->visited[timestep] && tile->isWalkable))
@@ -163,13 +167,13 @@ void AStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* tile, Tile* 
 
 			bool hasCustomCost = customCosts.count(timestep) && customCosts[timestep].count(tile);
 			if (hasCustomCost) 
-				cost += customCosts[timestep][tile];
+				newCost += customCosts[timestep][tile];
 
 			if (hasCustomCost)
 				std::cout << "Using cost!" << std::endl;
 		}
 
-		TileInfo* newTileInfo = new TileInfo(timestep, tile, cost, tile->CalculateEstimate(timestep, cost, start, goal));
+		TileInfo* newTileInfo = new TileInfo(timestep, tile, newCost, tile->CalculateEstimate(timestep, newCost, start, goal));
 
 		cameFrom[newTileInfo] = currentInfo;
 		open.push_back(newTileInfo);
