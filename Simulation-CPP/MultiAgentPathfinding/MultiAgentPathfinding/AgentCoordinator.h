@@ -34,7 +34,7 @@ class AgentCoordinator
 	std::vector<std::set<AStar::Path*>> CheckCollisions(std::vector<Agent*>& agents);
 	std::vector<std::pair<Tile*, int>> TilesInCollision(Agent* agent, AStar::Path& path);
 
-	std::map<Agent*, std::vector<std::pair<Tile*, int>>> agentsInCollision;
+	std::map<Agent*, std::set<std::pair<Tile*, int>>> agentsInCollision;
 
 	void PopTimestep()
 	{

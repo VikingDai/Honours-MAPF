@@ -8,32 +8,49 @@ class GridMap;
 
 struct TileInfo
 {
-	float cost;
-	std::vector<Tile*> path;
+	int timestep;
 	Tile* tile;
+	float estimate;
+	float cost;
+
+	TileInfo(int timestep, Tile* tile, float cost, float estimate)
+	{
+		this->timestep = timestep;
+		this->tile = tile;
+		this->estimate = estimate;
+		this->cost = cost;
+	}	
 };
 
 struct BaseHeuristic
 {
-	bool operator()(Tile* A, Tile* B);
+private:
+	int timestep;
+
+public:
+	BaseHeuristic(int timestep) { this->timestep = timestep; }
+
+	bool operator()(TileInfo* A, TileInfo* B);
 };
 
 class AStar
 {
 public:
-	using OpenQueue = std::vector<Tile*>;
+	using OpenQueue = std::vector<TileInfo*>;
 	using Path = std::deque<Tile*>;
 	using TileCosts = std::map<int, std::map<Tile*, float>>;
 
 private:
+	std::map<TileInfo*, TileInfo*> cameFrom;
+
 	GridMap* gridMap;
-	std::vector<Tile*> visited;
+	std::vector<Tile*> modifiedTiles;
 
 public:
 	AStar(GridMap* inGridMap);
 	~AStar();
 
-	Path findPath(Tile* start, Tile* goal, TileCosts& customCostTable = TileCosts());
-	void AddToOpen(OpenQueue& open, Tile* from, Tile* tile, Tile* start, Tile* goal, TileCosts& customCosts);
+	Path FindPath(Tile* start, Tile* goal, TileCosts& customCostTable = TileCosts());
+	void AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* tile, Tile* start, Tile* goal, TileCosts& customCosts);
 };
 

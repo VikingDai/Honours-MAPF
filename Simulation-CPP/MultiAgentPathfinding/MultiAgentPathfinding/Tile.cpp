@@ -10,22 +10,33 @@ Tile::Tile(int x, int y, bool inIsWalkable) : EObject(x, y)
 
 void Tile::Reset()
 {
-	visited = false;
-	estimate = 0;
-	cost = 0;
-	heuristic = 0;
+	memset(visited, false, MAX_PATH_SIZE);
+	memset(estimate, 0, MAX_PATH_SIZE);
+	memset(cost, 0, MAX_PATH_SIZE);
+	memset(heuristic, 0, MAX_PATH_SIZE);
+	//visited = false;
+	//estimate = 0;
+	//cost = 0;
+	//heuristic = 0;
 	parentsByTime.clear();
-	timeVisited = -1;
 	numberOfTimesVisited = 0;
 }
 
-void Tile::CalculateEstimate(float inCost, Tile* start, Tile* goal)
+float Tile::CalculateEstimate(int timestep, float inCost, Tile* start, Tile* goal)
 {
-	cost = inCost;
+	//cost = inCost;
+	//float dx = goal->x - x;
+	//float dy = goal->y - y;
+	//heuristic = sqrt(dx * dx + dy * dy);
+	//estimate = cost + heuristic;
+
+	cost[timestep] = inCost;
 	float dx = goal->x - x;
 	float dy = goal->y - y;
-	heuristic = sqrt(dx * dx + dy * dy);
-	estimate = cost + heuristic;
+	heuristic[timestep] = sqrt(dx * dx + dy * dy);
+	estimate[timestep] = inCost + heuristic[timestep];
+
+	return estimate[timestep];
 }
 
 std::ostream& operator<<(std::ostream& os, Tile& tile)

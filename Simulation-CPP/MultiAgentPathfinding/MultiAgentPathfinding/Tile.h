@@ -4,25 +4,26 @@
 #include <iostream>
 #include <map>
 
+#define MAX_PATH_SIZE 10000
+
 
 class Tile : public EObject
 {
 public:
 	bool isWalkable;
-	bool visited;
-	float estimate;
-	float cost;
-	float heuristic;
+	bool visited[MAX_PATH_SIZE];
+	float estimate[MAX_PATH_SIZE];
+	float cost[MAX_PATH_SIZE];
+	float heuristic[MAX_PATH_SIZE];
 
 	int numberOfTimesVisited;
-	int timeVisited;
 	std::map<int, Tile*> parentsByTime;
 
 	vec3 color;
 
 	Tile(int x, int y, bool inIsWalkable);
 	void Reset();
-	void CalculateEstimate(float cost, Tile* start, Tile* goal);
+	float CalculateEstimate(int timestep, float cost, Tile* start, Tile* goal);
 
 	friend std::ostream& operator<<(std::ostream& os, Tile& tile);
 };

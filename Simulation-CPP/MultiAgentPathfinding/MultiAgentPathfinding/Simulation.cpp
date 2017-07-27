@@ -19,7 +19,7 @@ Simulation::Simulation()
 	coordinator = new AgentCoordinator(&environment.gridMap);
 
 	Scenario scenario;
-	scenario.LoadScenario("../scenarios/alternative.scenario", environment);
+	scenario.LoadScenario("../scenarios/wait.scenario", environment);
 }
 
 

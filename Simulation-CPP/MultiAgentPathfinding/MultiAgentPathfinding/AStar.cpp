@@ -19,7 +19,7 @@ AStar::~AStar()
 {
 }
 
-AStar::Path AStar::findPath(Tile* start, Tile* goal, TileCosts& customCosts)
+AStar::Path AStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
 {
 	// calculate time
 	SEARCH_COUNT += 1;
@@ -33,55 +33,91 @@ AStar::Path AStar::findPath(Tile* start, Tile* goal, TileCosts& customCosts)
 	if (!start->isWalkable || !goal->isWalkable)
 		return Path{ start };
 
-	visited.clear();
+	modifiedTiles.clear();
 	OpenQueue open;
 
-	open.push_back(start);
-	visited.push_back(start);
+	open.push_back(new TileInfo(-1, start, 0, start->CalculateEstimate(0, 0, start, goal)));
+	modifiedTiles.push_back(start);
 
-	Tile* current = nullptr;
+	TileInfo* current = nullptr;
 
 	while (!open.empty())
 	{
+		if (current)
+			std::cout << "Currently: " << *current->tile << std::endl;
+
 		current = open[open.size() - 1];
 
-		std::cout << "AStar expanding " << *current << std::endl;
+		std::cout << "\n### OPEN LIST ###" << std::endl;
+
+		for (TileInfo* info : open)
+		{
+			std::cout << "\t" << *info->tile << " at Time " << info->timestep << " with Estimate " << info->estimate << std::endl;
+		}
+
+		std::cout << std::endl << std::endl;
+
+		if (current->timestep > 500)
+		{
+			std::cout << "A* search timed out: took too long!" << std::endl;
+			break;
+		}
+
+		std::cout << "A* CHOSE TO EXPAND: " << *current->tile << " at Time " << current->timestep << " with Estimate " << current->estimate << std::endl;
 
 		open.pop_back();
 
 		//current->color = vec3(0, 0, 1);
 
-		if (current == goal) // found path to goal!
+		if (current->tile == goal) // found path to goal!
 			break;
 
-		AddToOpen(open, current, gridMap->getTileRelativeTo(current, 0, 1), start, goal, customCosts);
-		AddToOpen(open, current, gridMap->getTileRelativeTo(current, 1, 0), start, goal, customCosts);
-		AddToOpen(open, current, gridMap->getTileRelativeTo(current, 0, -1), start, goal, customCosts);
-		AddToOpen(open, current, gridMap->getTileRelativeTo(current, -1, 0), start, goal, customCosts);
-		//AddToOpen(open, current, gridMap->getTileRelativeTo(current, 0, 0), start, goal, customCosts);
+		AddToOpen(open, current, gridMap->getTileRelativeTo(current->tile, 0, 1), start, goal, customCosts);
+		AddToOpen(open, current, gridMap->getTileRelativeTo(current->tile, 1, 0), start, goal, customCosts);
+		AddToOpen(open, current, gridMap->getTileRelativeTo(current->tile, 0, -1), start, goal, customCosts);
+		AddToOpen(open, current, gridMap->getTileRelativeTo(current->tile, -1, 0), start, goal, customCosts);
+		AddToOpen(open, current, gridMap->getTileRelativeTo(current->tile, 0, 0), start, goal, customCosts);
 	}
 
-	int time = current->timeVisited;
+	int time = current->timestep;
+	std::cout << "> FOUND GOAL: " << *current->tile << " at Time " << current->timestep << " with Estimate " << current->estimate << std::endl;
 
-	// rebuild the path
-	while (current != start)
+	// bulding path 2
+	while (cameFrom.find(current) != cameFrom.end())
 	{
-		path.push_front(current);
+		std::cout << "A* building path: " << *current->tile << " timestep: " << current->timestep << std::endl;
+		path.push_front(current->tile);
 
-		if (!current->parentsByTime.count(time))
-		{
-			std::cerr << "ERROR: Parent to goal is not valid" << std::endl;
-			return Path{ start };
-		}
-		
-		current = current->parentsByTime[time];
-		time -= 1;
+		//if (cameFrom.count[current] == 0)
+		//{
+		//	std::cout << "ERROR" << std::endl;
+		//	return Path{ start };
+		//}
 
-		std::cout << "A* building path: " << *current << " timestep: " << time << std::endl;
+		current = cameFrom[current];
 	}
+
+
+	//Tile* tempTile = current->tile;
+
+	//// rebuild the path
+	//while (tempTile != start)
+	//{
+	//	std::cout << "A* building path: " << *tempTile << " timestep: " << time << std::endl;
+	//	path.push_front(tempTile);
+
+	//	if (!tempTile->parentsByTime.count(time))
+	//	{
+	//		std::cerr << "ERROR: Parent to goal is not valid" << std::endl;
+	//		return Path{ start };
+	//	}
+	//	
+	//	tempTile = tempTile->parentsByTime[time];
+	//	time -= 1;
+	//}
 
 	// reset visited tiles
-	for (Tile* tile : visited) tile->Reset();
+	for (Tile* tile : modifiedTiles) tile->Reset();
 
 	// calculate time taken
 	TIME_END = std::chrono::system_clock::now();
@@ -92,48 +128,58 @@ AStar::Path AStar::findPath(Tile* start, Tile* goal, TileCosts& customCosts)
 	return path;
 }
 
-void AStar::AddToOpen(OpenQueue& open, Tile* from, Tile* tile, Tile* start, Tile* goal, TileCosts& customCosts)
+void AStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* tile, Tile* start, Tile* goal, TileCosts& customCosts)
 {
-	int newTime = from->timeVisited + 1;
+	int timestep = currentInfo->timestep + 1;
+	float cost = currentInfo->cost + 1;
+	Tile* from = currentInfo->tile;
 
-	if ((tile && !tile->visited && tile->isWalkable) || from == tile)
+	if ((tile && !tile->visited[timestep] && tile->isWalkable))
 	{
-		tile->visited = true;
-		visited.push_back(tile);
+		//std::cout << *tile << " at " << " time: " << timestep << std::endl;
 
-		open.push_back(tile);
-		tile->parentsByTime[newTime] = from;
-		tile->timeVisited = newTime;
+		if (from == tile)
+		{
+			std::cout << "Stay Action!" << std::endl;
+		}
+
+		tile->visited[timestep] = true;
+		modifiedTiles.push_back(tile);
+
+		tile->parentsByTime[timestep] = from;
 		
 		float tileDist = 1;
-		float cost = from->cost + tileDist + tile->numberOfTimesVisited;
+		//float cost = from->cost[timestep] + tileDist; //+ tile->numberOfTimesVisited;
+		//cost += tileDist;
 
 		tile->numberOfTimesVisited += 1;
-		tile->color = vec3(tile->numberOfTimesVisited * 0.05f);
+		//tile->color = vec3(tile->numberOfTimesVisited * 0.05f);
 
-		std::cout << *from << " " << *tile << " " << newTime << std::endl;
+		//std::cout << *from << " " << *tile << " " << timestep << std::endl;
 
 		if (!customCosts.empty())
 		{
-			std::cout << "Checking timestep " << newTime << " " << *tile << std::endl;
+			//std::cout << "Checking timestep " << timestep << " " << *tile << std::endl;
 
-			bool hasCustomCost = customCosts.count(newTime) && customCosts[newTime].count(tile);
+			bool hasCustomCost = customCosts.count(timestep) && customCosts[timestep].count(tile);
 			if (hasCustomCost) 
-				cost += customCosts[newTime][tile];
+				cost += customCosts[timestep][tile];
 
 			if (hasCustomCost)
 				std::cout << "Using cost!" << std::endl;
 		}
 
-		tile->CalculateEstimate(cost, start, goal);
+		TileInfo* newTileInfo = new TileInfo(timestep, tile, cost, tile->CalculateEstimate(timestep, cost, start, goal));
 
+		cameFrom[newTileInfo] = currentInfo;
+		open.push_back(newTileInfo);
 		//tile->color = vec3(0, 1, 1);
 	}
 	
-	std::sort(open.begin(), open.end(), BaseHeuristic());
+	std::sort(open.begin(), open.end(), BaseHeuristic(timestep));
 }
 
-bool BaseHeuristic::operator()(Tile* A, Tile* B)
+bool BaseHeuristic::operator()(TileInfo* A, TileInfo* B)
 {
 	return A->estimate > B->estimate;
 }
