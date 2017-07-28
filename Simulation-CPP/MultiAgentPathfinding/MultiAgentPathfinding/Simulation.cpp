@@ -19,7 +19,7 @@ Simulation::Simulation()
 	coordinator = new AgentCoordinator(&environment.gridMap);
 
 	Scenario scenario;
-	scenario.LoadScenario("../scenarios/warehouse.scenario", environment);
+	scenario.LoadScenario("../scenarios/astar.scenario", environment);
 }
 
 
@@ -104,4 +104,9 @@ void Simulation::BuildMenuBar()
 		}
 	}
 	ImGui::EndMenuBar();
+}
+
+void Simulation::SelectTile(int mouseX, int mouseY)
+{
+	std::cout << "Selected Tile at " << mouseX << ", " << mouseY << std::endl;
 }

@@ -28,6 +28,8 @@ struct AgentPath
 
 class AgentCoordinator
 {
+	std::map<Tile*, std::map<int, std::vector<AgentPath>>> collisionTable;
+
 	using TileToPathMap = std::map<Tile*, std::vector<AgentPath>>;
 	std::deque<TileToPathMap> tileToPathMapAtTimestep;
 
@@ -35,6 +37,8 @@ class AgentCoordinator
 	std::vector<std::pair<Tile*, int>> TilesInCollision(Agent* agent, AStar::Path& path);
 
 	std::map<Agent*, std::set<std::pair<Tile*, int>>> agentsInCollision;
+
+	std::map<AStar::Path*, int> PathLengths;
 
 	void PopTimestep()
 	{

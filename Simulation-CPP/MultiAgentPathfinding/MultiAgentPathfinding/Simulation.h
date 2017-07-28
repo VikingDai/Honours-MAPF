@@ -22,4 +22,5 @@ public:
 	void BuildOptions();
 	void LogInfo();
 	void BuildMenuBar();
+	void SelectTile(int mouseX, int mouseY);
 };

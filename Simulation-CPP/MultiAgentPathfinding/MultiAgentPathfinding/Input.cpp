@@ -15,6 +15,14 @@ void Input::Update(float deltaTime, Simulation* simulation, Camera* camera)
 	}
 
 
+	if (ImGui::IsMouseClicked(0))
+	{
+		camera->getMVP();
+		camera->zoom;
+		camera->position;
+		simulation->SelectTile(ImGui::GetMousePos().x, ImGui::GetMousePos().y);
+	}
+
 	// Update camera
 	if (ImGui::IsMouseDown(0))
 	{

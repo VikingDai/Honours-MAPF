@@ -12,7 +12,7 @@ std::chrono::time_point<std::chrono::system_clock> TIME_START, TIME_END;
 
 int NODES_EXPANDED = 0;
 
-#define DEBUG_VERBOSE 0
+#define DEBUG_VERBOSE 1
 
 AStar::AStar(GridMap* inGridMap)
 {

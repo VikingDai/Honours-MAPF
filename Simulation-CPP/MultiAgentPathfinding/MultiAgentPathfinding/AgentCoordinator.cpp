@@ -62,6 +62,8 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 			{
 				for (AStar::Path& path : agent->allPaths)
 				{
+					PathLengths[&path] = path.size(); // store the paths for use in the MIP
+
 					int paddingRequired = tileToPathMapAtTimestep.size() - path.size();
 					for (int p = 0; p < paddingRequired; p++)
 						path.push_back(path[path.size() - 1]);
@@ -448,7 +450,7 @@ SCIP_RETCODE AgentCoordinator::SetupProblem(SCIP* scip, vector<Agent*>& agents)
 			char pathVarName[50];
 			sprintf(pathVarName, "a%dp%d", agentId, i);
 
-			int pathSize = path.size();
+			int pathSize = PathLengths[&path];//path.size();
 			SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &pathVar, pathVarName, 0, 1, pathSize, SCIP_VARTYPE_INTEGER));
 			SCIP_CALL_EXC(SCIPaddVar(scip, pathVar));
 
