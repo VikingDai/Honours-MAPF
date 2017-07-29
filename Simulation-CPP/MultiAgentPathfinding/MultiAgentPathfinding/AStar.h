@@ -2,6 +2,7 @@
 #include <vector>
 #include <queue>
 #include <map>
+#include "Timer.h"
 
 class Tile;
 class GridMap;
@@ -41,6 +42,7 @@ public:
 	using TileCosts = std::map<int, std::map<Tile*, float>>;
 
 private:
+	Timer timer;
 	std::map<TileInfo*, TileInfo*> cameFrom;
 
 	GridMap* gridMap;
@@ -51,6 +53,6 @@ public:
 	~AStar();
 
 	Path FindPath(Tile* start, Tile* goal, TileCosts& customCostTable = TileCosts());
-	void AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* tile, Tile* start, Tile* goal, TileCosts& customCosts);
+	void AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* fromTile, Tile* tile, Tile* start, Tile* goal, TileCosts& customCosts);
 };
 

@@ -6,13 +6,9 @@
 #include <ctime>
 #include "Statistics.h"
 
-double TIME_ACC = 0;
-int SEARCH_COUNT = 0;
-std::chrono::time_point<std::chrono::system_clock> TIME_START, TIME_END;
-
 int NODES_EXPANDED = 0;
 
-#define DEBUG_VERBOSE 1
+#define DEBUG_VERBOSE 0
 
 AStar::AStar(GridMap* inGridMap)
 {
@@ -25,11 +21,9 @@ AStar::~AStar()
 
 AStar::Path AStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
 {
+	timer.Begin();
 	NODES_EXPANDED = 0;
-	// calculate time
-	SEARCH_COUNT += 1;
-	TIME_START = std::chrono::system_clock::now();
-
+	
 	Path path;
 
 	if (!start || !goal || start == goal)
@@ -45,6 +39,7 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
 	modifiedTiles.push_back(start);
 
 	TileInfo* current = nullptr;
+	Tile* currentTile = nullptr;
 
 	while (!open.empty())
 	{
@@ -78,11 +73,11 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
 		if (current->tile == goal) // found path to goal!
 			break;
 
-		AddToOpen(open, current, gridMap->getTileRelativeTo(current->tile, 0, 1), start, goal, customCosts);
-		AddToOpen(open, current, gridMap->getTileRelativeTo(current->tile, 1, 0), start, goal, customCosts);
-		AddToOpen(open, current, gridMap->getTileRelativeTo(current->tile, 0, -1), start, goal, customCosts);
-		AddToOpen(open, current, gridMap->getTileRelativeTo(current->tile, -1, 0), start, goal, customCosts);
-		AddToOpen(open, current, gridMap->getTileRelativeTo(current->tile, 0, 0), start, goal, customCosts);
+		AddToOpen(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, 0, 1), start, goal, customCosts);
+		AddToOpen(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, 1, 0), start, goal, customCosts);
+		AddToOpen(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, 0, -1), start, goal, customCosts);
+		AddToOpen(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, -1, 0), start, goal, customCosts);
+		AddToOpen(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, 0, 0), start, goal, customCosts);
 	}
 
 	// build the path
@@ -99,12 +94,10 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
 	assert(current->tile == start);
 	
 	// calculate time taken
-	TIME_END = std::chrono::system_clock::now();
-	std::chrono::duration<double> timeElapsed = TIME_END - TIME_START;
-	TIME_ACC += timeElapsed.count(); 
-	Stats::avgSearchTime = TIME_ACC / (double) SEARCH_COUNT;
+	timer.End();
+	Stats::avgSearchTime = timer.getAvgTime();
 
-	std::cout << "Search visited: " << modifiedTiles.size() << " tiles | Expanded: " << NODES_EXPANDED << " tiles. Took " << timeElapsed.count() << " ms" << std::endl;
+	std::cout << "Search visited: " << modifiedTiles.size() << " tiles | Expanded: " << NODES_EXPANDED << " tiles. Took " << timer.getTimeElapsed() << " ms" << std::endl;
 
 	// reset visited tiles
 	for (Tile* tile : modifiedTiles) tile->Reset();
@@ -112,7 +105,7 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
 	return path;
 }
 
-void AStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* tile, Tile* start, Tile* goal, TileCosts& customCosts)
+void AStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* fromTile, Tile* tile, Tile* start, Tile* goal, TileCosts& customCosts)
 {
 	int timestep = currentInfo->timestep + 1;
 	bool isWaitAction = currentInfo->tile == tile;
@@ -153,9 +146,17 @@ void AStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* tile, Tile* 
 				std::cout << "Using cost!" << std::endl;
 		}
 
-		TileInfo* newTileInfo = new TileInfo(timestep, tile, newCost, tile->CalculateEstimate(timestep, newCost, start, goal));
+		//float dx = goal->x - tile->x;
+		//float dy = goal->y - tile->y;
+		//float heuristic = sqrt(dx * dx + dy * dy);
 
+		//tile->spatialEstimates[timestep].CalculateEstimate(newCost, heuristic);
+		//tile->parentsByTime[timestep] = fromTile;
+
+		TileInfo* newTileInfo = new TileInfo(timestep, tile, newCost, tile->CalculateEstimate(timestep, newCost, start, goal));
 		cameFrom[newTileInfo] = currentInfo;
+
+
 		open.push_back(newTileInfo);
 		//tile->color = vec3(0, 1, 1);
 	}

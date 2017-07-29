@@ -44,3 +44,11 @@ std::ostream& operator<<(std::ostream& os, Tile& tile)
 	os << "Tile (" << tile.x << "," << tile.y << ")";
 	return os;
 }
+
+float Estimate::CalculateEstimate(float inCost, float inHeuristic)
+{
+	cost = inCost;
+	heuristic = inHeuristic;
+	estimate = cost + heuristic;
+	return estimate;
+}

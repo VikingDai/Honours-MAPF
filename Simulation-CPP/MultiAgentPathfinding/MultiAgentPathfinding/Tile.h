@@ -7,10 +7,28 @@
 #define MAX_PATH_SIZE 10000
 
 
+struct Estimate
+{
+	int estimate;
+	int cost;
+	int heuristic;
+
+	float GetEstimate() { return estimate; }
+	float GetCost() { return estimate; }
+	float GetHeuristic() { return heuristic; }
+
+	float CalculateEstimate(float cost, float heuristic);
+
+	Estimate() { Reset(); }
+	void Reset() { estimate = cost = heuristic = 0; }
+};
+
 class Tile : public EObject
 
 {
 public:
+	Estimate spatialEstimates[MAX_PATH_SIZE];
+
 	bool isWalkable;
 	bool visited[MAX_PATH_SIZE];
 	float estimate[MAX_PATH_SIZE];
