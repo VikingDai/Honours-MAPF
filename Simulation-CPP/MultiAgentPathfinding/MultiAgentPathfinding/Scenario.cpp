@@ -20,6 +20,8 @@ void Scenario::LoadScenario(std::string filename, Environment& environment)
 
 	assert(infile); // ensure file is loaded!
 
+	environment.Reset();
+
 	// line #1: type mapType
 	// line #2: agents n
 	// line #3 to end: agents in form: startX startY goalX goalY

@@ -14,6 +14,7 @@
 #include <scip/scipdefplugins.h>
 #include <scip/type_var.h>
 #include <scip/struct_var.h>
+#include "Timer.h"
 
 class GridMap;
 class Tile;
@@ -28,15 +29,23 @@ struct AgentPath
 
 class AgentCoordinator
 {
+	using PathCollisions = std::vector<std::set<AStar::Path*>>;
+
+	Timer mipTimer;
+
 	std::map<Tile*, std::map<int, std::vector<AgentPath>>> collisionTable;
 
 	using TileToPathMap = std::map<Tile*, std::vector<AgentPath>>;
 	std::deque<TileToPathMap> tileToPathMapAtTimestep;
 
-	std::vector<std::set<AStar::Path*>> CheckCollisions(std::vector<Agent*>& agents);
-	std::vector<std::pair<Tile*, int>> TilesInCollision(Agent* agent, AStar::Path& path);
+	// (tile => time => num collisions)
+	using TileCollision = std::set<std::pair<Tile*, int>>;
 
-	std::map<Agent*, std::set<std::pair<Tile*, int>>> agentsInCollision;
+	// agent => (tile => time => num collisions)
+	//std::map<Agent*, TileCollision> agentsInCollision;
+
+	std::vector<std::set<AStar::Path*>> CheckCollisions(std::vector<Agent*>& agents, std::map<Agent*, TileCollision>& agentsInCollision);
+	std::vector<std::pair<Tile*, int>> TilesInCollision(Agent* agent, AStar::Path& path);
 
 	std::map<AStar::Path*, int> PathLengths;
 
@@ -51,9 +60,9 @@ class AgentCoordinator
 	void PrintAllPaths(std::vector<Agent*>& agents);
 	void PrintPath(Agent* agent, AStar::Path& path);
 
-	// SCIP logics
-	SCIP_RETCODE SetupProblem(SCIP* scip, std::vector<Agent*>& agents);
-	std::vector<Agent*> ResolveConflicts(std::vector<Agent*>& agents);
+	// SCIP functions
+	std::vector<Agent*> ResolveConflicts(std::vector<Agent*>& agents, PathCollisions& collisions);
+	SCIP_RETCODE SetupProblem(SCIP* scip, std::vector<Agent*>& agents, PathCollisions& collisions);
 
 	std::vector<SCIP_VAR*> allVariables;
 	std::map<SCIP_VAR*, Agent*> varToAgentMap;
@@ -69,9 +78,11 @@ public:
 public:
 	AgentCoordinator(GridMap* map);
 
+	void Reset();
+
 	void UpdateAgents(std::vector<Agent*>& agents);
 
-	void GeneratePath(Agent* agent, bool useCollisions);
+	void GeneratePath(Agent* agent, bool useCollisions, std::map<Agent*, TileCollision> agentCollisionMap);
 
 	void DrawPotentialPaths(Graphics* graphics, std::vector<Agent*> agents);
 };

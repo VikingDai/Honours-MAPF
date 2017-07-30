@@ -41,7 +41,7 @@ float Tile::CalculateEstimate(int timestep, float inCost, Tile* start, Tile* goa
 
 std::ostream& operator<<(std::ostream& os, Tile& tile)
 {
-	os << "Tile (" << tile.x << "," << tile.y << ")";
+ 	os << "Tile (" << tile.x << "," << tile.y << ")";
 	return os;
 }
 

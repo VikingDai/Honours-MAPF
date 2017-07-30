@@ -17,16 +17,17 @@ using namespace std;
 /* Gives each agent a path*/
 void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 {
+	set<Agent*> agentsWhoNeedNewPaths;
+	std::map<Agent*, TileCollision> agentCollisionMap;
+	
 	bool anyPathsChanged = false;
 
-	set<Agent*> agentsInConflicts;
-
-	// update the reservation table with any new paths
+	// if the agent has a goal to reach but does not have a path, generate a path
 	for (Agent* agent : agents)
 	{
-		if (agent->goal && agent->currentPath.empty()) // if the agent has a goal to reach but does not have a path, generate a path
+		if (agent->goal && agent->currentPath.empty()) 
 		{
-			agentsInConflicts.emplace(agent);
+			agentsWhoNeedNewPaths.emplace(agent);
 			agent->allPaths.clear();
 			anyPathsChanged = true;
 		}
@@ -44,17 +45,17 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 			std::cout << "**** RESOLVING RUN " << i << " ****" << std::endl;
 			std::cout << "************************" << std::endl;
 
-			if (i > 30)
+			if (i > 500)
 			{
 				std::cout << "Exceeded the search limit: failed to resolve path conflicts" << std::endl;
 				break;
 			}
 
 			// we need to feed the MIP, additional paths
-			for (Agent* agent : agentsInConflicts)
+			for (Agent* agent : agentsWhoNeedNewPaths)
 			{
 				std::cout << "Generating path for " << *agent << std::endl;
-				GeneratePath(agent, !firstRun);
+				GeneratePath(agent, !firstRun, agentCollisionMap);
 			}
 
 			// pad each agents path so that they update the collision table
@@ -73,42 +74,46 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 			}
 
 			// #TODO Make this code less ugly
-			agentsInConflicts.clear();
-			agentsInCollision.clear();
+			agentsWhoNeedNewPaths.clear();
 
 			std::cout << "--- Building Table ---" << std::endl;
 			BuildTable(agents);
 
 			std::chrono::time_point<std::chrono::system_clock> TIME_START, TIME_END;
 			TIME_START = std::chrono::system_clock::now();
-			std::vector<Agent*> temp = ResolveConflicts(agents);
-			TIME_END = std::chrono::system_clock::now();
-			std::chrono::duration<double> timeElapsed = TIME_END - TIME_START;
-			std::cout << "SCIP took " << timeElapsed.count() << " ms" << std::endl;
-
-
-			for (Agent* agent : temp)
-			{
-				agentsInConflicts.emplace(agent);
-			}
-
-			if (!agentsInConflicts.empty())
-			{
-				std::map<Agent*, std::set<std::pair<Tile*, int>>>::iterator it;
-				for (it = agentsInCollision.begin(); it != agentsInCollision.end(); it++)
-				{
-					std::cout << *it->first << " IS IN CONFLICT " << std::endl;
-					agentsInConflicts.emplace(it->first);
-				}
-			}
 
 			
+			mipTimer.Begin();
+			PathCollisions collisions = CheckCollisions(agents, agentCollisionMap);
+			std::vector<Agent*> mipConflicts = ResolveConflicts(agents, collisions);
+			mipTimer.End();
+			std::cout << "SCIP took " << mipTimer.getTimeElapsed() << " ms" << std::endl;
+
+			if (mipConflicts.empty())
+			{
+				std::cout << "MIP told us no conflicts, we are done!" << std::endl;
+			}
+
+			for (Agent* agent : mipConflicts)
+			{
+				agentsWhoNeedNewPaths.emplace(agent);
+			}
+
+			if (!agentsWhoNeedNewPaths.empty())
+			{
+				std::map<Agent*, std::set<std::pair<Tile*, int>>>::iterator it;
+				for (it = agentCollisionMap.begin(); it != agentCollisionMap.end(); it++)
+				{
+					it->second.size();
+					agentsWhoNeedNewPaths.emplace(it->first);
+				}
+			}
 
 			i++;
 
 			firstRun = false;
 		}
-		while (!agentsInConflicts.empty());
+		while (!agentsWhoNeedNewPaths.empty());
 	}
 	else
 	{
@@ -120,7 +125,7 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 	}
 }
 
-void AgentCoordinator::GeneratePath(Agent* agent, bool useCollisions)
+void AgentCoordinator::GeneratePath(Agent* agent, bool useCollisions, std::map<Agent*, TileCollision> agentCollisionMap)
 {
 	Tile* currentTile = map->getTileAt(agent->x, agent->y);
 	if (!agent->goal)
@@ -130,26 +135,24 @@ void AgentCoordinator::GeneratePath(Agent* agent, bool useCollisions)
 	AStar::TileCosts customCosts;
 	if (useCollisions)
 	{
-		for (auto& it : agentsInCollision[agent])
+		for (auto& it : agentCollisionMap[agent])
 		{
 			Tile* tile = it.first;
 			int time = it.second;
 			customCosts[time][tile] = 1000;
-			std::cout << "Penalty applied to " << *tile << " at time " << time << " for " << *agent << std::endl;
+			//std::cout << "Penalty applied to " << *tile << " at time " << time << " for " << *agent << std::endl;
 		}
 	}
+	//AStar::TileCosts::iterator it;
+	//for (it = customCosts.begin(); it != customCosts.end(); it++)
+	//{
+	//	std::map<Tile*, float>::iterator it2;
+	//	//std::cout << "at time: " << it->first << " has penalty ";
 
-	AStar::TileCosts::iterator it;
-	for (it = customCosts.begin(); it != customCosts.end(); it++)
-	{
-		std::map<Tile*, float>::iterator it2;
-		//std::cout << "at time: " << it->first << " has penalty ";
-
-		for (it2 = it->second.begin(); it2 != it->second.end(); it2++)
-			std::cout << *it2->first;
-
-		std::cout << std::endl;
-	}
+	//	for (it2 = it->second.begin(); it2 != it->second.end(); it2++)
+	//		std::cout << *it2->first;
+	//	std::cout << std::endl;
+	//}
 
 	AStar::Path& path = aStar->FindPath(currentTile, agent->goal, customCosts);
 
@@ -164,9 +167,8 @@ AgentCoordinator::AgentCoordinator(GridMap* inMap)
 	aStar = new AStar(inMap);
 }
 
-
-/* Check if any paths are in collision ~ that is they share the same tile at the same timestep */
-vector<set<AStar::Path*>> AgentCoordinator::CheckCollisions(vector<Agent*>& agents)
+/* Check if any paths are in collision AND maps agents to tile collisions */
+vector<set<AStar::Path*>> AgentCoordinator::CheckCollisions(vector<Agent*>& agents, std::map<Agent*, TileCollision>& agentsInCollision)
 {
 	vector<set<AStar::Path*>> pathCollisions;
 
@@ -410,7 +412,7 @@ void AgentCoordinator::PrintPath(Agent* agent, AStar::Path& path)
 		//std::cout << "\t" << *tile << std::endl;
 }
 
-SCIP_RETCODE AgentCoordinator::SetupProblem(SCIP* scip, vector<Agent*>& agents)
+SCIP_RETCODE AgentCoordinator::SetupProblem(SCIP* scip, vector<Agent*>& agents, PathCollisions& pathCollisions)
 {
 	// create empty problem
 	SCIP_CALL_EXC(SCIPcreateProbBasic(scip, "string"));
@@ -478,7 +480,6 @@ SCIP_RETCODE AgentCoordinator::SetupProblem(SCIP* scip, vector<Agent*>& agents)
 
 	// create constraints for path collisions
 	int collisionCount = 0;
-	vector<set<AStar::Path*>> pathCollisions = CheckCollisions(agents);
 
 	for (set<AStar::Path*>& paths : pathCollisions)
 	{
@@ -504,7 +505,7 @@ SCIP_RETCODE AgentCoordinator::SetupProblem(SCIP* scip, vector<Agent*>& agents)
 	return SCIP_OKAY;
 }
 
-vector<Agent*> AgentCoordinator::ResolveConflicts(vector<Agent*>& agents)
+vector<Agent*> AgentCoordinator::ResolveConflicts(vector<Agent*>& agents, PathCollisions& collisions)
 {
 	SCIP* scip;
 	SCIP_CALL_EXC(SCIPcreate(&scip));
@@ -516,7 +517,7 @@ vector<Agent*> AgentCoordinator::ResolveConflicts(vector<Agent*>& agents)
 	//SCIPinfoMessage(scip, nullptr, "****************************\n");
 	//SCIPinfoMessage(scip, nullptr, "\n");
 
-	SCIP_CALL_EXC(SetupProblem(scip, agents));
+	SCIP_CALL_EXC(SetupProblem(scip, agents, collisions));
 
 	//SCIPinfoMessage(scip, nullptr, "Original problem:\n");
 	//SCIP_CALL_EXC(SCIPprintOrigProblem(scip, nullptr, "cip", FALSE));
@@ -530,7 +531,7 @@ vector<Agent*> AgentCoordinator::ResolveConflicts(vector<Agent*>& agents)
 	SCIP_CALL_EXC(SCIPfreeTransform(scip));
 
 	// Check if the solution contains any penalty variables
-	vector<Agent*> agentsInConflict;
+	vector<Agent*> penaltyAgents;
 
 	if (SCIPgetNSols(scip) > 0)
 	{
@@ -541,16 +542,18 @@ vector<Agent*> AgentCoordinator::ResolveConflicts(vector<Agent*>& agents)
 
 		for (SCIP_VAR* var : allVariables)
 		{
-			if (!var) continue;
+			if (!var) 
+				continue;
 
 			double varSolution = SCIPgetSolVal(scip, Solution, var);
+			
 
 			// has chosen this path
 			if (varSolution == 1)
 			{
 				Agent* agent = varToAgentMap[var];
 
-				bool isPathVariable = varToPathMap.count(var);
+				bool isPathVariable = varToPathMap.find(var) != varToPathMap.end();
 				if (isPathVariable)
 				{
 					AStar::Path& path = *varToPathMap[var];
@@ -561,14 +564,14 @@ vector<Agent*> AgentCoordinator::ResolveConflicts(vector<Agent*>& agents)
 					agent->setPath(AStar::Path{ map->getTileAt(agent->x, agent->y) });
 					cout << "Failed to find a solution!" << endl;
 
-					agentsInConflict.push_back(agent);
+					penaltyAgents.push_back(agent);
 				}
 			}
 		}
 	}
 	else
 	{
-		std::cout << "SCIP failed to find any solutions" << std::endl;
+		std::cout << "ERROR: SCIP failed to find any solutions" << std::endl;
 	}
 
 	// release variables
@@ -582,5 +585,10 @@ vector<Agent*> AgentCoordinator::ResolveConflicts(vector<Agent*>& agents)
 
 	SCIP_CALL_EXC(SCIPfree(&scip));
 
-	return agentsInConflict;
+	if (penaltyAgents.empty())
+	{
+		std::cout << "EMPTY" << std::endl;
+	}
+
+	return penaltyAgents;
 }

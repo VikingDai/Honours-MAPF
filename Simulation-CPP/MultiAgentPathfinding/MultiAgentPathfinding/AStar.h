@@ -2,6 +2,7 @@
 #include <vector>
 #include <queue>
 #include <map>
+#include <list>
 #include "Timer.h"
 
 class Tile;
@@ -14,13 +15,13 @@ struct TileInfo
 	float estimate;
 	float cost;
 
-	TileInfo(int timestep, Tile* tile, float cost, float estimate)
+	void SetInfo(int timestep, Tile* tile, float cost, float estimate)
 	{
 		this->timestep = timestep;
 		this->tile = tile;
 		this->estimate = estimate;
 		this->cost = cost;
-	}	
+	}
 };
 
 struct BaseHeuristic
@@ -37,6 +38,10 @@ public:
 class AStar
 {
 public:
+	std::list<TileInfo*> freeTileInfos;
+	std::list<TileInfo*> usedTileInfos;
+
+public:
 	using OpenQueue = std::vector<TileInfo*>;
 	using Path = std::deque<Tile*>;
 	using TileCosts = std::map<int, std::map<Tile*, float>>;
@@ -49,7 +54,8 @@ private:
 	std::vector<Tile*> modifiedTiles;
 
 public:
-	AStar(GridMap* inGridMap);
+	AStar(GridMap* gridMap);
+	void SetGridMap(GridMap* gridMap) { this->gridMap = gridMap; }
 	~AStar();
 
 	Path FindPath(Tile* start, Tile* goal, TileCosts& customCostTable = TileCosts());

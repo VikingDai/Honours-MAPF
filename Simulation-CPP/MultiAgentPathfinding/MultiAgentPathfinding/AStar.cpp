@@ -12,7 +12,7 @@ int NODES_EXPANDED = 0;
 
 AStar::AStar(GridMap* inGridMap)
 {
-	gridMap = inGridMap;
+	SetGridMap(inGridMap);
 }
 
 AStar::~AStar()
@@ -35,7 +35,9 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
 	modifiedTiles.clear();
 	OpenQueue open;
 
-	open.push_back(new TileInfo(-1, start, 0, start->CalculateEstimate(0, 0, start, goal)));
+	TileInfo* startInfo = new TileInfo();
+	startInfo->SetInfo(-1, start, 0, start->CalculateEstimate(0, 0, start, goal));
+	open.push_back(startInfo);
 	modifiedTiles.push_back(start);
 
 	TileInfo* current = nullptr;
@@ -99,6 +101,8 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
 
 	std::cout << "Search visited: " << modifiedTiles.size() << " tiles | Expanded: " << NODES_EXPANDED << " tiles. Took " << timer.getTimeElapsed() << " ms" << std::endl;
 
+	freeTileInfos.splice(freeTileInfos.end(), usedTileInfos);
+
 	// reset visited tiles
 	for (Tile* tile : modifiedTiles) tile->Reset();
 
@@ -153,14 +157,26 @@ void AStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* fromTile, Ti
 		//tile->spatialEstimates[timestep].CalculateEstimate(newCost, heuristic);
 		//tile->parentsByTime[timestep] = fromTile;
 
-		TileInfo* newTileInfo = new TileInfo(timestep, tile, newCost, tile->CalculateEstimate(timestep, newCost, start, goal));
-		cameFrom[newTileInfo] = currentInfo;
+		TileInfo* newTileInfo = nullptr;
+		if (!freeTileInfos.empty())
+		{
+			//std::cout << "REUSING!" << std::endl;
+			newTileInfo = freeTileInfos.back(); 
+			freeTileInfos.pop_back();
+		}
+		else
+		{
+			newTileInfo = new TileInfo();
+		}
 
+		newTileInfo->SetInfo(timestep, tile, newCost, tile->CalculateEstimate(timestep, newCost, start, goal));
+		usedTileInfos.push_back(newTileInfo);
+		cameFrom[newTileInfo] = currentInfo;
 
 		open.push_back(newTileInfo);
 		//tile->color = vec3(0, 1, 1);
 	}
-	
+
 	std::sort(open.begin(), open.end(), BaseHeuristic(timestep));
 }
 

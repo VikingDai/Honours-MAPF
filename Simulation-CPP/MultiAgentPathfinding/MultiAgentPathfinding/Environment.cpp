@@ -21,6 +21,12 @@ Environment::Environment()
 	//}
 }
 
+void Environment::Reset()
+{
+	agents.clear();
+	objects.clear();
+}
+
 Environment::~Environment()
 {
 }

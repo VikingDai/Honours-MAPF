@@ -5,8 +5,6 @@
 #include "Options.h"
 #include "Statistics.h"
 #include <map>
-#include "Scenario.h"
-
 
 int Simulation::timestep;
 
@@ -18,10 +16,14 @@ Simulation::Simulation()
 	aStar = new AStar(&environment.gridMap);
 	coordinator = new AgentCoordinator(&environment.gridMap);
 
-	Scenario scenario;
-	scenario.LoadScenario("../scenarios/astar.scenario", environment);
+	scenario.LoadScenario("../scenarios/" + currentScenario, environment);
 }
 
+
+void Simulation::Reset()
+{
+	environment.Reset();
+}
 
 void Simulation::Step()
 {
@@ -72,6 +74,12 @@ void Simulation::Render(Graphics* graphics)
 
 void Simulation::BuildOptions()
 {
+	if (ImGui::Button("Reset scenario"))
+	{
+		scenario.LoadScenario("../scenarios/" + currentScenario, environment);
+		coordinator = new AgentCoordinator(&environment.gridMap);
+	}
+
 	ImGui::Checkbox("Tick", &Options::tickSimulation);
 	ImGui::Checkbox("Render", &Options::shouldRender);
 	ImGui::Checkbox("Show paths", &Options::shouldShowPaths);

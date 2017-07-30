@@ -17,7 +17,9 @@ public:
 	Environment();
 	~Environment();
 
+	void Reset();
 	void Step();
 	void Render(Graphics* graphics);
+	
 };
 
