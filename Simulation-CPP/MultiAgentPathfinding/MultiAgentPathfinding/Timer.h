@@ -10,16 +10,21 @@ class Timer
 	int numberOfTimesRan;
 	float avgTime;
 	float timeElapsed;
-	float timeAcc;
+	float timeAccumulated;
 
 public:
 	float GetAvgTime() { return avgTime; }
 	float GetTimeElapsed() { return timeElapsed; }
+	float GetTimeAccumulated() { return timeAccumulated; }
 
 	Timer();
+
+	void Reset();
+
 	void Begin();
 	void End();
 
 	void PrintTimeElapsed(char* functionName);
+	void PrintTimeAccumulated(char* functionName);
 };
 

@@ -168,6 +168,7 @@
     <ClCompile Include="Environment.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="GridMap.cpp" />
+    <ClCompile Include="Helper.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
@@ -199,6 +200,7 @@
     <ClInclude Include="Environment.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="GridMap.h" />
+    <ClInclude Include="Helper.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="MathUtils.h" />
     <ClInclude Include="Mesh.h" />

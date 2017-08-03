@@ -30,20 +30,19 @@ struct AgentPath
 class AgentCoordinator
 {
 	using PathCollisions = std::vector<std::set<AStar::Path*>>;
-
-	Timer mipTimer;
-	Timer coordinatorTimer;
-
-	std::map<Tile*, std::map<int, std::vector<AgentPath>>> collisionTable;
-
 	using TileToPathMap = std::map<Tile*, std::vector<AgentPath>>;
-	std::deque<TileToPathMap> tileToPathMapAtTimestep;
-
+	
 	// (tile => time => num collisions)
 	using TileCollision = std::set<std::pair<Tile*, int>>;
 
 	// agent => (tile => time => num collisions)
 	//std::map<Agent*, TileCollision> agentsInCollision;
+
+	Timer mipTimer;
+	Timer coordinatorTimer;
+
+	std::deque<TileToPathMap> tileToPathMapAtTimestep;
+	std::map<Tile*, std::map<int, std::vector<AgentPath>>> collisionTable;
 
 	std::vector<std::set<AStar::Path*>> CheckCollisions(std::vector<Agent*>& agents, std::map<Agent*, TileCollision>& agentsInCollision);
 	std::vector<std::pair<Tile*, int>> TilesInCollision(Agent* agent, AStar::Path& path);

@@ -10,7 +10,7 @@ int Simulation::timestep;
 
 Simulation::Simulation()
 {
-	currentScenario = "wait3.scenario";
+	currentScenario = "warehouse.scenario";
 
 	Stats::Reset();
 
