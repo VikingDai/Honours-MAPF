@@ -87,7 +87,7 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 			PathCollisions collisions = CheckCollisions(agents, agentCollisionMap);
 			std::vector<Agent*> mipConflicts = ResolveConflicts(agents, collisions);
 			mipTimer.End();
-			std::cout << "SCIP took " << mipTimer.getTimeElapsed() << " ms" << std::endl;
+			mipTimer.PrintTimeElapsed("SCIP");
 
 			if (mipConflicts.empty())
 			{

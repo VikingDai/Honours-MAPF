@@ -10,7 +10,9 @@ int Simulation::timestep;
 
 Simulation::Simulation()
 {
-	Stats::reset();
+	currentScenario = "wait3.scenario";
+
+	Stats::Reset();
 
 	timestep = 0;
 	aStar = new AStar(&environment.gridMap);

@@ -11,7 +11,7 @@ Agent::Agent(Tile* startTile, Tile* goalTile) : EObject(startTile->x, startTile-
 {
 	assert(startTile);
 
-	color = vec3(0, MathUtils::randomFloat(), MathUtils::randomFloat());
+	color = vec3(0, MathUtils::RandomFloat(), MathUtils::RandomFloat());
 
 	agentId = agentCount;
 	agentCount += 1;

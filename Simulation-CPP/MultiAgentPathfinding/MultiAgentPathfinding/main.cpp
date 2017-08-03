@@ -54,6 +54,8 @@ int main()
 	{
 		int display_w, display_h;
 		glfwGetFramebufferSize(graphics.window, &display_w, &display_h);
+		Graphics::displayWidth = display_w;
+		Graphics::displayHeight = display_h;
 		int minSize = min(display_w, display_h);
 		int maxSize = max(display_w, display_h);
 

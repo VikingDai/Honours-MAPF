@@ -41,7 +41,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	Stage::zoom *= 1 + (yoffset * 0.05f);
 }
 
-void Stage::setupInput(GLFWwindow* window)
+void Stage::SetupInput(GLFWwindow* window)
 {
 	// Ensure we can capture the escape key being pressed below
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
@@ -88,7 +88,7 @@ Stage::Stage()
 		return;
 	}
 
-	setupInput(window);
+	SetupInput(window);
 
 	GLuint VertexArrayID;
 	glGenVertexArrays(1, &VertexArrayID);
@@ -111,7 +111,7 @@ Stage::Stage()
 																				// Camera matrix
 
 	glm::mat4 View = glm::lookAt(
-		CameraPos, // Camera is at (4,3,3), in World Space
+		cameraPos, // Camera is at (4,3,3), in World Space
 		glm::vec3(0, 0, 0), // and looks at the origin
 		glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
 	);
@@ -140,12 +140,12 @@ Stage::~Stage()
 {
 }
 
-void Stage::update(float dt)
+void Stage::Update(float dt)
 {
 
 }
 
-void Stage::render()
+void Stage::Render()
 {
 	
 }

@@ -9,6 +9,8 @@
 #include <GLFW/glfw3.h>
 #include <GL/glew.h>
 
+float Graphics::displayWidth;
+float Graphics::displayHeight;
 
 void Graphics::SetShaderUniforms(glm::vec3 inPosition, glm::vec3 inScale, glm::vec3 inColor)
 {

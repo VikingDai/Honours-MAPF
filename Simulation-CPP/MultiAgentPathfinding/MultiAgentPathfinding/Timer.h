@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <ctime>
+#include <iostream>
 
 class Timer
 {
@@ -12,12 +13,13 @@ class Timer
 	float timeAcc;
 
 public:
-	float getAvgTime() { return avgTime; }
-	float getTimeElapsed() { return timeElapsed; }
+	float GetAvgTime() { return avgTime; }
+	float GetTimeElapsed() { return timeElapsed; }
 
 	Timer();
 	void Begin();
 	void End();
 
+	void PrintTimeElapsed(char* functionName);
 };
 

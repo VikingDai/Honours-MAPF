@@ -28,6 +28,8 @@ public:
 	std::vector<AStar::Path> allPaths;
 	AStar::Path currentPath;
 
+	std::map<Tile*, int> customWeights;
+
 	int getAgentId() { return agentId; }
 
 	vec3 renderPos;

@@ -2,7 +2,7 @@
 
 double Stats::avgSearchTime;
 
-void Stats::reset()
+void Stats::Reset()
 {
 	avgSearchTime = 0;
 }

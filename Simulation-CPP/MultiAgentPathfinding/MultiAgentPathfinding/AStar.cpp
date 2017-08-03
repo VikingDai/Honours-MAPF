@@ -55,8 +55,12 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
 		}
 		std::cout << std::endl << std::endl;
 #endif
-		current = open[open.size() - 1];
+		current = open.back();
+
 		NODES_EXPANDED += 1;
+
+		if (current->tile == goal) // found path to goal!
+			break;
 
 		if (current->timestep > 500)
 		{
@@ -71,9 +75,6 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
 		open.pop_back();
 
 		//current->color = vec3(0, 0, 1);
-
-		if (current->tile == goal) // found path to goal!
-			break;
 
 		AddToOpen(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, 0, 1), start, goal, customCosts);
 		AddToOpen(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, 1, 0), start, goal, customCosts);
@@ -97,9 +98,9 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
 	
 	// calculate time taken
 	timer.End();
-	Stats::avgSearchTime = timer.getAvgTime();
+	Stats::avgSearchTime = timer.GetAvgTime();
 
-	std::cout << "Search visited: " << modifiedTiles.size() << " tiles | Expanded: " << NODES_EXPANDED << " tiles. Took " << timer.getTimeElapsed() << " ms" << std::endl;
+	std::cout << "Search visited: " << modifiedTiles.size() << " tiles | Expanded: " << NODES_EXPANDED << " tiles. Took " << timer.GetTimeElapsed() << " seconds" << std::endl;
 
 	freeTileInfos.splice(freeTileInfos.end(), usedTileInfos);
 
@@ -129,9 +130,6 @@ void AStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* fromTile, Ti
 		modifiedTiles.push_back(tile);
 
 		tile->parentsByTime[timestep] = from;
-		
-		float tileDist = 1;
-		//cost += tileDist;
 
 		tile->numberOfTimesVisited += 1;
 		//tile->color = vec3(tile->numberOfTimesVisited * 0.05f);
@@ -140,8 +138,6 @@ void AStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* fromTile, Ti
 
 		if (!customCosts.empty())
 		{
-			//std::cout << "Checking timestep " << timestep << " " << *tile << std::endl;
-
 			bool hasCustomCost = customCosts.count(timestep) && customCosts[timestep].count(tile);
 			if (hasCustomCost) 
 				newCost += customCosts[timestep][tile];
@@ -154,13 +150,9 @@ void AStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* fromTile, Ti
 		//float dy = goal->y - tile->y;
 		//float heuristic = sqrt(dx * dx + dy * dy);
 
-		//tile->spatialEstimates[timestep].CalculateEstimate(newCost, heuristic);
-		//tile->parentsByTime[timestep] = fromTile;
-
 		TileInfo* newTileInfo = nullptr;
 		if (!freeTileInfos.empty())
 		{
-			//std::cout << "REUSING!" << std::endl;
 			newTileInfo = freeTileInfos.back(); 
 			freeTileInfos.pop_back();
 		}

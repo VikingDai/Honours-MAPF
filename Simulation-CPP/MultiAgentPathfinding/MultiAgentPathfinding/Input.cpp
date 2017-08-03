@@ -20,7 +20,18 @@ void Input::Update(float deltaTime, Simulation* simulation, Camera* camera)
 		camera->getMVP();
 		camera->zoom;
 		camera->position;
-		simulation->SelectTile(ImGui::GetMousePos().x, ImGui::GetMousePos().y);
+		
+		ImVec2 mouseWorld = ImVec2(
+			ImGui::GetMousePos().x - Graphics::displayWidth * 0.5f,
+			ImGui::GetMousePos().y - Graphics::displayHeight * 0.5f);
+
+		std::cout << ImGui::GetMousePos().x << " / " << Graphics::displayWidth << std::endl;
+
+		std::cout << mouseWorld.x << " , " << mouseWorld.y << std::endl;
+
+		simulation->SelectTile(
+			(ImGui::GetMousePos().x - Graphics::displayWidth * 0.5f + camera->position.x) / camera->zoom,
+			(ImGui::GetMousePos().y - Graphics::displayHeight * 0.5f + camera->position.y) / camera->zoom);
 	}
 
 	// Update camera

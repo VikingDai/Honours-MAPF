@@ -4,6 +4,6 @@ class Stats
 public:
 	static double avgSearchTime;
 
-	static void reset();
+	static void Reset();
 };
 

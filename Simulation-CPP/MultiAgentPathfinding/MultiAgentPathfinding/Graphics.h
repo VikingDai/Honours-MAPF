@@ -21,8 +21,11 @@ private:
 	void SetShaderUniforms(glm::vec3 inPosition, glm::vec3 inScale, glm::vec3 inColor);
 	ShapeType shapeTypeForBatch;
 
-
 public:
+	static float displayWidth;
+	static float displayHeight;
+	
+
 	// single color shader
 	GLuint singleColorShaderId;
 	GLuint mvpId;

@@ -3,17 +3,6 @@
 #include <string>
 #include <iostream>
 
-
-
-Scenario::Scenario()
-{
-}
-
-
-Scenario::~Scenario()
-{
-}
-
 void Scenario::LoadScenario(std::string filename, Environment& environment)
 {
 	std::fstream infile(filename);

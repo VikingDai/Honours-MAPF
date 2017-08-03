@@ -9,8 +9,7 @@ public:
 	GridMap* gridMap;
 	std::vector<Agent*> agents;
 
-	Scenario();
-	~Scenario();
+	Scenario() = default;
 
 	std::vector<int> agentInfo;
 

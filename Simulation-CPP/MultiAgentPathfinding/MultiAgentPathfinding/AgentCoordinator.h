@@ -32,6 +32,7 @@ class AgentCoordinator
 	using PathCollisions = std::vector<std::set<AStar::Path*>>;
 
 	Timer mipTimer;
+	Timer coordinatorTimer;
 
 	std::map<Tile*, std::map<int, std::vector<AgentPath>>> collisionTable;
 
@@ -64,12 +65,11 @@ class AgentCoordinator
 	std::vector<Agent*> ResolveConflicts(std::vector<Agent*>& agents, PathCollisions& collisions);
 	SCIP_RETCODE SetupProblem(SCIP* scip, std::vector<Agent*>& agents, PathCollisions& collisions);
 
+	// SCIP helper structures
 	std::vector<SCIP_VAR*> allVariables;
 	std::map<SCIP_VAR*, Agent*> varToAgentMap;
 	std::map<SCIP_VAR*, AStar::Path*> varToPathMap;
 	std::map<SCIP_VAR*, char*> varNames;
-
-
 
 public:
 	AStar* aStar;

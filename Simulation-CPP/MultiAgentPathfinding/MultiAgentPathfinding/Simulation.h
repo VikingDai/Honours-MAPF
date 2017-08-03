@@ -13,7 +13,7 @@ private:
 	AgentCoordinator* coordinator;
 	Scenario scenario;
 
-	std::string currentScenario = "wait_bottleneck.scenario";
+	std::string currentScenario;
 public:
 	static int timestep;
 

@@ -21,3 +21,8 @@ void Timer::End()
 	timeAcc += timeElapsed;
 	avgTime = timeAcc / static_cast<double>(numberOfTimesRan);
 }
+
+void Timer::PrintTimeElapsed(char* functionName)
+{
+	std::cout << functionName << " took " << timeElapsed << " seconds" << std::endl;
+}
