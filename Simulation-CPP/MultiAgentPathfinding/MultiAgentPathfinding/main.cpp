@@ -77,7 +77,7 @@ int main()
 		bool open = true;
 
 		// Full screen window (invisible content, just for the menu bar)
-		ImGui::SetNextWindowSize(ImVec2(static_cast<float>(Graphics::GetDisplaySize().x), static_cast<float>(Graphics::GetDisplaySize().y)), ImGuiSetCond_Always);
+		ImGui::SetNextWindowSize(Graphics::GetDisplaySize(), ImGuiSetCond_Always);
 		ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_FirstUseEver);
 		ImGui::Begin("MenuBar", &open, ImVec2(0, 0), 0.f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus);
 		simulation->BuildMenuBar();
@@ -95,7 +95,7 @@ int main()
 
 		// Info window (on the right)
 		ImVec2 infoPadding(25.f, 75.f);
-		//ImGui::SetNextWindowPos(ImVec2(display_w - (maxSize - minSize) / 2.f - infoPadding.x, infoPadding.y), ImGuiSetCond_FirstUseEver);
+		ImGui::SetNextWindowPos(ImVec2(Graphics::GetDisplaySize().x - 300 / 2.f - infoPadding.x, infoPadding.y), ImGuiSetCond_FirstUseEver);
 		ImGui::Begin("Example: Fixed Overlay", &open, ImVec2(0, 0), 0.2f, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
 		simulation->LogInfo();
 		ImGui::End();

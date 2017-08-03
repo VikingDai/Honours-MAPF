@@ -19,13 +19,13 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 {
 	set<Agent*> agentsWhoNeedNewPaths;
 	std::map<Agent*, TileCollision> agentCollisionMap;
-	
+
 	bool anyPathsChanged = false;
 
 	// if the agent has a goal to reach but does not have a path, generate a path
 	for (Agent* agent : agents)
 	{
-		if (agent->goal && agent->currentPath.empty()) 
+		if (agent->goal && agent->currentPath.empty())
 		{
 			agentsWhoNeedNewPaths.emplace(agent);
 			agent->allPaths.clear();
@@ -33,96 +33,94 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 		}
 	}
 
+	if (!anyPathsChanged) return; // only assign new paths if any agents require them
+
 	bool firstRun = true;
 
 	// detect collisions and resolve them using the MIP solver
-	if (anyPathsChanged)
+	coordinatorTimer.Begin();
+
+	int i = 0;
+	do
 	{
-		int i = 0;
-		do
+		std::cout << "************************" << std::endl;
+		std::cout << "**** RESOLVING RUN " << i << " ****" << std::endl;
+		std::cout << "************************" << std::endl;
+
+		if (i > 500)
 		{
-			std::cout << "************************" << std::endl;
-			std::cout << "**** RESOLVING RUN " << i << " ****" << std::endl;
-			std::cout << "************************" << std::endl;
-
-			if (i > 500)
-			{
-				std::cout << "Exceeded the search limit: failed to resolve path conflicts" << std::endl;
-				break;
-			}
-
-			// we need to feed the MIP, additional paths
-			for (Agent* agent : agentsWhoNeedNewPaths)
-			{
-				std::cout << "Generating path for " << *agent << std::endl;
-				GeneratePath(agent, !firstRun, agentCollisionMap);
-			}
-
-			// pad each agents path so that they update the collision table
-			for (Agent* agent : agents)
-			{
-				for (AStar::Path& path : agent->allPaths)
-				{
-					PathLengths[&path] = path.size(); // store the paths for use in the MIP
-
-					int paddingRequired = tileToPathMapAtTimestep.size() - path.size();
-					for (int p = 0; p < paddingRequired; p++)
-						path.push_back(path[path.size() - 1]);
-
-					PrintPath(agent, path);
-				}
-			}
-
-			// #TODO Make this code less ugly
-			agentsWhoNeedNewPaths.clear();
-
-			std::cout << "--- Building Table ---" << std::endl;
-			BuildTable(agents);
-
-			std::chrono::time_point<std::chrono::system_clock> TIME_START, TIME_END;
-			TIME_START = std::chrono::system_clock::now();
-
-			
-			mipTimer.Begin();
-			PathCollisions collisions = CheckCollisions(agents, agentCollisionMap);
-			std::vector<Agent*> mipConflicts = ResolveConflicts(agents, collisions);
-			mipTimer.End();
-			mipTimer.PrintTimeElapsed("SCIP");
-
-			if (mipConflicts.empty())
-			{
-				std::cout << "MIP told us no conflicts, we are done!" << std::endl;
-			}
-
-			for (Agent* agent : mipConflicts)
-			{
-				agentsWhoNeedNewPaths.emplace(agent);
-			}
-
-			if (!agentsWhoNeedNewPaths.empty())
-			{
-				std::map<Agent*, std::set<std::pair<Tile*, int>>>::iterator it;
-				for (it = agentCollisionMap.begin(); it != agentCollisionMap.end(); it++)
-				{
-					it->second.size();
-					agentsWhoNeedNewPaths.emplace(it->first);
-				}
-			}
-
-			i++;
-
-			firstRun = false;
+			std::cout << "Exceeded the search limit: failed to resolve path conflicts" << std::endl;
+			break;
 		}
-		while (!agentsWhoNeedNewPaths.empty());
-	}
-	else
-	{
-		// we have resolved all conflicts, now move agents along their paths
-		for (Agent* agent : agents)
-			agent->step();
 
-		PopTimestep();
+		// we need to feed the MIP, additional paths
+		for (Agent* agent : agentsWhoNeedNewPaths)
+		{
+			std::cout << "Generating path for " << *agent << std::endl;
+			GeneratePath(agent, !firstRun, agentCollisionMap);
+		}
+
+		// pad each agents path so that they update the collision table
+		for (Agent* agent : agents)
+		{
+			for (AStar::Path& path : agent->allPaths)
+			{
+				PathLengths[&path] = path.size(); // store the paths for use in the MIP
+
+				int paddingRequired = tileToPathMapAtTimestep.size() - path.size();
+				for (int p = 0; p < paddingRequired; p++)
+					path.push_back(path[path.size() - 1]);
+
+				PrintPath(agent, path);
+			}
+		}
+
+		// #TODO Make this code less ugly
+		agentsWhoNeedNewPaths.clear();
+
+		std::cout << "--- Building Table ---" << std::endl;
+		BuildTable(agents);
+
+		std::chrono::time_point<std::chrono::system_clock> TIME_START, TIME_END;
+		TIME_START = std::chrono::system_clock::now();
+
+
+		mipTimer.Begin();
+		PathCollisions collisions = CheckCollisions(agents, agentCollisionMap);
+		std::vector<Agent*> mipConflicts = ResolveConflicts(agents, collisions);
+		mipTimer.End();
+		mipTimer.PrintTimeElapsed("SCIP");
+		Stats::avgMipTime = mipTimer.GetAvgTime();
+
+		if (mipConflicts.empty())
+		{
+			std::cout << "MIP told us no conflicts, we are done!" << std::endl;
+		}
+
+		for (Agent* agent : mipConflicts)
+		{
+			agentsWhoNeedNewPaths.emplace(agent);
+		}
+
+		if (!agentsWhoNeedNewPaths.empty())
+		{
+			std::map<Agent*, std::set<std::pair<Tile*, int>>>::iterator it;
+			for (it = agentCollisionMap.begin(); it != agentCollisionMap.end(); it++)
+			{
+				it->second.size();
+				agentsWhoNeedNewPaths.emplace(it->first);
+			}
+		}
+
+		i++;
+
+		firstRun = false;
 	}
+	while (!agentsWhoNeedNewPaths.empty());
+
+	coordinatorTimer.End();
+	Stats::avgCoordinatorTime = coordinatorTimer.GetAvgTime();
+	coordinatorTimer.PrintTimeElapsed("Agent Coordinator");
 }
 
 void AgentCoordinator::GeneratePath(Agent* agent, bool useCollisions, std::map<Agent*, TileCollision> agentCollisionMap)
@@ -165,6 +163,11 @@ AgentCoordinator::AgentCoordinator(GridMap* inMap)
 {
 	map = inMap;
 	aStar = new AStar(inMap);
+}
+
+void AgentCoordinator::Reset()
+{
+
 }
 
 /* Check if any paths are in collision AND maps agents to tile collisions */
@@ -542,11 +545,11 @@ vector<Agent*> AgentCoordinator::ResolveConflicts(vector<Agent*>& agents, PathCo
 
 		for (SCIP_VAR* var : allVariables)
 		{
-			if (!var) 
+			if (!var)
 				continue;
 
 			double varSolution = SCIPgetSolVal(scip, Solution, var);
-			
+
 
 			// has chosen this path
 			if (varSolution == 1)

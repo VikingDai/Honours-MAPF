@@ -9,7 +9,7 @@
 #include <GLFW/glfw3.h>
 #include <GL/glew.h>
 
-glm::vec2 Graphics::displaySize;
+ImVec2 Graphics::displaySize;
 float Graphics::aspectRatio;
 
 void Graphics::SetShaderUniforms(glm::vec3 inPosition, glm::vec3 inScale, glm::vec3 inColor)
@@ -24,7 +24,7 @@ void Graphics::UpdateDisplaySize(int displayWidth, int displayHeight)
 {
 	displaySize.x = displayWidth;
 	displaySize.y = displayHeight;
-	aspectRatio = static_cast<float>(displayWidth) / static_cast<float>(displayHeight);
+	aspectRatio = displaySize.x / displaySize.y;
 }
 
 Graphics::Graphics()

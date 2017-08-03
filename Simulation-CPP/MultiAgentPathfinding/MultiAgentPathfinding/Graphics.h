@@ -5,6 +5,7 @@
 
 #include "Camera.h"
 #include <vector>
+#include "imgui.h"
 
 struct GLFWwindow;
 
@@ -22,11 +23,11 @@ private:
 	ShapeType shapeTypeForBatch;
 
 private:
-	static glm::vec2 displaySize;
+	static ImVec2 displaySize;
 	static float aspectRatio;
 
 public:
-	static glm::ivec2 GetDisplaySize() { return displaySize; }
+	static ImVec2 GetDisplaySize() { return displaySize; }
 	static float GetAspectRatio() { return aspectRatio; }
 	static void UpdateDisplaySize(int displayWidth, int displayHeight);
 

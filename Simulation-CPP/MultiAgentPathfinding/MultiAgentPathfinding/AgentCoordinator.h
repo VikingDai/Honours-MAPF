@@ -29,6 +29,9 @@ struct AgentPath
 
 class AgentCoordinator
 {
+	Timer mipTimer;
+	Timer coordinatorTimer;
+
 	using PathCollisions = std::vector<std::set<AStar::Path*>>;
 	using TileToPathMap = std::map<Tile*, std::vector<AgentPath>>;
 	
@@ -37,9 +40,6 @@ class AgentCoordinator
 
 	// agent => (tile => time => num collisions)
 	//std::map<Agent*, TileCollision> agentsInCollision;
-
-	Timer mipTimer;
-	Timer coordinatorTimer;
 
 	std::deque<TileToPathMap> tileToPathMapAtTimestep;
 	std::map<Tile*, std::map<int, std::vector<AgentPath>>> collisionTable;

@@ -35,7 +35,12 @@ void Simulation::Step()
 			tile->color = vec3(1, 1, 1);
 	}
 
+	// allocate paths to agents which have no collisions
 	coordinator->UpdateAgents(environment.agents);
+
+	// we have resolved all conflicts, now move agents along their paths
+	for (Agent* agent : environment.agents)
+		agent->step();
 
 	std::cout << "Updating timestep: " << timestep << std::endl;
 
@@ -101,6 +106,8 @@ void Simulation::LogInfo()
 	ImGui::Text("Number of agents: %d", environment.agents.size());
 	ImGui::Text("Grid map dimensions: %d x %d", environment.gridMap.getWidth(), environment.gridMap.getHeight());
 	ImGui::Text("Avg Search Time: %.9f", Stats::avgSearchTime);
+	ImGui::Text("Avg Coordinator Time: %.9f", Stats::avgCoordinatorTime);
+	ImGui::Text("Avg Mip Time: %.9f", Stats::avgMipTime);
 }
 
 void Simulation::BuildMenuBar()
