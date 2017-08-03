@@ -9,8 +9,8 @@
 #include <GLFW/glfw3.h>
 #include <GL/glew.h>
 
-float Graphics::displayWidth;
-float Graphics::displayHeight;
+glm::vec2 Graphics::displaySize;
+float Graphics::aspectRatio;
 
 void Graphics::SetShaderUniforms(glm::vec3 inPosition, glm::vec3 inScale, glm::vec3 inColor)
 {
@@ -18,6 +18,13 @@ void Graphics::SetShaderUniforms(glm::vec3 inPosition, glm::vec3 inScale, glm::v
 	glUniformMatrix4fv(mvpId, 1, GL_FALSE, &camera->getMVP()[0][0]);
 	glUniformMatrix4fv(modelId, 1, GL_FALSE, &model[0][0]);
 	glUniform3f(colorId, inColor.x, inColor.y, inColor.z);
+}
+
+void Graphics::UpdateDisplaySize(int displayWidth, int displayHeight)
+{
+	displaySize.x = displayWidth;
+	displaySize.y = displayHeight;
+	aspectRatio = static_cast<float>(displayWidth) / static_cast<float>(displayHeight);
 }
 
 Graphics::Graphics()
@@ -180,7 +187,13 @@ void Graphics::CleanUp()
 
 void Graphics::DrawTexture()
 {
-
+	// Draw the texture to the main window
+	//ImTextureID tex_id = (ImTextureID) texturebuffer;
+	//ImDrawList* draw_list = ImGui::GetWindowDrawList();
+	//draw_list->PushTextureID(tex_id);
+	//draw_list->AddImage(tex_id, ImVec2(pos.x, pos.y), ImVec2(pos.x + size.x, pos.y + size.y));
+	//draw_list->PopTextureID();
+	////ImGui::GetWindowDrawList()->PopTextureID();
 }
 
 //////////////////////////////////////////////////////////////////////////

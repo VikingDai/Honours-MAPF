@@ -14,7 +14,6 @@ void Input::Update(float deltaTime, Simulation* simulation, Camera* camera)
 		StepSimulation(simulation);
 	}
 
-
 	if (ImGui::IsMouseClicked(0))
 	{
 		camera->getMVP();
@@ -22,16 +21,16 @@ void Input::Update(float deltaTime, Simulation* simulation, Camera* camera)
 		camera->position;
 		
 		ImVec2 mouseWorld = ImVec2(
-			ImGui::GetMousePos().x - Graphics::displayWidth * 0.5f,
-			ImGui::GetMousePos().y - Graphics::displayHeight * 0.5f);
+			ImGui::GetMousePos().x - Graphics::GetDisplaySize().x * 0.5f,
+			ImGui::GetMousePos().y - Graphics::GetDisplaySize().y * 0.5f);
 
-		std::cout << ImGui::GetMousePos().x << " / " << Graphics::displayWidth << std::endl;
+		std::cout << ImGui::GetMousePos().x << " / " << Graphics::GetDisplaySize().x << std::endl;
 
 		std::cout << mouseWorld.x << " , " << mouseWorld.y << std::endl;
 
 		simulation->SelectTile(
-			(ImGui::GetMousePos().x - Graphics::displayWidth * 0.5f + camera->position.x) / camera->zoom,
-			(ImGui::GetMousePos().y - Graphics::displayHeight * 0.5f + camera->position.y) / camera->zoom);
+			(ImGui::GetMousePos().x - Graphics::GetDisplaySize().x * 0.5f + camera->position.x) / camera->zoom,
+			(ImGui::GetMousePos().y - Graphics::GetDisplaySize().y * 0.5f + camera->position.y) / camera->zoom);
 	}
 
 	// Update camera

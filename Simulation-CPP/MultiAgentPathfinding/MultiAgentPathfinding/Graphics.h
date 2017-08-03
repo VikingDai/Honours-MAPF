@@ -21,10 +21,17 @@ private:
 	void SetShaderUniforms(glm::vec3 inPosition, glm::vec3 inScale, glm::vec3 inColor);
 	ShapeType shapeTypeForBatch;
 
+private:
+	static glm::vec2 displaySize;
+	static float aspectRatio;
+
 public:
-	static float displayWidth;
-	static float displayHeight;
-	
+	static glm::ivec2 GetDisplaySize() { return displaySize; }
+	static float GetAspectRatio() { return aspectRatio; }
+	static void UpdateDisplaySize(int displayWidth, int displayHeight);
+
+public:
+
 
 	// single color shader
 	GLuint singleColorShaderId;
@@ -54,7 +61,7 @@ public:
 public:
 	Graphics();
 	~Graphics();
-	
+
 	bool initGraphics();
 	void CleanUp();
 	void DrawTexture();
