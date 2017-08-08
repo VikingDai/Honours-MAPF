@@ -35,7 +35,7 @@ public:
 	bool operator()(TileInfo* A, TileInfo* B);
 };
 
-class AStar
+class SpatialAStar
 {
 public:
 	std::list<TileInfo*> freeTileInfos;
@@ -60,9 +60,9 @@ private:
 	std::vector<Tile*> modifiedTiles;
 
 public:
-	AStar(GridMap* gridMap);
+	SpatialAStar(GridMap* gridMap);
 	void SetGridMap(GridMap* gridMap) { this->gridMap = gridMap; }
-	~AStar();
+	~SpatialAStar();
 
 	Path FindPath(Tile* start, Tile* goal, TileCosts& customCostTable = TileCosts());
 	void AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* fromTile, Tile* tile, Tile* start, Tile* goal, TileCosts& customCosts);

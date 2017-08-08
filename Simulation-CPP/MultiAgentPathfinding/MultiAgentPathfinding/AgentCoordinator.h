@@ -5,7 +5,7 @@
 #include <deque>
 #include <set>
 #include "Agent.h";
-#include "AStar.h"
+#include "SpatialAStar.h"
 #include "Graphics.h"
 
 // scip includes
@@ -22,9 +22,9 @@ class Tile;
 struct AgentPath
 {
 	Agent* agent;
-	AStar::Path* path;
+	SpatialAStar::Path* path;
 
-	AgentPath(Agent* agent, AStar::Path* path) : agent(agent), path(path) {}
+	AgentPath(Agent* agent, SpatialAStar::Path* path) : agent(agent), path(path) {}
 };
 
 class AgentCoordinator
@@ -32,7 +32,7 @@ class AgentCoordinator
 	Timer mipTimer;
 	Timer coordinatorTimer;
 
-	using PathCollisions = std::vector<std::set<AStar::Path*>>;
+	using PathCollisions = std::vector<std::set<SpatialAStar::Path*>>;
 	using TileToPathMap = std::map<Tile*, std::vector<AgentPath>>;
 	
 	// (tile => time => num collisions)
@@ -44,10 +44,10 @@ class AgentCoordinator
 	std::deque<TileToPathMap> tileToPathMapAtTimestep;
 	std::map<Tile*, std::map<int, std::vector<AgentPath>>> collisionTable;
 
-	std::vector<std::set<AStar::Path*>> CheckCollisions(std::vector<Agent*>& agents, std::map<Agent*, TileCollision>& agentsInCollision);
-	std::vector<std::pair<Tile*, int>> TilesInCollision(Agent* agent, AStar::Path& path);
+	std::vector<std::set<SpatialAStar::Path*>> CheckCollisions(std::vector<Agent*>& agents, std::map<Agent*, TileCollision>& agentsInCollision);
+	std::vector<std::pair<Tile*, int>> TilesInCollision(Agent* agent, SpatialAStar::Path& path);
 
-	std::map<AStar::Path*, int> PathLengths;
+	std::map<SpatialAStar::Path*, int> PathLengths;
 
 	void PopTimestep()
 	{
@@ -58,7 +58,7 @@ class AgentCoordinator
 	void BuildTable(std::vector<Agent*>& agents);
 
 	void PrintAllPaths(std::vector<Agent*>& agents);
-	void PrintPath(Agent* agent, AStar::Path& path);
+	void PrintPath(Agent* agent, SpatialAStar::Path& path);
 
 	// SCIP functions
 	std::vector<Agent*> ResolveConflicts(std::vector<Agent*>& agents, PathCollisions& collisions);
@@ -67,11 +67,11 @@ class AgentCoordinator
 	// SCIP helper structures
 	std::vector<SCIP_VAR*> allVariables;
 	std::map<SCIP_VAR*, Agent*> varToAgentMap;
-	std::map<SCIP_VAR*, AStar::Path*> varToPathMap;
+	std::map<SCIP_VAR*, SpatialAStar::Path*> varToPathMap;
 	std::map<SCIP_VAR*, char*> varNames;
 
 public:
-	AStar* aStar;
+	SpatialAStar* aStar;
 	GridMap* map;
 
 public:

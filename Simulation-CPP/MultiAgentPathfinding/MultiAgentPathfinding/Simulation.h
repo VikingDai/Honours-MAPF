@@ -1,7 +1,7 @@
 #pragma once
 #include "Environment.h"
 #include "AgentCoordinator.h"
-#include "AStar.h"
+#include "SpatialAStar.h"
 #include "Scenario.h"
 
 class Graphics;
@@ -9,7 +9,7 @@ class Graphics;
 class Simulation
 {
 private:
-	AStar* aStar;
+	SpatialAStar* aStar;
 	AgentCoordinator* coordinator;
 	Scenario scenario;
 

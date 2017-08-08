@@ -2,7 +2,7 @@
 #include <iostream>
 #include "Graphics.h"
 #include "glm/vec3.hpp"
-#include "AStar.h"
+#include "SpatialAStar.h"
 
 Environment::Environment()
 {

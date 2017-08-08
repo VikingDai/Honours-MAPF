@@ -3,7 +3,7 @@
 #include <vector>
 #include <deque>
 #include <iostream>
-#include "AStar.h"
+#include "SpatialAStar.h"
 #include "Graphics.h"
 
 class Tile;
@@ -12,7 +12,7 @@ class GridMap;
 class Agent : public EObject
 {
 private:
-	AStar* search;
+	SpatialAStar* search;
 	GridMap* map;
 
 	int agentId;
@@ -23,10 +23,10 @@ public:
 	vec3 color;
 	Agent(Tile* startTile, Tile* goalTile = nullptr);
 	virtual void step();
-	void setPath(AStar::Path& path);
+	void setPath(SpatialAStar::Path& path);
 
-	std::vector<AStar::Path> allPaths;
-	AStar::Path currentPath;
+	std::vector<SpatialAStar::Path> allPaths;
+	SpatialAStar::Path currentPath;
 
 	std::map<Tile*, int> customWeights;
 

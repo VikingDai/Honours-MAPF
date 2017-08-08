@@ -1,4 +1,4 @@
-#include "AStar.h"
+#include "SpatialAStar.h"
 #include "Tile.h"
 #include "GridMap.h"
 #include <deque>
@@ -10,16 +10,16 @@ int NODES_EXPANDED = 0;
 
 #define DEBUG_VERBOSE 0
 
-AStar::AStar(GridMap* inGridMap)
+SpatialAStar::SpatialAStar(GridMap* inGridMap)
 {
 	SetGridMap(inGridMap);
 }
 
-AStar::~AStar()
+SpatialAStar::~SpatialAStar()
 {
 }
 
-AStar::Path AStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
+SpatialAStar::Path SpatialAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
 {
 	timer.Begin();
 	NODES_EXPANDED = 0;
@@ -116,7 +116,7 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
 	return path;
 }
 
-void AStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* fromTile, Tile* tile, Tile* start, Tile* goal, TileCosts& customCosts)
+void SpatialAStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* fromTile, Tile* tile, Tile* start, Tile* goal, TileCosts& customCosts)
 {
 	int timestep = currentInfo->timestep + 1;
 	bool isWaitAction = currentInfo->tile == tile;
@@ -147,8 +147,10 @@ void AStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* fromTile, Ti
 			if (hasCustomCost)
 				newCost += customCosts[timestep][tile];
 
+#if DEBUG_VERBOSE
 			if (hasCustomCost)
 				std::cout << "Using cost!" << std::endl;
+#endif
 		}
 
 		TileInfo* newTileInfo = nullptr;

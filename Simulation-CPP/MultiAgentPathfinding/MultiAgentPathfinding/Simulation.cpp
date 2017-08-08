@@ -15,7 +15,7 @@ Simulation::Simulation()
 	Stats::Reset();
 
 	timestep = 0;
-	aStar = new AStar(&environment.gridMap);
+	aStar = new SpatialAStar(&environment.gridMap);
 	coordinator = new AgentCoordinator(&environment.gridMap);
 
 	scenario.LoadScenario("../scenarios/" + currentScenario, environment);

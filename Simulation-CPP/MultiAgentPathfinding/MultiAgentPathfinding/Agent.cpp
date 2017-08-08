@@ -1,5 +1,5 @@
 #include "Agent.h"
-#include "AStar.h"
+#include "SpatialAStar.h"
 #include "Tile.h"
 #include "GridMap.h"
 #include "MathUtils.h"
@@ -32,22 +32,22 @@ void Agent::step()
 		x = nextTile->x;
 		y = nextTile->y;
 
-		std::vector<AStar::Path> pathsToRemove;
-		for (AStar::Path& allPath : allPaths)
+		std::vector<SpatialAStar::Path> pathsToRemove;
+		for (SpatialAStar::Path& allPath : allPaths)
 		{
 			allPath.pop_front();
 			if (allPath.empty())
 				pathsToRemove.push_back(allPath);
 		}
 
-		for (AStar::Path& pathToRemove : pathsToRemove)
+		for (SpatialAStar::Path& pathToRemove : pathsToRemove)
 		{
 			auto it = std::find(allPaths.begin(), allPaths.end(), pathToRemove);
 			if (it != allPaths.end())
 				allPaths.erase(it);
 		}
 
-		for (AStar::Path& allPath : allPaths)
+		for (SpatialAStar::Path& allPath : allPaths)
 			assert(!allPath.empty());
 	}
 	
@@ -56,7 +56,7 @@ void Agent::step()
 		goal = nullptr;
 }
 
-void Agent::setPath(AStar::Path& inPath)
+void Agent::setPath(SpatialAStar::Path& inPath)
 {
 	currentPath = inPath;
 }
@@ -73,7 +73,7 @@ void Agent::drawPaths(Graphics* graphics)
 
 	for (int i = 0; i < allPaths.size(); i++) //AStar::Path& path : allPaths)
 	{
-		AStar::Path& path = allPaths[i];
+		SpatialAStar::Path& path = allPaths[i];
 		float pathSep = .4 / allPaths.size();
 		for (Tile* tile : path)
 		{
