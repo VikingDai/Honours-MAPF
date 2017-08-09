@@ -36,7 +36,7 @@ SpatialAStar::Path SpatialAStar::FindPath(Tile* start, Tile* goal, TileCosts& cu
 	OpenQueue open;
 
 	TileInfo* startInfo = new TileInfo();
-	startInfo->SetInfo(-1, start, 0, start->CalculateEstimate(0, 0, start, goal));
+	startInfo->SetInfo(-1, start, 0, start->CalculateEstimate(0, goal));
 	
 	//open.push_back(startInfo);
 	open.push(startInfo);
@@ -126,18 +126,16 @@ void SpatialAStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* fromT
 
 	Tile* from = currentInfo->tile;
 
-	if ((tile && !tile->visited[timestep] && tile->isWalkable))
+	if (tile && tile->isWalkable && !tile->visitedAtTime[fromTile][timestep])
 	{
 #if DEBUG_VERBOSE
 		std::cout << *tile << " at " << " time: " << timestep << std::endl;
 #endif
-
-		tile->visited[timestep] = true;
 		modifiedTiles.push_back(tile);
 
-		tile->parentsByTime[timestep] = from;
-
 		tile->numberOfTimesVisited += 1;
+
+		tile->visitedAtTime[fromTile][timestep] = true;
 
 		//std::cout << *from << " " << *tile << " " << timestep << std::endl;
 
@@ -164,7 +162,7 @@ void SpatialAStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* fromT
 			newTileInfo = new TileInfo();
 		}
 
-		newTileInfo->SetInfo(timestep, tile, newCost, tile->CalculateEstimate(timestep, newCost, start, goal));
+		newTileInfo->SetInfo(timestep, tile, newCost, tile->CalculateEstimate(newCost, goal));
 		usedTileInfos.push_back(newTileInfo);
 		cameFrom[newTileInfo] = currentInfo;
 

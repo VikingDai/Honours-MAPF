@@ -5,12 +5,13 @@
 #include "Options.h"
 #include "Statistics.h"
 #include <map>
+#include "AStar.h"
 
 int Simulation::timestep;
 
 Simulation::Simulation()
 {
-	currentScenario = "warehouse.scenario";
+	currentScenario = "empty5x5.scenario";
 
 	Stats::Reset();
 
@@ -19,6 +20,15 @@ Simulation::Simulation()
 	coordinator = new AgentCoordinator(&environment.gridMap);
 
 	scenario.LoadScenario("../scenarios/" + currentScenario, environment);
+
+	AStar* testAstar = new AStar(&environment.gridMap);
+	AStar::Path& path = testAstar->FindPath(environment.gridMap.getTileAt(0, 0), environment.gridMap.getTileAt(4, 4));
+	while (!path.empty())
+	{
+		path.front()->color = glm::vec3(0, 0, 1);
+		std::cout << *path.front() << std::endl;
+		path.pop();
+	}
 }
 
 

@@ -4,9 +4,6 @@
 #include <iostream>
 #include <map>
 
-#define MAX_PATH_SIZE 10000
-
-
 struct Estimate
 {
 	int estimate;
@@ -27,22 +24,29 @@ class Tile : public EObject
 
 {
 public:
-	Estimate spatialEstimates[MAX_PATH_SIZE];
+
+	// from at time
+	std::map<Tile*, std::map<int, bool>> visitedAtTime;
 
 	bool isWalkable;
-	bool visited[MAX_PATH_SIZE];
-	float estimate[MAX_PATH_SIZE];
-	float cost[MAX_PATH_SIZE];
-	float heuristic[MAX_PATH_SIZE];
+
+
+	bool hasBeenExpanded;
+	bool isInOpen;
+
+	float estimate;
+	float cost;
+	float heuristic;
+	Tile* parent;
 
 	int numberOfTimesVisited;
-	std::map<int, Tile*> parentsByTime;
 
 	vec3 color;
 
 	Tile(int x, int y, bool inIsWalkable);
 	void Reset();
-	float CalculateEstimate(int timestep, float cost, Tile* start, Tile* goal);
+
+	float CalculateEstimate(float inCost, Tile* goal);
 
 	friend std::ostream& operator<<(std::ostream& os, Tile& tile);
 };
