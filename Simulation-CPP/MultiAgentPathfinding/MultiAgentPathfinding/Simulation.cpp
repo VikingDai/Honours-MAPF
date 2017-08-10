@@ -9,6 +9,8 @@
 
 int Simulation::timestep;
 
+std::vector<AStar::Path> pathsToDraw;
+
 Simulation::Simulation()
 {
 	currentScenario = "empty5x5.scenario";
@@ -21,14 +23,24 @@ Simulation::Simulation()
 
 	scenario.LoadScenario("../scenarios/" + currentScenario, environment);
 
+
+	////////////////////////////////////////////////////////////////////////// TESTING
 	AStar* testAstar = new AStar(&environment.gridMap);
-	AStar::Path& path = testAstar->FindPath(environment.gridMap.getTileAt(0, 0), environment.gridMap.getTileAt(4, 4));
-	while (!path.empty())
+	Tile* start = environment.gridMap.getTileAt(0, 0);
+	Tile* goal = environment.gridMap.getTileAt(5, 5);
+
+	start->color = glm::vec3(1, 1, 0);
+	goal->color = glm::vec3(1, 1, 0);
+
+	//AStar::Path& path = testAstar->FindPath(start, goal);
+	/*while (!path.empty())
 	{
 		path.front()->color = glm::vec3(0, 0, 1);
 		std::cout << *path.front() << std::endl;
 		path.pop();
-	}
+	}*/
+
+	pathsToDraw = testAstar->FindPaths(start, goal);
 }
 
 
@@ -87,6 +99,23 @@ void Simulation::Render(Graphics* graphics)
 			graphics->DrawBatch(glm::ivec3(agent->goal->x, agent->goal->y, 0), agent->color, glm::vec3(0.5f));
 	graphics->ShapeBatchEnd();
 	
+	//////////////////////////////////////////////////////////////////////////// TESTING
+	graphics->LineBatchBegin();
+	float sep = .6;
+	for (int i = 0; i < pathsToDraw.size(); i++)
+	{
+		AStar::Path& path = pathsToDraw[i];
+		float pathSep = sep / pathsToDraw.size();
+		std::vector<vec3> points;
+		for (Tile* tile : path)
+		{
+			points.emplace_back(vec3(tile->x + pathSep * i - sep / 2, tile->y + pathSep * i - sep / 2, 0));
+		}
+
+		graphics->DrawLine(points, glm::vec3(0, 1, 1), 2.5f);
+		points.clear();
+	}
+	graphics->LineBatchEnd();
 }
 
 void Simulation::BuildOptions()

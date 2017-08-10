@@ -3,6 +3,7 @@
 #include "EObject.h"
 #include <iostream>
 #include <map>
+#include <vector>
 
 struct Estimate
 {
@@ -38,6 +39,8 @@ public:
 	float cost;
 	float heuristic;
 	Tile* parent;
+
+	std::vector<Tile*> sameCostParents;
 
 	int numberOfTimesVisited;
 

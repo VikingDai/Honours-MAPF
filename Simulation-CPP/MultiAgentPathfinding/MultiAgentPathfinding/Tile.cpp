@@ -35,7 +35,7 @@ float Tile::CalculateEstimate(float inCost, Tile* goal)
 	// using straight line heuristic
 	float dx = goal->x - x;
 	float dy = goal->y - y;
-	heuristic = sqrt(dx * dx + dy * dy);
+	heuristic = abs(dx) + abs(dy);
 
 	// update estimate : f = g + h
 	estimate = cost + heuristic;
