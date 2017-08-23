@@ -35,7 +35,7 @@ SpatialAStar::Path SpatialAStar::FindPath(Tile* start, Tile* goal, TileCosts& cu
 	modifiedTiles.clear();
 	OpenQueue open;
 
-	TileInfo* startInfo = new TileInfo();
+	TileTime* startInfo = new TileTime();
 	startInfo->SetInfo(-1, start, 0, start->CalculateEstimate(0, goal));
 	
 	//open.push_back(startInfo);
@@ -43,7 +43,7 @@ SpatialAStar::Path SpatialAStar::FindPath(Tile* start, Tile* goal, TileCosts& cu
 
 	modifiedTiles.push_back(start);
 
-	TileInfo* current = nullptr;
+	TileTime* current = nullptr;
 	Tile* currentTile = nullptr;
 
 	while (!open.empty())
@@ -52,7 +52,7 @@ SpatialAStar::Path SpatialAStar::FindPath(Tile* start, Tile* goal, TileCosts& cu
 		if (current)
 			std::cout << "Currently: " << current << std::endl;
 		std::cout << "\n### OPEN LIST ###" << std::endl;
-		for (TileInfo* info : open)
+		for (TileTime* info : open)
 		{
 			std::cout << "\t" << *info->tile << " at Time " << info->timestep << " with Estimate " << info->estimate << std::endl;
 		}
@@ -79,11 +79,11 @@ SpatialAStar::Path SpatialAStar::FindPath(Tile* start, Tile* goal, TileCosts& cu
 
 		//current->color = vec3(0, 0, 1);
 
-		AddToOpen(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, 0, 1), start, goal, customCosts);
-		AddToOpen(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, 1, 0), start, goal, customCosts);
-		AddToOpen(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, 0, -1), start, goal, customCosts);
-		AddToOpen(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, -1, 0), start, goal, customCosts);
-		AddToOpen(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, 0, 0), start, goal, customCosts);
+		ExpandNeighbor(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, 0, 1), start, goal, customCosts);
+		ExpandNeighbor(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, 1, 0), start, goal, customCosts);
+		ExpandNeighbor(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, 0, -1), start, goal, customCosts);
+		ExpandNeighbor(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, -1, 0), start, goal, customCosts);
+		ExpandNeighbor(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, 0, 0), start, goal, customCosts);
 	}
 
 	// build the path
@@ -116,34 +116,34 @@ SpatialAStar::Path SpatialAStar::FindPath(Tile* start, Tile* goal, TileCosts& cu
 	return path;
 }
 
-void SpatialAStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* fromTile, Tile* tile, Tile* start, Tile* goal, TileCosts& customCosts)
+void SpatialAStar::ExpandNeighbor(OpenQueue& open, TileTime* currentInfo, Tile* currentTile, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& customCosts)
 {
 	int timestep = currentInfo->timestep + 1;
-	bool isWaitAction = currentInfo->tile == tile;
+	bool isWaitAction = currentInfo->tile == neighborTile;
 
 	float actionCost = isWaitAction ? 0.75f : 1.f;
 	float newCost = currentInfo->cost + actionCost;
 
 	Tile* from = currentInfo->tile;
 
-	if (tile && tile->isWalkable && !tile->visitedAtTime[fromTile][timestep])
+	if (neighborTile && neighborTile->isWalkable && !neighborTile->visitedAtTime[currentTile][timestep])
 	{
 #if DEBUG_VERBOSE
-		std::cout << *tile << " at " << " time: " << timestep << std::endl;
+		std::cout << *neighborTile << " at " << " time: " << timestep << std::endl;
 #endif
-		modifiedTiles.push_back(tile);
+		modifiedTiles.push_back(neighborTile);
 
-		tile->numberOfTimesVisited += 1;
+		neighborTile->numberOfTimesVisited += 1;
 
-		tile->visitedAtTime[fromTile][timestep] = true;
+		neighborTile->visitedAtTime[currentTile][timestep] = true;
 
 		//std::cout << *from << " " << *tile << " " << timestep << std::endl;
 
 		if (!customCosts.empty())
 		{
-			bool hasCustomCost = customCosts.count(timestep) && customCosts[timestep].count(tile);
+			bool hasCustomCost = customCosts.count(timestep) && customCosts[timestep].count(neighborTile);
 			if (hasCustomCost)
-				newCost += customCosts[timestep][tile];
+				newCost += customCosts[timestep][neighborTile];
 
 #if DEBUG_VERBOSE
 			if (hasCustomCost)
@@ -151,7 +151,7 @@ void SpatialAStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* fromT
 #endif
 		}
 
-		TileInfo* newTileInfo = nullptr;
+		TileTime* newTileInfo = nullptr;
 		if (!freeTileInfos.empty())
 		{
 			newTileInfo = freeTileInfos.back();
@@ -159,10 +159,10 @@ void SpatialAStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* fromT
 		}
 		else
 		{
-			newTileInfo = new TileInfo();
+			newTileInfo = new TileTime();
 		}
 
-		newTileInfo->SetInfo(timestep, tile, newCost, tile->CalculateEstimate(newCost, goal));
+		newTileInfo->SetInfo(timestep, neighborTile, newCost, neighborTile->CalculateEstimate(newCost, goal));
 		usedTileInfos.push_back(newTileInfo);
 		cameFrom[newTileInfo] = currentInfo;
 
@@ -171,7 +171,7 @@ void SpatialAStar::AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* fromT
 	}
 }
 
-bool BaseHeuristic::operator()(TileInfo* A, TileInfo* B)
+bool BaseHeuristic::operator()(TileTime* A, TileTime* B)
 {
 	return A->estimate > B->estimate;
 }

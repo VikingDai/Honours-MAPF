@@ -9,7 +9,7 @@
 class Tile;
 class GridMap;
 
-struct TileInfo
+struct TileTime
 {
 	int timestep;
 	Tile* tile;
@@ -32,20 +32,20 @@ private:
 
 public:
 	BaseHeuristic() = default;
-	bool operator()(TileInfo* A, TileInfo* B);
+	bool operator()(TileTime* A, TileTime* B);
 };
 
 class SpatialAStar
 {
 public:
-	std::list<TileInfo*> freeTileInfos;
-	std::list<TileInfo*> usedTileInfos;
+	std::list<TileTime*> freeTileInfos;
+	std::list<TileTime*> usedTileInfos;
 
 public:
-	std::map<TileInfo*, Helper::Action> agentActionMap;
+	std::map<TileTime*, Helper::Action> agentActionMap;
 
 public:
-	using OpenQueue = std::priority_queue<TileInfo*, std::vector<TileInfo*>, BaseHeuristic>;
+	using OpenQueue = std::priority_queue<TileTime*, std::vector<TileTime*>, BaseHeuristic>;
 	using Path = std::deque<Tile*>;
 	using TileCosts = std::map<int, std::map<Tile*, float>>;
 
@@ -54,7 +54,7 @@ private:
 	Timer sortTimer;
 
 	BaseHeuristic heuristic;
-	std::map<TileInfo*, TileInfo*> cameFrom;
+	std::map<TileTime*, TileTime*> cameFrom;
 
 	GridMap* gridMap;
 	std::vector<Tile*> modifiedTiles;
@@ -65,6 +65,10 @@ public:
 	~SpatialAStar();
 
 	Path FindPath(Tile* start, Tile* goal, TileCosts& customCostTable = TileCosts());
-	void AddToOpen(OpenQueue& open, TileInfo* currentInfo, Tile* fromTile, Tile* tile, Tile* start, Tile* goal, TileCosts& customCosts);
+	void ExpandNeighbor(OpenQueue& open, TileTime* currentInfo, Tile* currentTile, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& customCosts);
+
+
+	std::map<Tile*, std::map<int, int>> visitedAtTimeCount;
+	
 };
 

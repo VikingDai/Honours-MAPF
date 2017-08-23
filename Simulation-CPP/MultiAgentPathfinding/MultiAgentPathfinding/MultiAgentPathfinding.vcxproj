@@ -175,6 +175,7 @@
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Scenario.cpp" />
     <ClCompile Include="Simulation.cpp" />
+    <ClCompile Include="SpatialBFS.cpp" />
     <ClCompile Include="Stage.cpp" />
     <ClCompile Include="Statistics.cpp" />
     <ClCompile Include="Tile.cpp" />
@@ -209,6 +210,7 @@
     <ClInclude Include="Options.h" />
     <ClInclude Include="Scenario.h" />
     <ClInclude Include="Simulation.h" />
+    <ClInclude Include="SpatialBFS.h" />
     <ClInclude Include="Stage.h" />
     <ClInclude Include="Statistics.h" />
     <ClInclude Include="Tile.h" />

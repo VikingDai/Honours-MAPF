@@ -139,7 +139,7 @@ std::vector<AStar::Path> AStar::FindPaths(Tile* start, Tile* goal)
 		AddSameCostNeighbor(open, current, gridMap->getTileRelativeTo(current, -1, 0), start, goal); // left
 	}
 
-	std::cout << "# REBUILDING PATH " << std::endl;
+	//std::cout << "# REBUILDING PATH " << std::endl;
 
 	std::stack<Path> pathStack;
 	Path endPath;
@@ -191,7 +191,7 @@ void AStar::AddSameCostNeighbor(OpenQueue& open, Tile* current, Tile* neighbor, 
 
 	if (neighbor->sameCostParents.empty()) // no parent assigned, add it straight to the fringe
 	{
-		std::cout << "ADDED " << *neighbor << " to open list." << std::endl;
+		//std::cout << "ADDED " << *neighbor << " to open list." << std::endl;
 
 		neighbor->isInOpen = true;
 		neighbor->CalculateEstimate(newNeighborCost, goal);

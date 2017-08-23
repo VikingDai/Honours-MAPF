@@ -6,10 +6,11 @@
 #include "Statistics.h"
 #include <map>
 #include "AStar.h"
+#include "SpatialBFS.h"
 
 int Simulation::timestep;
 
-std::vector<AStar::Path> pathsToDraw;
+std::vector<SpatialBFS::Path> pathsToDraw;
 
 Simulation::Simulation()
 {
@@ -23,14 +24,52 @@ Simulation::Simulation()
 
 	scenario.LoadScenario("../scenarios/" + currentScenario, environment);
 
+	//////////////////////////////////////////////////////////////////////////
+	// TEST BFS
+	
+	//SpatialBFS bfs(&environment.gridMap);
+	//Tile* start = environment.gridMap.getTileAt(2, 2);
+	//Tile* goal = environment.gridMap.getTileAt(2, 6);
 
-	////////////////////////////////////////////////////////////////////////// TESTING
-	AStar* testAstar = new AStar(&environment.gridMap);
-	Tile* start = environment.gridMap.getTileAt(0, 0);
-	Tile* goal = environment.gridMap.getTileAt(5, 5);
+	//start->color = glm::vec3(1, 1, 0);
+	//goal->color = glm::vec3(1, 1, 0);
 
-	start->color = glm::vec3(1, 1, 0);
-	goal->color = glm::vec3(1, 1, 0);
+	////pathsToDraw = bfs.SearchToDepth(start, goal, 2);
+
+	//Timer bfsTimer;
+	//for (int i = 1; i < 8; i++)
+	//{
+	//	bfsTimer.Reset();
+	//	bfsTimer.Begin();
+	//	std::cout << "##############################" << std::endl;
+	//	std::cout << "GENERATING PATHS OF DEPTH " << i << std::endl;
+	//	std::cout << "Found " << bfs.SearchToDepth(start, goal, i).size() << " paths " << std::endl;
+	//	bfsTimer.End();
+	//	bfsTimer.PrintTimeElapsed("GENERATING TOOK");
+	//}
+
+	/*for (SpatialBFS::Path path : pathsToDraw)
+	{
+		for (Tile* tile : path)
+			std::cout << *tile << " > ";
+
+		std::cout << std::endl;
+	}*/
+
+	// END TEST BFS
+	//////////////////////////////////////////////////////////////////////////
+
+
+
+	//////////////////////////////////////////////////////////////////////////
+	// TEST A*
+
+	//AStar* testAstar = new AStar(&environment.gridMap);
+	//Tile* start = environment.gridMap.getTileAt(0, 0);
+	//Tile* goal = environment.gridMap.getTileAt(8, 8);
+
+	//start->color = glm::vec3(1, 1, 0);
+	//goal->color = glm::vec3(1, 1, 0);
 
 	//AStar::Path& path = testAstar->FindPath(start, goal);
 	/*while (!path.empty())
@@ -40,7 +79,7 @@ Simulation::Simulation()
 		path.pop();
 	}*/
 
-	pathsToDraw = testAstar->FindPaths(start, goal);
+	//pathsToDraw = testAstar->FindPaths(start, goal);
 }
 
 
@@ -99,12 +138,12 @@ void Simulation::Render(Graphics* graphics)
 			graphics->DrawBatch(glm::ivec3(agent->goal->x, agent->goal->y, 0), agent->color, glm::vec3(0.5f));
 	graphics->ShapeBatchEnd();
 	
-	//////////////////////////////////////////////////////////////////////////// TESTING
+	////////////////////////////////////////////////////////////////////////////// TESTING
 	graphics->LineBatchBegin();
 	float sep = .6;
 	for (int i = 0; i < pathsToDraw.size(); i++)
 	{
-		AStar::Path& path = pathsToDraw[i];
+		SpatialBFS::Path& path = pathsToDraw[i];
 		float pathSep = sep / pathsToDraw.size();
 		std::vector<vec3> points;
 		for (Tile* tile : path)
