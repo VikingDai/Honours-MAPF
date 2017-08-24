@@ -37,6 +37,7 @@ struct TileTime2
 	TileTime2* parent;
 
 	int timestep;
+	std::map<TileTime2*, int> countFrom;
 	int timesUsed = 0;
 	Tile* tile;
 	float estimate;

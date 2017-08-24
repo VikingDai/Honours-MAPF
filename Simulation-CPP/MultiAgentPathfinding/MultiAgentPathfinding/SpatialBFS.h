@@ -28,6 +28,7 @@ public:
 	SpatialBFS(GridMap* gridMap);
 
 public:
+	Path FindNextPath(Tile* start, Tile* goal);
 	std::vector<Path> SearchToDepth(Tile* start, Tile* goal, int depth);
 	void AddNeighbor(TileTime* current, Tile* neighbor);
 };

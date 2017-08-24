@@ -5,6 +5,57 @@ SpatialBFS::SpatialBFS(GridMap* inGridMap)
 	gridMap = inGridMap;
 }
 
+SpatialBFS::Path SpatialBFS::FindNextPath(Tile* start, Tile* goal)
+{
+	nodesExpanded = 0;
+
+	SpatialBFS::Path path;
+
+	if (!start || !goal)
+		return path;
+
+	if (frontier.empty())
+		frontier.push(new TileTime(start, 0));
+
+	std::vector<TileTime*> tilesAtGoal;
+
+	TileTime* current = nullptr;
+
+	while (!frontier.empty())
+	{
+		current = frontier.front();
+		frontier.pop();
+
+		nodesExpanded += 1;
+
+		//std::cout << *current->first << " | " << current->second << std::endl;
+
+		if (current->first == goal)
+			break;
+
+		AddNeighbor(current, gridMap->getTileRelativeTo(current->first, 0, 1));
+		AddNeighbor(current, gridMap->getTileRelativeTo(current->first, 1, 0));
+		AddNeighbor(current, gridMap->getTileRelativeTo(current->first, 0, -1));
+		AddNeighbor(current, gridMap->getTileRelativeTo(current->first, -1, 0));
+		AddNeighbor(current, gridMap->getTileRelativeTo(current->first, 0, 0));
+	}
+
+	// rebuild paths
+	while (cameFrom.find(current) != cameFrom.end())
+	{
+		path.push_front(current->first);
+		std::cout << *current->first << " > ";
+		current = cameFrom[current];
+	}
+
+	std::cout << std::endl;
+
+	// print stats
+	std::cout << "Expanded " << nodesExpanded << " tiles" << std::endl;
+
+	return path;
+}
+
 std::vector<SpatialBFS::Path> SpatialBFS::SearchToDepth(Tile* start, Tile* goal, int depth)
 {
 	nodesExpanded = 0;

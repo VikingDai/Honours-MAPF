@@ -36,12 +36,12 @@ Simulation::Simulation()
 	start->color = glm::vec3(1, 1, 0);
 	goal->color = glm::vec3(1, 1, 0);
 
-	for (int i = 0; i < 20; i++)
+	/*for (int i = 0; i < 50; i++)
 	{
 		std::cout << "FINDING PATH " << i << std::endl;
 		pathsToDraw.push_back(spatialAStar.FindPath2(start, goal));
 		std::cout << std::endl;
-	}
+	}*/
 
 	// END TEST SPATIAL A*
 	//////////////////////////////////////////////////////////////////////////
@@ -49,6 +49,8 @@ Simulation::Simulation()
 	//////////////////////////////////////////////////////////////////////////
 	// TEST BFS
 	
+	bfs = new SpatialBFS(&environment.gridMap);
+
 	//SpatialBFS bfs(&environment.gridMap);
 	//Tile* start = environment.gridMap.getTileAt(2, 2);
 	//Tile* goal = environment.gridMap.getTileAt(2, 6);
@@ -112,15 +114,18 @@ void Simulation::Reset()
 
 void Simulation::Step()
 {
-	Tile* start = environment.gridMap.getTileAt(2, 2);
-	Tile* goal = environment.gridMap.getTileAt(6, 6);
-	pathToDraw = aStar->FindPath2(start, goal);
-
 	for (Tile* tile : environment.gridMap.tiles)
 	{
 		if (tile->isWalkable)
 			tile->color = vec3(1, 1, 1);
 	}
+
+	Tile* start = environment.gridMap.getTileAt(2, 2);
+	Tile* goal = environment.gridMap.getTileAt(4, 4);
+	pathsToDraw.push_back(bfs->FindNextPath(start, goal));
+
+	start->color = glm::vec3(1, 0, 0);
+	goal->color = glm::vec3(0, 1, 0);
 
 	// allocate paths to agents which have no collisions
 	coordinator->UpdateAgents(environment.agents);

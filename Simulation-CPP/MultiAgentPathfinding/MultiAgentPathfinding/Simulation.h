@@ -3,12 +3,14 @@
 #include "AgentCoordinator.h"
 #include "SpatialAStar.h"
 #include "Scenario.h"
+#include "SpatialBFS.h"
 
 class Graphics;
 
 class Simulation
 {
 private:
+	SpatialBFS* bfs;
 	SpatialAStar* aStar;
 	AgentCoordinator* coordinator;
 	Scenario scenario;

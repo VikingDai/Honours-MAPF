@@ -201,7 +201,9 @@ SpatialAStar::Path SpatialAStar::FindPath2(Tile* start, Tile* goal)
 	{
 		current = open2.top();
 		current->bClosed = true;
-		//std::cout << "Expanding " << *current->tile << " at time " << current->timestep << std::endl;
+		
+		std::cout << "Expanding " << *current->tile << " at time " << current->timestep << std::endl;
+
 		open2.pop();
 
 		if (current->tile == goal) // found path to goal!
@@ -218,6 +220,11 @@ SpatialAStar::Path SpatialAStar::FindPath2(Tile* start, Tile* goal)
 	while (current->parent != nullptr)
 	{
 		current->timesUsed += 1;
+
+		if (current->countFrom.find(current->parent) == current->countFrom.end())
+			current->countFrom[current->parent] = 0;
+
+		current->countFrom[current->parent] += 1;
 		path.push_front(current->tile);
 		std::cout << *current->tile << std::endl;
 		current = current->parent;
@@ -261,15 +268,18 @@ void SpatialAStar::ExpandNeighbor2(OpenQueue2& open, TileTime2* current, Tile* n
 	if (neighbor->bIsInOpen && !neighbor->bNeedsReset) // relax the node - update the parent
 	{
 		float parentCost = neighbor->parent->cost;
-		//std::cout << "Comparing " << parentCost << " and " << cost << std::endl;
+		std::cout << "Comparing " << parentCost << " and " << cost << std::endl;
 		if (current->cost == parentCost)
 		{
-			//std::cout << "Current " << *current->tile << " | " << current->timesUsed << " Old " << *neighbor->parent->tile << " | " << neighbor->parent->timesUsed << std::endl;
-			if (current->timesUsed < neighbor->parent->timesUsed)
+			std::cout << "COSTS ARE THE SAME NOW LOOK AT TIMES USED: Current " << *current->tile << " | " << current->timesUsed << " Old " << *neighbor->parent->tile << " | " << neighbor->parent->timesUsed << std::endl;
+			//if (current->timesUsed < neighbor->parent->timesUsed)
+			if (neighbor->countFrom[current] < neighbor->countFrom[neighbor->parent])
+			{
+				std::cout << "Changed parent as this path was used previously" << std::endl;
 				neighbor->SetParent(current);
+			}
 		}
-
-		if (current->cost < parentCost)
+		else if (current->cost < parentCost)
 		{
 			std::cout << "Changed parent!" << std::endl;
 			neighbor->SetParent(current);
@@ -283,7 +293,11 @@ void SpatialAStar::ExpandNeighbor2(OpenQueue2& open, TileTime2* current, Tile* n
 		neighbor->SetParent(current);
 		neighbor->bNeedsReset = false;
 
-		//std::cout << "Added " << *neighborTile << " to open list with cost " <<  cost << " and est " << estimate << " and heur " << neighborTile->heuristic << " at " << neighborTimestep << std::endl;
+		std::cout << "Added " << *neighborTile << 
+			" to open list with cost " <<  cost << 
+			" and heur " << neighborTile->heuristic <<
+			" and est " << estimate << 
+			" at " << neighborTimestep << std::endl;
 
 		open.push(neighbor);
 	}
