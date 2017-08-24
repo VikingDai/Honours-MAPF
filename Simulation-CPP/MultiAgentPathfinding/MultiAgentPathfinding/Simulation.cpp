@@ -16,7 +16,7 @@ std::vector<SpatialAStar::Path> pathsToDraw;
 
 Simulation::Simulation()
 {
-	currentScenario = "wait3.scenario";
+	currentScenario = "bottleneck2.scenario";
 
 	Stats::Reset();
 

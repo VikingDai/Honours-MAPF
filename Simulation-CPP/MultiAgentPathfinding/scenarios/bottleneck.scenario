@@ -1,4 +1,4 @@
-wait_bottleneck.map
+bottleneck.map
 agents 2
 0 1 2 1
 2 1 0 1
