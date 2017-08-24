@@ -44,11 +44,8 @@ SpatialBFS::Path SpatialBFS::FindNextPath(Tile* start, Tile* goal)
 	while (cameFrom.find(current) != cameFrom.end())
 	{
 		path.push_front(current->first);
-		std::cout << *current->first << " > ";
 		current = cameFrom[current];
 	}
-
-	std::cout << std::endl;
 
 	// print stats
 	std::cout << "Expanded " << nodesExpanded << " tiles" << std::endl;
@@ -115,8 +112,11 @@ void SpatialBFS::AddNeighbor(TileTime* current, Tile* neighbor)
 {
 	if (!current || !neighbor) return;
 
-	//std::pair<Tile*, int> test;
-	TileTime* neighborTileTime = new TileTime(neighbor, current->second + 1);
-	frontier.push(neighborTileTime);
-	cameFrom[neighborTileTime] = current;
+	if (neighbor->isWalkable)
+	{
+		//std::pair<Tile*, int> test;
+		TileTime* neighborTileTime = new TileTime(neighbor, current->second + 1);
+		frontier.push(neighborTileTime);
+		cameFrom[neighborTileTime] = current;
+	}
 }

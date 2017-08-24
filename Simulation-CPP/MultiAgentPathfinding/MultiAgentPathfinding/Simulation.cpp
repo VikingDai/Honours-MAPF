@@ -16,7 +16,7 @@ std::vector<SpatialAStar::Path> pathsToDraw;
 
 Simulation::Simulation()
 {
-	currentScenario = "empty5x5.scenario";
+	currentScenario = "wait3.scenario";
 
 	Stats::Reset();
 
@@ -29,12 +29,12 @@ Simulation::Simulation()
 	//////////////////////////////////////////////////////////////////////////
 	// TEST SPATIAL A*
 
-	SpatialAStar spatialAStar(&environment.gridMap);
+	/*SpatialAStar spatialAStar(&environment.gridMap);
 	Tile* start = environment.gridMap.getTileAt(2, 2);
 	Tile* goal = environment.gridMap.getTileAt(4, 4);
 
 	start->color = glm::vec3(1, 1, 0);
-	goal->color = glm::vec3(1, 1, 0);
+	goal->color = glm::vec3(1, 1, 0);*/
 
 	/*for (int i = 0; i < 50; i++)
 	{
@@ -120,12 +120,11 @@ void Simulation::Step()
 			tile->color = vec3(1, 1, 1);
 	}
 
-	Tile* start = environment.gridMap.getTileAt(2, 2);
-	Tile* goal = environment.gridMap.getTileAt(4, 4);
-	pathsToDraw.push_back(bfs->FindNextPath(start, goal));
-
-	start->color = glm::vec3(1, 0, 0);
-	goal->color = glm::vec3(0, 1, 0);
+	//Tile* start = environment.gridMap.getTileAt(2, 2);
+	//Tile* goal = environment.gridMap.getTileAt(4, 4);
+	//pathsToDraw.push_back(bfs->FindNextPath(start, goal));
+	//start->color = glm::vec3(1, 0, 0);
+	//goal->color = glm::vec3(0, 1, 0);
 
 	// allocate paths to agents which have no collisions
 	coordinator->UpdateAgents(environment.agents);

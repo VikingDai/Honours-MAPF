@@ -5,15 +5,18 @@
 #include <iostream>
 #include "SpatialAStar.h"
 #include "Graphics.h"
+#include "SpatialBFS.h"
 
 class Tile;
 class GridMap;
 
 class Agent : public EObject
 {
+public:
+	SpatialBFS* bfs;
+
 private:
 	SpatialAStar* search;
-	GridMap* map;
 
 	int agentId;
 
@@ -21,7 +24,7 @@ public:
 	Tile* goal;
 
 	vec3 color;
-	Agent(Tile* startTile, Tile* goalTile = nullptr);
+	Agent(GridMap* gridMap, Tile* startTile, Tile* goalTile = nullptr);
 	virtual void step();
 	void setPath(SpatialAStar::Path& path);
 

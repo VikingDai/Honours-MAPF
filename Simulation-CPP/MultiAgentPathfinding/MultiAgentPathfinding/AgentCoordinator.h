@@ -68,7 +68,7 @@ class AgentCoordinator
 	std::vector<SCIP_VAR*> allVariables;
 	std::map<SCIP_VAR*, Agent*> varToAgentMap;
 	std::map<SCIP_VAR*, SpatialAStar::Path*> varToPathMap;
-	std::map<SCIP_VAR*, char*> varNames;
+	std::map<SCIP_VAR*, std::string> varNames;
 
 public:
 	SpatialAStar* aStar;

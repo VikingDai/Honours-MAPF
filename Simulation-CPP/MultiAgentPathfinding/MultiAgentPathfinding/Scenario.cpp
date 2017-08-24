@@ -39,7 +39,7 @@ void Scenario::LoadScenario(std::string filename, Environment& environment)
 		assert(start);
 		assert(goal);
 
-		Agent* agent = new Agent(start, goal);
+		Agent* agent = new Agent(&environment.gridMap, start, goal);
 		environment.agents.push_back(agent);
 
 		std::cout << "Spawned " << *agent << std::endl;
@@ -58,7 +58,7 @@ void Scenario::LoadScenario(std::string filename, Environment& environment)
 		assert(start);
 		assert(goal);
 
-		Agent* agent = new Agent(start, goal);
+		Agent* agent = new Agent(&environment.gridMap, start, goal);
 		environment.agents.push_back(agent);
 
 		std::cout << "Spawned " << *agent << std::endl;

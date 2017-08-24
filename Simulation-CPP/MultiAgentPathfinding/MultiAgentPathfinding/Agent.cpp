@@ -7,7 +7,7 @@
 
 static int agentCount = 0;
 
-Agent::Agent(Tile* startTile, Tile* goalTile) : EObject(startTile->x, startTile->y)
+Agent::Agent(GridMap* gridMap, Tile* startTile, Tile* goalTile) : EObject(startTile->x, startTile->y)
 {
 	assert(startTile);
 
@@ -19,6 +19,8 @@ Agent::Agent(Tile* startTile, Tile* goalTile) : EObject(startTile->x, startTile-
 	renderPos = vec3(startTile->x, startTile->y, 0);
 	
 	goal = goalTile;
+
+	bfs = new SpatialBFS(gridMap);
 }
 
 void Agent::step()
