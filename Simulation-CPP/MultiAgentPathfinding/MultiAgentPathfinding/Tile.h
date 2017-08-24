@@ -25,7 +25,6 @@ class Tile : public EObject
 
 {
 public:
-
 	// from at time
 	std::map<Tile*, std::map<int, bool>> visitedAtTime;
 

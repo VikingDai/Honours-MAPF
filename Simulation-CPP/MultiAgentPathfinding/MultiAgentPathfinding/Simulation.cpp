@@ -7,10 +7,12 @@
 #include <map>
 #include "AStar.h"
 #include "SpatialBFS.h"
+#include "SpatialAStar.h"
 
 int Simulation::timestep;
 
-std::vector<SpatialBFS::Path> pathsToDraw;
+SpatialAStar::Path pathToDraw;
+std::vector<SpatialAStar::Path> pathsToDraw;
 
 Simulation::Simulation()
 {
@@ -23,6 +25,26 @@ Simulation::Simulation()
 	coordinator = new AgentCoordinator(&environment.gridMap);
 
 	scenario.LoadScenario("../scenarios/" + currentScenario, environment);
+
+	//////////////////////////////////////////////////////////////////////////
+	// TEST SPATIAL A*
+
+	SpatialAStar spatialAStar(&environment.gridMap);
+	Tile* start = environment.gridMap.getTileAt(2, 2);
+	Tile* goal = environment.gridMap.getTileAt(4, 4);
+
+	start->color = glm::vec3(1, 1, 0);
+	goal->color = glm::vec3(1, 1, 0);
+
+	for (int i = 0; i < 20; i++)
+	{
+		std::cout << "FINDING PATH " << i << std::endl;
+		pathsToDraw.push_back(spatialAStar.FindPath2(start, goal));
+		std::cout << std::endl;
+	}
+
+	// END TEST SPATIAL A*
+	//////////////////////////////////////////////////////////////////////////
 
 	//////////////////////////////////////////////////////////////////////////
 	// TEST BFS
@@ -52,7 +74,6 @@ Simulation::Simulation()
 	{
 		for (Tile* tile : path)
 			std::cout << *tile << " > ";
-
 		std::cout << std::endl;
 	}*/
 
@@ -88,8 +109,13 @@ void Simulation::Reset()
 	environment.Reset();
 }
 
+
 void Simulation::Step()
 {
+	Tile* start = environment.gridMap.getTileAt(2, 2);
+	Tile* goal = environment.gridMap.getTileAt(6, 6);
+	pathToDraw = aStar->FindPath2(start, goal);
+
 	for (Tile* tile : environment.gridMap.tiles)
 	{
 		if (tile->isWalkable)
@@ -154,6 +180,18 @@ void Simulation::Render(Graphics* graphics)
 		graphics->DrawLine(points, glm::vec3(0, 1, 1), 2.5f);
 		points.clear();
 	}
+	graphics->LineBatchEnd();
+
+	////////////////////////////////////////////////////////////////////////// TESTING 2
+	graphics->LineBatchBegin();
+	std::vector<vec3> points;
+	for (Tile* tile : pathToDraw)
+	{
+		points.emplace_back(vec3(tile->x, tile->y, 0));
+	}
+	graphics->DrawLine(points, glm::vec3(0, 1, 1), 2.5f);
+	points.clear();
+	
 	graphics->LineBatchEnd();
 }
 

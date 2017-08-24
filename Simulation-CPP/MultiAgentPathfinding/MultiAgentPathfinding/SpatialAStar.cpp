@@ -9,6 +9,7 @@
 int NODES_EXPANDED = 0;
 
 #define DEBUG_VERBOSE 0
+#define TEST_GENERATE_DIFFERENT 1
 
 SpatialAStar::SpatialAStar(GridMap* inGridMap)
 {
@@ -37,7 +38,7 @@ SpatialAStar::Path SpatialAStar::FindPath(Tile* start, Tile* goal, TileCosts& cu
 
 	TileTime* startInfo = new TileTime();
 	startInfo->SetInfo(-1, start, 0, start->CalculateEstimate(0, goal));
-	
+
 	//open.push_back(startInfo);
 	open.push(startInfo);
 
@@ -172,6 +173,123 @@ void SpatialAStar::ExpandNeighbor(OpenQueue& open, TileTime* currentInfo, Tile* 
 }
 
 bool BaseHeuristic::operator()(TileTime* A, TileTime* B)
+{
+	return A->estimate > B->estimate;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// TESTING
+//////////////////////////////////////////////////////////////////////////
+
+SpatialAStar::Path SpatialAStar::FindPath2(Tile* start, Tile* goal)
+{
+	Path path;
+	OpenQueue2 open2;
+
+	modifiedTileTimes.clear();
+
+	TileTime2* initial = new TileTime2();
+	initial->SetInfo(0, start, 0, start->CalculateEstimate(0, goal));
+	initial->bIsInOpen = true;
+	open2.push(initial);
+	modifiedTileTimes.emplace(initial);
+
+	TileTime2* current = nullptr;
+	
+	while (!open2.empty())
+	{
+		current = open2.top();
+		current->bClosed = true;
+		//std::cout << "Expanding " << *current->tile << " at time " << current->timestep << std::endl;
+		open2.pop();
+
+		if (current->tile == goal) // found path to goal!
+			break;
+
+		ExpandNeighbor2(open2, current, current->tile, start, goal);
+		ExpandNeighbor2(open2, current, gridMap->getTileRelativeTo(current->tile, 0, 1), start, goal);
+		ExpandNeighbor2(open2, current, gridMap->getTileRelativeTo(current->tile, 1, 0), start, goal);
+		ExpandNeighbor2(open2, current, gridMap->getTileRelativeTo(current->tile, 0, -1), start, goal);
+		ExpandNeighbor2(open2, current, gridMap->getTileRelativeTo(current->tile, -1, 0), start, goal);
+	}
+
+	//std::cout << "BUILDING PATH!" << std::endl;
+	while (current->parent != nullptr)
+	{
+		current->timesUsed += 1;
+		path.push_front(current->tile);
+		std::cout << *current->tile << std::endl;
+		current = current->parent;
+	}
+
+	for (TileTime2* modified : modifiedTileTimes)
+	{
+		modified->Reset();
+	}
+
+	return path;
+}
+
+void SpatialAStar::ExpandNeighbor2(OpenQueue2& open, TileTime2* current, Tile* neighborTile, Tile* start, Tile* goal)
+{
+	if (!neighborTile || !neighborTile->isWalkable) return;
+
+	// get neighbor tile timestep and new cost
+	int neighborTimestep = current->timestep + 1;
+
+	// try to get the tile info from the spatial grid map
+	TileTime2* neighbor;
+	if (spatialGridMap[neighborTile][neighborTimestep] != nullptr)
+	{
+		neighbor = spatialGridMap[neighborTile][neighborTimestep];
+	}
+	else // otherwise create a new info and add it to the grid map
+	{
+		neighbor = new TileTime2();
+		spatialGridMap[neighborTile][neighborTimestep] = neighbor;
+	}
+	
+	modifiedTileTimes.emplace(neighbor);
+
+	if (neighbor->bClosed) // don't do anything if the node has already been expanded
+		return;
+
+
+	float cost = current->cost + 1;
+
+	if (neighbor->bIsInOpen && !neighbor->bNeedsReset) // relax the node - update the parent
+	{
+		float parentCost = neighbor->parent->cost;
+		//std::cout << "Comparing " << parentCost << " and " << cost << std::endl;
+		if (current->cost == parentCost)
+		{
+			//std::cout << "Current " << *current->tile << " | " << current->timesUsed << " Old " << *neighbor->parent->tile << " | " << neighbor->parent->timesUsed << std::endl;
+			if (current->timesUsed < neighbor->parent->timesUsed)
+				neighbor->SetParent(current);
+		}
+
+		if (current->cost < parentCost)
+		{
+			std::cout << "Changed parent!" << std::endl;
+			neighbor->SetParent(current);
+		}
+	}
+	else // create a new info and add it to the open queue
+	{
+		float estimate = neighborTile->CalculateEstimate(cost, goal);
+		neighbor->bIsInOpen = true;
+		neighbor->SetInfo(neighborTimestep, neighborTile, cost, estimate);
+		neighbor->SetParent(current);
+		neighbor->bNeedsReset = false;
+
+		//std::cout << "Added " << *neighborTile << " to open list with cost " <<  cost << " and est " << estimate << " and heur " << neighborTile->heuristic << " at " << neighborTimestep << std::endl;
+
+		open.push(neighbor);
+	}
+}
+
+bool BaseHeuristic2::operator()(TileTime2* A, TileTime2* B)
 {
 	return A->estimate > B->estimate;
 }

@@ -5,12 +5,14 @@
 #include <list>
 #include "Timer.h"
 #include "Helper.h"
+#include <set>
 
 class Tile;
 class GridMap;
 
 struct TileTime
 {
+	int timesUsed;
 	int timestep;
 	Tile* tile;
 	float estimate;
@@ -25,6 +27,42 @@ struct TileTime
 	}
 };
 
+struct TileTime2
+{
+	bool bNeedsReset;
+
+	bool bClosed = false;
+	bool bIsInOpen = false;
+
+	TileTime2* parent;
+
+	int timestep;
+	int timesUsed = 0;
+	Tile* tile;
+	float estimate;
+	float cost;
+
+	void SetInfo(int timestep, Tile* tile, float cost, float estimate)
+	{
+		this->timestep = timestep;
+		this->tile = tile;
+		this->estimate = estimate;
+		this->cost = cost;
+	}
+
+	void SetParent(TileTime2* parent)
+	{
+		this->parent = parent;
+	}
+
+	void Reset()
+	{
+		bNeedsReset = true;
+		bClosed = false;
+		bIsInOpen = false;
+	}
+};
+
 struct BaseHeuristic
 {
 private:
@@ -33,6 +71,16 @@ private:
 public:
 	BaseHeuristic() = default;
 	bool operator()(TileTime* A, TileTime* B);
+};
+
+struct BaseHeuristic2
+{
+private:
+	int timestep;
+
+public:
+	BaseHeuristic2() = default;
+	bool operator()(TileTime2* A, TileTime2* B);
 };
 
 class SpatialAStar
@@ -69,6 +117,19 @@ public:
 
 
 	std::map<Tile*, std::map<int, int>> visitedAtTimeCount;
-	
+
+
+public: // TESTING NEW STUFF
+	using OpenQueue2 = std::priority_queue<TileTime2*, std::vector<TileTime2*>, BaseHeuristic2>;
+
+	std::set<TileTime2*> modifiedTileTimes;
+
+	std::map<Tile*, std::map<int, TileTime2*>> spatialGridMap;
+
+	Path FindPath2(Tile* start, Tile* goal);
+
+	//OpenQueue2 open2;
+
+	void ExpandNeighbor2(OpenQueue2& open, TileTime2* current, Tile* neighborTile, Tile* start, Tile* goal);
 };
 
