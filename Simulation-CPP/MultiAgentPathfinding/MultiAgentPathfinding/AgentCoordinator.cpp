@@ -63,14 +63,15 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 		//	GeneratePath(agent, !firstRun, agentCollisionMap);
 		//}
 
+		Timer timerGeneratePath;
+		timerGeneratePath.Begin();
 		for (Agent* agent : agents)
 		{
 			std::cout << "Generating path for " << *agent << std::endl;
-			//for (int foo = 0; foo < 100; foo++)
-			{
-				GeneratePath(agent, firstRun, agentCollisionMap);
-			}
+			GeneratePath(agent, firstRun, agentCollisionMap);
 		}
+		timerGeneratePath.End();
+		timerGeneratePath.PrintTimeElapsed("Generating paths (10)");
 
 		int longestPath = 0;
 		for (Agent* agent : agents)
@@ -181,7 +182,7 @@ void AgentCoordinator::GeneratePath(Agent* agent, bool useCollisions, std::map<A
 	}
 	else
 	{
-		for (int i = 0; i < 50; i++)
+		for (int i = 0; i < 10; i++)
 		{
 			SpatialAStar::Path& path = agent->bfs->FindNextPath(currentTile, agent->goal);//aStar->FindPath(currentTile, agent->goal, customCosts);
 

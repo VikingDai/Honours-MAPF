@@ -30,14 +30,14 @@ SpatialBFS::Path SpatialBFS::FindNextPath(Tile* start, Tile* goal)
 
 		//std::cout << *current->first << " | " << current->second << std::endl;
 
-		if (current->first == goal)
-			break;
-
 		AddNeighbor(current, gridMap->getTileRelativeTo(current->first, 0, 1));
 		AddNeighbor(current, gridMap->getTileRelativeTo(current->first, 1, 0));
 		AddNeighbor(current, gridMap->getTileRelativeTo(current->first, 0, -1));
 		AddNeighbor(current, gridMap->getTileRelativeTo(current->first, -1, 0));
 		AddNeighbor(current, gridMap->getTileRelativeTo(current->first, 0, 0));
+
+		if (current->first == goal)
+			break;
 	}
 
 	// rebuild paths
