@@ -36,7 +36,7 @@ class AgentCoordinator
 	using TileToPathMap = std::map<Tile*, std::vector<AgentPath>>;
 	
 	// (tile => time => num collisions)
-	using TileCollision = std::set<std::pair<Tile*, int>>;
+	using TileCollision = std::vector<std::pair<Tile*, int>>;
 
 	// agent => (tile => time => num collisions)
 	//std::map<Agent*, TileCollision> agentsInCollision;

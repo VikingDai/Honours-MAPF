@@ -56,20 +56,20 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 			break;
 		}*/
 
-		// we need to feed the MIP, additional paths
-		//for (Agent* agent : agentsWhoNeedNewPaths)
-		//{
-		//	std::cout << "Generating path for " << *agent << std::endl;
-		//	GeneratePath(agent, !firstRun, agentCollisionMap);
-		//}
-
 		Timer timerGeneratePath;
 		timerGeneratePath.Begin();
-		for (Agent* agent : agents)
+		// we need to feed the MIP, additional paths
+		for (Agent* agent : agentsWhoNeedNewPaths)
 		{
 			std::cout << "Generating path for " << *agent << std::endl;
 			GeneratePath(agent, firstRun, agentCollisionMap);
 		}
+
+		/*for (Agent* agent : agents)
+		{
+			std::cout << "Generating path for " << *agent << std::endl;
+			GeneratePath(agent, firstRun, agentCollisionMap);
+		}*/
 		timerGeneratePath.End();
 		timerGeneratePath.PrintTimeElapsed("Generating paths (10)");
 
@@ -89,7 +89,7 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 				for (int p = 0; p < paddingRequired; p++)
 					path.push_back(path.back());
 
-				PrintPath(agent, path);
+				//PrintPath(agent, path);
 			}
 		}
 
@@ -122,7 +122,7 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 
 		if (!agentsWhoNeedNewPaths.empty())
 		{
-			std::map<Agent*, std::set<std::pair<Tile*, int>>>::iterator it;
+			std::map<Agent*, TileCollision>::iterator it;
 			for (it = agentCollisionMap.begin(); it != agentCollisionMap.end(); it++)
 			{
 				it->second.size();
@@ -141,22 +141,22 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 	coordinatorTimer.PrintTimeElapsed("Agent Coordinator");
 }
 
-void AgentCoordinator::GeneratePath(Agent* agent, bool useCollisions, std::map<Agent*, TileCollision> agentCollisionMap)
+void AgentCoordinator::GeneratePath(Agent* agent, bool bfirstRun, std::map<Agent*, TileCollision> agentCollisionMap)
 {
 	Tile* currentTile = map->getTileAt(agent->x, agent->y);
 	if (!agent->goal)
 		agent->goal = map->randomWalkableTile();
 
 	// check any collisions in the path and update the custom costs table
-#if 0
+#if 1
 	SpatialAStar::TileCosts customCosts;
-	if (useCollisions)
+	//if (useCollisions)
 	{
 		for (auto& it : agentCollisionMap[agent])
 		{
 			Tile* tile = it.first;
 			int time = it.second;
-			customCosts[time][tile] = 1000;
+			customCosts[time][tile] += 1;
 			//std::cout << "Penalty applied to " << *tile << " at time " << time << " for " << *agent << std::endl;
 		}
 	}
@@ -172,9 +172,10 @@ void AgentCoordinator::GeneratePath(Agent* agent, bool useCollisions, std::map<A
 	//		std::cout << *it2->first;
 	//	std::cout << std::endl;
 	//}
-	if (useCollisions)
+	if (bfirstRun)
 	{
-		SpatialAStar::Path& path = agent->bfs->FindNextPath(currentTile, agent->goal); //aStar->FindPath(currentTile, agent->goal);
+		SpatialAStar::Path& path = aStar->FindPath(currentTile, agent->goal);
+		//SpatialAStar::Path& path = agent->bfs->FindNextPath(currentTile, agent->goal); //aStar->FindPath(currentTile, agent->goal);
 
 		// associate the path to the agent
 		agent->allPaths.push_back(path);
@@ -182,9 +183,10 @@ void AgentCoordinator::GeneratePath(Agent* agent, bool useCollisions, std::map<A
 	}
 	else
 	{
-		for (int i = 0; i < 10; i++)
+		//for (int i = 0; i < 10; i++)
 		{
-			SpatialAStar::Path& path = agent->bfs->FindNextPath(currentTile, agent->goal);//aStar->FindPath(currentTile, agent->goal, customCosts);
+			SpatialAStar::Path& path = aStar->FindPath(currentTile, agent->goal, customCosts);
+			//SpatialAStar::Path& path = agent->bfs->FindNextPath(currentTile, agent->goal);//aStar->FindPath(currentTile, agent->goal, customCosts);
 
 			// associate the path to the agent
 			agent->allPaths.push_back(path);
@@ -230,7 +232,7 @@ vector<set<SpatialAStar::Path*>> AgentCoordinator::CheckCollisions(vector<Agent*
 			{
 				for (Agent* agent : seenAgents)
 				{
-					agentsInCollision[agent].emplace(std::pair<Tile*, int>(it->first, t));
+					agentsInCollision[agent].push_back(std::pair<Tile*, int>(it->first, t));
 					//std::cout << "SAME TILE collision: " << *it->first << " Time: " << t << *agent << std::endl;
 				}
 
@@ -296,7 +298,7 @@ vector<set<SpatialAStar::Path*>> AgentCoordinator::CheckCollisions(vector<Agent*
 						pathCollisions.push_back(pathsInvolved);
 
 						//agentsInCollision[agentPath.agent].emplace(std::pair<Tile*, int>(previousTile, timestep));
-						agentsInCollision[agent].emplace(std::pair<Tile*, int>(currentTile, timestep));
+						agentsInCollision[agent].push_back(std::pair<Tile*, int>(currentTile, timestep));
 
 						//std::cout << "SWAP collision: " << *previousTile << " Time: " << timestep << *agentPath.agent << std::endl;
 						//std::cout << "SWAP collision: " << *currentTile << " Time: " << timestep << *agent << std::endl;

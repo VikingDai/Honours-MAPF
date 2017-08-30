@@ -28,14 +28,19 @@ void Scenario::LoadScenario(std::string filename, Environment& environment)
 
 	int numRandomAgents = numAgents;
 
-	std::vector<Tile*> freeTiles = environment.gridMap.walkableTiles;
+	std::vector<Tile*> freeStartTiles = environment.gridMap.walkableTiles;
+	std::vector<Tile*> freeGoalTiles = environment.gridMap.walkableTiles;
 
 	// load defined agents
 	int startX, startY, goalX, goalY;
 	while (infile >> startX >> startY >> goalX >> goalY)
 	{
 		Tile* start = environment.gridMap.getTileAt(startX, startY);
+		freeStartTiles.erase(std::remove(freeStartTiles.begin(), freeStartTiles.end(), start), freeStartTiles.end());
+
 		Tile* goal = environment.gridMap.getTileAt(goalX, goalY);
+		freeGoalTiles.erase(std::remove(freeGoalTiles.begin(), freeGoalTiles.end(), goal), freeGoalTiles.end());
+
 		assert(start);
 		assert(goal);
 
@@ -45,7 +50,7 @@ void Scenario::LoadScenario(std::string filename, Environment& environment)
 		std::cout << "Spawned " << *agent << std::endl;
 
 		// remove start from the list of free tiles
-		freeTiles.erase(std::remove(freeTiles.begin(), freeTiles.end(), start), freeTiles.end());
+		
 
 		numRandomAgents -= 1;
 	}
@@ -53,8 +58,12 @@ void Scenario::LoadScenario(std::string filename, Environment& environment)
 	// load remaining random agents
 	for (int i = 0; i < numRandomAgents; i++)
 	{
-		Tile* start = freeTiles[rand() % (freeTiles.size() - 1)]; // pick a random free tile
-		Tile* goal = freeTiles[rand() % (freeTiles.size() - 1)];
+		Tile* start = freeStartTiles[rand() % (freeStartTiles.size() - 1)]; // pick a random free tile
+		freeStartTiles.erase(std::remove(freeStartTiles.begin(), freeStartTiles.end(), start), freeStartTiles.end());
+
+		Tile* goal = freeGoalTiles[rand() % (freeGoalTiles.size() - 1)];
+		freeGoalTiles.erase(std::remove(freeGoalTiles.begin(), freeGoalTiles.end(), goal), freeGoalTiles.end());
+
 		assert(start);
 		assert(goal);
 
@@ -62,8 +71,5 @@ void Scenario::LoadScenario(std::string filename, Environment& environment)
 		environment.agents.push_back(agent);
 
 		std::cout << "Spawned " << *agent << std::endl;
-
-		// remove start from the list of free tiles
-		freeTiles.erase(std::remove(freeTiles.begin(), freeTiles.end(), start), freeTiles.end());
 	}
 }
