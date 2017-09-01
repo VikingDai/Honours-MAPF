@@ -52,12 +52,12 @@ SpatialAStar::Path SpatialAStar::FindPath(Tile* start, Tile* goal, TileCosts& cu
 #if DEBUG_VERBOSE
 		if (current)
 			std::cout << "Currently: " << current << std::endl;
-		std::cout << "\n### OPEN LIST ###" << std::endl;
-		for (TileTime* info : open)
-		{
-			std::cout << "\t" << *info->tile << " at Time " << info->timestep << " with Estimate " << info->estimate << std::endl;
-		}
-		std::cout << std::endl << std::endl;
+		//std::cout << "\n### OPEN LIST ###" << std::endl;
+		//for (TileTime* info : open)
+		//{
+		//	std::cout << "\t" << *info->tile << " at Time " << info->timestep << " with Estimate " << info->estimate << std::endl;
+		//}
+		//std::cout << std::endl << std::endl;
 #endif
 
 		current = open.top();
@@ -182,8 +182,9 @@ bool BaseHeuristic::operator()(TileTime* A, TileTime* B)
 // TESTING
 //////////////////////////////////////////////////////////////////////////
 
-SpatialAStar::Path SpatialAStar::FindPath2(Tile* start, Tile* goal)
+SpatialAStar::Path SpatialAStar::FindPath2(Tile* start, Tile* goal, TileCosts& customCosts)
 {
+	timer.Begin();
 	Path path;
 	OpenQueue2 open2;
 
@@ -202,31 +203,30 @@ SpatialAStar::Path SpatialAStar::FindPath2(Tile* start, Tile* goal)
 		current = open2.top();
 		current->bClosed = true;
 		
+#if DEBUG_VERBOSE
 		std::cout << "Expanding " << *current->tile << " at time " << current->timestep << std::endl;
+#endif
 
 		open2.pop();
 
 		if (current->tile == goal) // found path to goal!
 			break;
 
-		ExpandNeighbor2(open2, current, current->tile, start, goal);
-		ExpandNeighbor2(open2, current, gridMap->getTileRelativeTo(current->tile, 0, 1), start, goal);
-		ExpandNeighbor2(open2, current, gridMap->getTileRelativeTo(current->tile, 1, 0), start, goal);
-		ExpandNeighbor2(open2, current, gridMap->getTileRelativeTo(current->tile, 0, -1), start, goal);
-		ExpandNeighbor2(open2, current, gridMap->getTileRelativeTo(current->tile, -1, 0), start, goal);
+		ExpandNeighbor2(open2, current, current->tile, start, goal, customCosts);
+		ExpandNeighbor2(open2, current, gridMap->getTileRelativeTo(current->tile, 0, 1), start, goal, customCosts);
+		ExpandNeighbor2(open2, current, gridMap->getTileRelativeTo(current->tile, 1, 0), start, goal, customCosts);
+		ExpandNeighbor2(open2, current, gridMap->getTileRelativeTo(current->tile, 0, -1), start, goal, customCosts);
+		ExpandNeighbor2(open2, current, gridMap->getTileRelativeTo(current->tile, -1, 0), start, goal, customCosts);
 	}
 
 	//std::cout << "BUILDING PATH!" << std::endl;
 	while (current->parent != nullptr)
 	{
-		current->timesUsed += 1;
-
 		if (current->countFrom.find(current->parent) == current->countFrom.end())
 			current->countFrom[current->parent] = 0;
 
 		current->countFrom[current->parent] += 1;
 		path.push_front(current->tile);
-		std::cout << *current->tile << std::endl;
 		current = current->parent;
 	}
 
@@ -235,10 +235,13 @@ SpatialAStar::Path SpatialAStar::FindPath2(Tile* start, Tile* goal)
 		modified->Reset();
 	}
 
+	timer.End();
+	Stats::avgSearchTime = timer.GetAvgTime();
+
 	return path;
 }
 
-void SpatialAStar::ExpandNeighbor2(OpenQueue2& open, TileTime2* current, Tile* neighborTile, Tile* start, Tile* goal)
+void SpatialAStar::ExpandNeighbor2(OpenQueue2& open, TileTime2* current, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& customCosts)
 {
 	if (!neighborTile || !neighborTile->isWalkable) return;
 
@@ -262,26 +265,37 @@ void SpatialAStar::ExpandNeighbor2(OpenQueue2& open, TileTime2* current, Tile* n
 	if (neighbor->bClosed) // don't do anything if the node has already been expanded
 		return;
 
-
 	float cost = current->cost + 1;
+
+	cost += GetCustomCosts(current->timestep, neighborTile, customCosts);
 
 	if (neighbor->bIsInOpen && !neighbor->bNeedsReset) // relax the node - update the parent
 	{
 		float parentCost = neighbor->parent->cost;
-		std::cout << "Comparing " << parentCost << " and " << cost << std::endl;
+		
+		//std::cout << "Comparing " << parentCost << " and " << cost << std::endl;
+		
 		if (current->cost == parentCost)
 		{
-			std::cout << "COSTS ARE THE SAME NOW LOOK AT TIMES USED: Current " << *current->tile << " | " << current->timesUsed << " Old " << *neighbor->parent->tile << " | " << neighbor->parent->timesUsed << std::endl;
-			//if (current->timesUsed < neighbor->parent->timesUsed)
+#if DEBUG_VERBOSE
+			std::cout << "COSTS ARE THE SAME NOW COMPARE # CUSTOM COSTS: Current " << 
+				*current->tile << " | " << GetCustomCosts(current->timestep, neighborTile, customCosts) << " Old " << 
+				*neighbor->parent->tile << " | " << GetCustomCosts(current->timestep, neighbor->tile, customCosts) << std::endl;
+#endif
+			
 			if (neighbor->countFrom[current] < neighbor->countFrom[neighbor->parent])
 			{
+#if DEBUG_VERBOSE
 				std::cout << "Changed parent as this path was used previously" << std::endl;
+#endif
 				neighbor->SetParent(current);
 			}
 		}
 		else if (current->cost < parentCost)
 		{
+#if DEBUG_VERBOSE
 			std::cout << "Changed parent!" << std::endl;
+#endif
 			neighbor->SetParent(current);
 		}
 	}
@@ -293,14 +307,22 @@ void SpatialAStar::ExpandNeighbor2(OpenQueue2& open, TileTime2* current, Tile* n
 		neighbor->SetParent(current);
 		neighbor->bNeedsReset = false;
 
+#if DEBUG_VERBOSE
 		std::cout << "Added " << *neighborTile << 
 			" to open list with cost " <<  cost << 
 			" and heur " << neighborTile->heuristic <<
 			" and est " << estimate << 
 			" at " << neighborTimestep << std::endl;
+#endif
 
 		open.push(neighbor);
 	}
+}
+
+int SpatialAStar::GetCustomCosts(int timestep, Tile* tile, TileCosts& customCosts)
+{
+	bool hasCustomCost = customCosts.count(timestep) && customCosts[timestep].count(tile);
+	return hasCustomCost ? customCosts[timestep][tile] : 0;
 }
 
 bool BaseHeuristic2::operator()(TileTime2* A, TileTime2* B)

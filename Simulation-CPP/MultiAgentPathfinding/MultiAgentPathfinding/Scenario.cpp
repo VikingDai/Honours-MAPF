@@ -7,7 +7,7 @@ void Scenario::LoadScenario(std::string filename, Environment& environment)
 {
 	std::fstream infile(filename);
 
-	assert(infile); // ensure file is loaded!
+	assert(infile); // ensure file is valid!
 
 	environment.Reset();
 

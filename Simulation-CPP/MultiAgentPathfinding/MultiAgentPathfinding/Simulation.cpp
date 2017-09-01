@@ -17,6 +17,7 @@ std::vector<SpatialAStar::Path> pathsToDraw;
 Simulation::Simulation()
 {
 	currentScenario = "warehouse10.scenario";
+	//currentScenario = "den520d-10.scenario";
 
 	Stats::Reset();
 

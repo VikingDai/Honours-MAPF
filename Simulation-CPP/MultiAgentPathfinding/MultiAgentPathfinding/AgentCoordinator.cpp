@@ -174,7 +174,8 @@ void AgentCoordinator::GeneratePath(Agent* agent, bool bfirstRun, std::map<Agent
 	//}
 	if (bfirstRun)
 	{
-		SpatialAStar::Path& path = aStar->FindPath(currentTile, agent->goal);
+		//SpatialAStar::Path& path = aStar->FindPath(currentTile, agent->goal);
+		SpatialAStar::Path& path = aStar->FindPath2(currentTile, agent->goal);
 		//SpatialAStar::Path& path = agent->bfs->FindNextPath(currentTile, agent->goal); //aStar->FindPath(currentTile, agent->goal);
 
 		// associate the path to the agent
@@ -185,7 +186,8 @@ void AgentCoordinator::GeneratePath(Agent* agent, bool bfirstRun, std::map<Agent
 	{
 		//for (int i = 0; i < 10; i++)
 		{
-			SpatialAStar::Path& path = aStar->FindPath(currentTile, agent->goal, customCosts);
+			//SpatialAStar::Path& path = aStar->FindPath(currentTile, agent->goal, customCosts);
+			SpatialAStar::Path& path = aStar->FindPath2(currentTile, agent->goal, customCosts);
 			//SpatialAStar::Path& path = agent->bfs->FindNextPath(currentTile, agent->goal);//aStar->FindPath(currentTile, agent->goal, customCosts);
 
 			// associate the path to the agent

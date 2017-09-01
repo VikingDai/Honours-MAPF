@@ -38,7 +38,6 @@ struct TileTime2
 
 	int timestep;
 	std::map<TileTime2*, int> countFrom;
-	int timesUsed = 0;
 	Tile* tile;
 	float estimate;
 	float cost;
@@ -127,10 +126,12 @@ public: // TESTING NEW STUFF
 
 	std::map<Tile*, std::map<int, TileTime2*>> spatialGridMap;
 
-	Path FindPath2(Tile* start, Tile* goal);
+	Path FindPath2(Tile* start, Tile* goal, TileCosts& customCosts = TileCosts());
 
 	//OpenQueue2 open2;
 
-	void ExpandNeighbor2(OpenQueue2& open, TileTime2* current, Tile* neighborTile, Tile* start, Tile* goal);
+	void ExpandNeighbor2(OpenQueue2& open, TileTime2* current, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& customCosts);
+
+	int GetCustomCosts(int timestep, Tile* tile, TileCosts& customCosts);
 };
 
