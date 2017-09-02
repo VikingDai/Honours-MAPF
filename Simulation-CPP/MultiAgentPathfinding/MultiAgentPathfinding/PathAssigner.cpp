@@ -4,21 +4,31 @@
 #include <sstream>
 #include <string>
 
-#define DEBUG_MIP 1
+#define DEBUG_MIP 0
 
 PathAssigner::PathAssigner(GridMap* inGridMap)
 {
 	map = inGridMap;
+	InitSCIP();
 }
 
 PathAssigner::~PathAssigner()
 {
 }
 
-SCIP_RETCODE PathAssigner::SetupProblem(SCIP* scip, std::vector<Agent*>& agents, PathCollisions& pathCollisions, std::map<TemporalAStar::Path*, int>& PathLengths)
+void PathAssigner::InitSCIP()
+{
+	SCIP_CALL_EXC(SCIPcreate(&scip));
+	SCIP_CALL_EXC(SCIPincludeDefaultPlugins(scip));
+
+	// create empty problem
+	SCIP_CALL_EXC(SCIPcreateProbBasic(scip, "PathAssignment"));
+}
+
+SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, PathCollisions& pathCollisions, std::map<TemporalAStar::Path*, int>& pathLengths)
 {
 	// create empty problem
-	SCIP_CALL_EXC(SCIPcreateProbBasic(scip, "string"));
+	//SCIP_CALL_EXC(SCIPcreateProbBasic(scip, "string"));
 
 	const SCIP_Real NEG_INFINITY = -SCIPinfinity(scip);
 	const SCIP_Real POS_INFINITY = SCIPinfinity(scip);
@@ -51,7 +61,7 @@ SCIP_RETCODE PathAssigner::SetupProblem(SCIP* scip, std::vector<Agent*>& agents,
 		allVariables.push_back(penaltyVar);
 		agentVariables.push_back(penaltyVar);
 
-		std::vector<TemporalAStar::Path>& paths = agent->allPaths;//it->second;
+		std::vector<TemporalAStar::Path>& paths = agent->allPaths;
 		for (int i = 0; i < paths.size(); i++) // for each path construct a variable in the form 'a1p1'
 		{
 			TemporalAStar::Path& path = paths[i];
@@ -67,7 +77,8 @@ SCIP_RETCODE PathAssigner::SetupProblem(SCIP* scip, std::vector<Agent*>& agents,
 			char pathVarNameC[50];
 			sprintf(pathVarNameC, "a%dp%d", agentId, i);
 
-			int pathSize = PathLengths[&path];//path.size();
+			//int pathSize = pathLengths[&path];
+			int pathSize = path.size();
 			SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &pathVar, pathVarNameC, 0, 1, pathSize, SCIP_VARTYPE_INTEGER));
 			SCIP_CALL_EXC(SCIPaddVar(scip, pathVar));
 
@@ -81,7 +92,7 @@ SCIP_RETCODE PathAssigner::SetupProblem(SCIP* scip, std::vector<Agent*>& agents,
 			agentVariables.push_back(pathVar);
 		}
 
-		// create a constraint describing that an agent can pick one path or a penalty
+		// Create a constraint describing that an agent can pick one path or a penalty
 		SCIP_CONS* agentChoiceCons;
 		char choiceConsName[50];
 		sprintf_s(choiceConsName, "agentChoice%d", agentId);
@@ -126,9 +137,10 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 	std::vector<std::set<TemporalAStar::Path*>>& collisions,
 	std::map<TemporalAStar::Path*, int>& PathLengths)
 {
-	SCIP* scip;
+	InitSCIP();
+	/*SCIP* scip;
 	SCIP_CALL_EXC(SCIPcreate(&scip));
-	SCIP_CALL_EXC(SCIPincludeDefaultPlugins(scip));
+	SCIP_CALL_EXC(SCIPincludeDefaultPlugins(scip));*/
 
 	//SCIPinfoMessage(scip, nullptr, "\n");
 	//SCIPinfoMessage(scip, nullptr, "****************************\n");
@@ -136,15 +148,19 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 	//SCIPinfoMessage(scip, nullptr, "****************************\n");
 	//SCIPinfoMessage(scip, nullptr, "\n");
 
-	SCIP_CALL_EXC(SetupProblem(scip, agents, collisions, PathLengths));
+	SCIP_CALL_EXC(CreateProblem(agents, collisions, PathLengths));
 
-	//SCIPinfoMessage(scip, nullptr, "Original problem:\n");
-	//SCIP_CALL_EXC(SCIPprintOrigProblem(scip, nullptr, "cip", FALSE));
+#if DEBUG_MIP
+	SCIPinfoMessage(scip, nullptr, "Original problem:\n");
+	SCIP_CALL_EXC(SCIPprintOrigProblem(scip, nullptr, "cip", FALSE));
+	SCIPinfoMessage(scip, nullptr, "\n");
+#endif
 
-	//SCIPinfoMessage(scip, nullptr, "\n");
 	SCIP_CALL_EXC(SCIPpresolve(scip));
 
-	//SCIPinfoMessage(scip, nullptr, "\nSolving...\n");
+#if DEBUG_MIP
+	SCIPinfoMessage(scip, nullptr, "\nSolving...\n");
+#endif
 	SCIP_CALL_EXC(SCIPsolve(scip));
 
 	SCIP_CALL_EXC(SCIPfreeTransform(scip));
@@ -154,21 +170,16 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 
 	if (SCIPgetNSols(scip) > 0)
 	{
+#if DEBUG_MIP
 		SCIPinfoMessage(scip, nullptr, "\nSolution:\n");
 		SCIP_CALL_EXC(SCIPprintSol(scip, SCIPgetBestSol(scip), nullptr, FALSE));
+#endif
 
 		SCIP_SOL* Solution = SCIPgetBestSol(scip);
 
 		for (SCIP_VAR* var : allVariables)
 		{
-			if (!var)
-			{
-#if DEBUG_MIP
-				std::cout << "VAR IS INVALID, SKIPPING IT!" << std::endl;
-#endif
-
-				continue;
-			}
+			assert(var); // this should not happen
 
 			double varSolution = SCIPgetSolVal(scip, Solution, var);
 
@@ -190,11 +201,9 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 				else // the variable is a penalty var
 				{
 					agent->setPath(TemporalAStar::Path{ map->getTileAt(agent->x, agent->y) });
-
 #if DEBUG_MIP
 					std::cout << *agent << " was assigned the penalty var. We failed to find a solution!" << std::endl;
 #endif
-
 					penaltyAgents.push_back(agent);
 				}
 			}
@@ -208,9 +217,18 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 	}
 	else
 	{
+#if DEBUG_MIP
 		std::cout << "ERROR: SCIP failed to find any solutions" << std::endl;
+#endif
 	}
 
+	Cleanup();
+
+	return penaltyAgents;
+}
+
+void PathAssigner::Cleanup()
+{
 	// release variables
 	for (SCIP_VAR* var : allVariables)
 		SCIP_CALL_EXC(SCIPreleaseVar(scip, &var));
@@ -221,11 +239,4 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 	varNames.clear();
 
 	SCIP_CALL_EXC(SCIPfree(&scip));
-
-	if (penaltyAgents.empty())
-	{
-		std::cout << "EMPTY" << std::endl;
-	}
-
-	return penaltyAgents;
 }

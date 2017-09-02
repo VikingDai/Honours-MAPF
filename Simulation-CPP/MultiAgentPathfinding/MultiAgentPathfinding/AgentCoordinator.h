@@ -48,7 +48,7 @@ private:
 	std::vector<std::set<TemporalAStar::Path*>> CheckCollisions(std::vector<Agent*>& agents, std::map<Agent*, TileCollision>& agentsInCollision);
 	std::vector<std::pair<Tile*, int>> TilesInCollision(Agent* agent, TemporalAStar::Path& path);
 
-	std::map<TemporalAStar::Path*, int> PathLengths;
+	std::map<TemporalAStar::Path*, int> pathLengths;
 
 	void PopTimestep()
 	{

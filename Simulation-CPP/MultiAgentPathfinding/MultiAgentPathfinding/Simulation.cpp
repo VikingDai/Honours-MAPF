@@ -16,6 +16,7 @@ std::vector<TemporalAStar::Path> pathsToDraw;
 
 Simulation::Simulation()
 {
+	//currentScenario = "warehouse10.scenario";
 	currentScenario = "alternative.scenario";
 	//currentScenario = "den520d-10.scenario";
 
@@ -224,7 +225,7 @@ void Simulation::BuildOptions()
 	for (Agent* agent : environment.agents)
 	{
 		char agentName[50];
-		sprintf(agentName, "agent %d : %d paths (%d)", agent->getAgentId(), agent->allPaths.size(), agent->currentPath.size());
+		sprintf(agentName, "agent %d : %d paths (%d)", agent->getAgentId(), agent->allPaths.size(), agent->getPath().size());
 		ImGui::Checkbox(agentName, &debugAgents[agent]);
 	}
 }

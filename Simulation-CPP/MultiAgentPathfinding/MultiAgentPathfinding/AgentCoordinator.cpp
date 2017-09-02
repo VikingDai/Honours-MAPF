@@ -40,7 +40,7 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 	// if the agent has a goal to reach but does not have a path, generate a path
 	for (Agent* agent : agents)
 	{
-		if (agent->goal && agent->currentPath.empty())
+		if (agent->goal && agent->getPath().empty())
 		{
 			agentsWhoNeedNewPaths.emplace(agent);
 			agent->allPaths.clear();
@@ -62,50 +62,47 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 		std::cout << "**** RESOLVING RUN " << i << " ****" << std::endl;
 		std::cout << "************************" << std::endl;
 
+		// Generate additional paths
 		Timer timerGeneratePath;
 		timerGeneratePath.Begin();
-
-		// Generate additional paths
 		for (Agent* agent : agentsWhoNeedNewPaths)
 		{
 			std::cout << "Generating path for " << *agent << std::endl;
 			GeneratePath(agent, firstRun, agentCollisionMap);
 		}
 		timerGeneratePath.End();
-		timerGeneratePath.PrintTimeElapsed("Generating paths (10)");
-
-		// make each path the same length
-		NormalizePaths(agents);
+		timerGeneratePath.PrintTimeElapsed("Generating paths");
 
 		agentsWhoNeedNewPaths.clear();
+
+		// Build collision table
+		Timer timerBuildTable;
+		timerBuildTable.Begin();
 		std::cout << "--- Building Table ---" << std::endl;
 		BuildTable(agents);
+		timerBuildTable.End();
+		timerBuildTable.PrintTimeElapsed("Building collision table");
 
-		mipTimer.Begin();
 		PathCollisions collisions = CheckCollisions(agents, agentCollisionMap);
-		std::vector<Agent*> mipConflicts = pathAssigner->AssignPaths(agents, collisions, PathLengths);//ResolveConflicts(agents, collisions);
-		mipTimer.End();
-		mipTimer.PrintTimeElapsed("SCIP");
-		Stats::avgMipTime = mipTimer.GetAvgTime();
 
+		// Assign conflict-free paths to agents using a MIP
+		mipTimer.Begin();
+		std::vector<Agent*> mipConflicts = pathAssigner->AssignPaths(agents, collisions, pathLengths);//ResolveConflicts(agents, collisions);
+		mipTimer.End();
+		mipTimer.PrintTimeElapsed("MIP Path assignment");
+		Stats::avgMipTime = mipTimer.GetAvgTime();
+		
 		if (mipConflicts.empty())
-		{
 			std::cout << "MIP told us no conflicts, we are done!" << std::endl;
-		}
 
 		for (Agent* agent : mipConflicts)
-		{
 			agentsWhoNeedNewPaths.emplace(agent);
-		}
 
 		if (!agentsWhoNeedNewPaths.empty())
 		{
 			std::map<Agent*, TileCollision>::iterator it;
 			for (it = agentCollisionMap.begin(); it != agentCollisionMap.end(); it++)
-			{
-				it->second.size();
 				agentsWhoNeedNewPaths.emplace(it->first);
-			}
 		}
 
 		i++;
@@ -117,26 +114,6 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 	coordinatorTimer.End();
 	Stats::avgCoordinatorTime = coordinatorTimer.GetAvgTime();
 	coordinatorTimer.PrintTimeElapsed("Agent Coordinator");
-}
-
-void AgentCoordinator::NormalizePaths(std::vector<Agent*>& agents)
-{
-	// pad each agents path so that they update the collision table
-	int longestPath = 0;
-	for (Agent* agent : agents)
-		for (TemporalAStar::Path& path : agent->allPaths)
-			longestPath = std::max((int) path.size(), longestPath);
-
-	for (Agent* agent : agents)
-	{
-		for (TemporalAStar::Path& path : agent->allPaths)
-		{
-			PathLengths[&path] = path.size(); // store the paths for use in the MIP
-			int paddingRequired = longestPath - path.size();
-			for (int p = 0; p < paddingRequired; p++)
-				path.push_back(path.back());
-		}
-	}
 }
 
 void AgentCoordinator::GeneratePath(Agent* agent, bool bfirstRun, std::map<Agent*, TileCollision> agentCollisionMap)
@@ -161,9 +138,8 @@ void AgentCoordinator::GeneratePath(Agent* agent, bool bfirstRun, std::map<Agent
 		TemporalAStar::Path& path = aStar->FindPath2(currentTile, agent->goal);
 		//TemporalAStar::Path& path = agent->bfs->FindNextPath(currentTile, agent->goal); //aStar->FindPath(currentTile, agent->goal);
 
-		// associate the path to the agent
+		// give the path to the agent
 		agent->allPaths.push_back(path);
-		agent->currentPath = path;
 	}
 	else
 	{
@@ -175,7 +151,6 @@ void AgentCoordinator::GeneratePath(Agent* agent, bool bfirstRun, std::map<Agent
 
 			// associate the path to the agent
 			agent->allPaths.push_back(path);
-			agent->currentPath = path;
 		}
 	}
 
@@ -388,31 +363,34 @@ void AgentCoordinator::BuildTable(std::vector<Agent*>& agents)
 {
 	tileToPathMapAtTimestep.clear();
 
+	// get the largest path size and resize the table to fit
 	int longestPathSize = -1;
-
-	// get the largest path size
 	for (Agent* agent : agents)
-	{
-		std::cout << "Updating agent which has " << agent->allPaths.size() << " paths" << std::endl;
 		for (TemporalAStar::Path& path : agent->allPaths)
 			longestPathSize = std::max(longestPathSize, (int) path.size());
-	}
-
 	tileToPathMapAtTimestep.resize(longestPathSize);
-
 
 	// add these paths to the table
 	for (Agent* agent : agents)
 	{
 		for (TemporalAStar::Path& path : agent->allPaths)
 		{
-			for (int timestep = 0; timestep < path.size(); timestep++)
+			int lastIndex = path.size() - 1;
+			for (int timestep = 0; timestep < longestPathSize; timestep++)
+			{
+				Tile* currentTile = timestep <= lastIndex ? path[timestep] : path[lastIndex];
+				TileToPathMap& tilePathMap = tileToPathMapAtTimestep[timestep];
+				vector<AgentPath>& pathsUsingTile = tilePathMap[currentTile];
+				pathsUsingTile.push_back(AgentPath(agent, &path));
+			}
+
+			/*for (int timestep = 0; timestep < path.size(); timestep++)
 			{
 				Tile* currentTile = path[timestep];
 				TileToPathMap& tilePathMap = tileToPathMapAtTimestep[timestep];
 				vector<AgentPath>& pathsUsingTile = tilePathMap[currentTile];
 				pathsUsingTile.push_back(AgentPath(agent, &path));
-			}
+			}*/
 		}
 	}
 }

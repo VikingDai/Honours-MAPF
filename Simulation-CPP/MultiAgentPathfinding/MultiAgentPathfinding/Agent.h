@@ -17,8 +17,14 @@ public:
 
 private:
 	TemporalAStar* search;
-
 	int agentId;
+
+
+	TemporalAStar::Path currentPath;
+public:
+	std::vector<TemporalAStar::Path> allPaths;
+	void setPath(TemporalAStar::Path& path);
+	TemporalAStar::Path& getPath() { return currentPath; }
 
 public:
 	Tile* goal;
@@ -26,10 +32,7 @@ public:
 	vec3 color;
 	Agent(GridMap* gridMap, Tile* startTile, Tile* goalTile = nullptr);
 	virtual void step();
-	void setPath(TemporalAStar::Path& path);
-
-	std::vector<TemporalAStar::Path> allPaths;
-	TemporalAStar::Path currentPath;
+	
 
 	std::map<Tile*, int> customWeights;
 
