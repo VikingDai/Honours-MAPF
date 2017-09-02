@@ -162,6 +162,7 @@
     <ClCompile Include="..\libs\opengl\common\vboindexer.cpp" />
     <ClCompile Include="AgentCoordinator.cpp" />
     <ClCompile Include="AStar.cpp" />
+    <ClCompile Include="PathAssigner.cpp" />
     <ClCompile Include="SpatialAStar.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="EObject.cpp" />
@@ -196,7 +197,8 @@
     <ClInclude Include="..\libs\opengl\common\vboindexer.hpp" />
     <ClInclude Include="AgentCoordinator.h" />
     <ClInclude Include="AStar.h" />
-    <ClInclude Include="SpatialAStar.h" />
+    <ClInclude Include="PathAssigner.h" />
+    <ClInclude Include="TemporalAStar.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="EObject.h" />
     <ClInclude Include="Agent.h" />
@@ -210,7 +212,7 @@
     <ClInclude Include="Options.h" />
     <ClInclude Include="Scenario.h" />
     <ClInclude Include="Simulation.h" />
-    <ClInclude Include="SpatialBFS.h" />
+    <ClInclude Include="TemporalBFS.h" />
     <ClInclude Include="Stage.h" />
     <ClInclude Include="Statistics.h" />
     <ClInclude Include="Tile.h" />

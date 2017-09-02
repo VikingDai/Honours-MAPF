@@ -1,17 +1,17 @@
 #pragma once
 #include "Environment.h"
 #include "AgentCoordinator.h"
-#include "SpatialAStar.h"
+#include "TemporalAStar.h"
 #include "Scenario.h"
-#include "SpatialBFS.h"
+#include "TemporalBFS.h"
 
 class Graphics;
 
 class Simulation
 {
 private:
-	SpatialBFS* bfs;
-	SpatialAStar* aStar;
+	TemporalBFS* bfs;
+	TemporalAStar* aStar;
 	AgentCoordinator* coordinator;
 	Scenario scenario;
 

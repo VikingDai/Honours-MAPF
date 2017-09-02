@@ -3,9 +3,9 @@
 #include <vector>
 #include <deque>
 #include <iostream>
-#include "SpatialAStar.h"
+#include "TemporalAStar.h"
 #include "Graphics.h"
-#include "SpatialBFS.h"
+#include "TemporalBFS.h"
 
 class Tile;
 class GridMap;
@@ -13,10 +13,10 @@ class GridMap;
 class Agent : public EObject
 {
 public:
-	SpatialBFS* bfs;
+	TemporalBFS* bfs;
 
 private:
-	SpatialAStar* search;
+	TemporalAStar* search;
 
 	int agentId;
 
@@ -26,10 +26,10 @@ public:
 	vec3 color;
 	Agent(GridMap* gridMap, Tile* startTile, Tile* goalTile = nullptr);
 	virtual void step();
-	void setPath(SpatialAStar::Path& path);
+	void setPath(TemporalAStar::Path& path);
 
-	std::vector<SpatialAStar::Path> allPaths;
-	SpatialAStar::Path currentPath;
+	std::vector<TemporalAStar::Path> allPaths;
+	TemporalAStar::Path currentPath;
 
 	std::map<Tile*, int> customWeights;
 

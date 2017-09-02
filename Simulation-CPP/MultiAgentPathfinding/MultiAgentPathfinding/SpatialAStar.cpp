@@ -1,4 +1,4 @@
-#include "SpatialAStar.h"
+#include "TemporalAStar.h"
 #include "Tile.h"
 #include "GridMap.h"
 #include <deque>
@@ -11,16 +11,16 @@ int NODES_EXPANDED = 0;
 #define DEBUG_VERBOSE 0
 #define TEST_GENERATE_DIFFERENT 1
 
-SpatialAStar::SpatialAStar(GridMap* inGridMap)
+TemporalAStar::TemporalAStar(GridMap* inGridMap)
 {
 	SetGridMap(inGridMap);
 }
 
-SpatialAStar::~SpatialAStar()
+TemporalAStar::~TemporalAStar()
 {
 }
 
-SpatialAStar::Path SpatialAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
+TemporalAStar::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
 {
 	timer.Begin();
 	NODES_EXPANDED = 0;
@@ -117,7 +117,7 @@ SpatialAStar::Path SpatialAStar::FindPath(Tile* start, Tile* goal, TileCosts& cu
 	return path;
 }
 
-void SpatialAStar::ExpandNeighbor(OpenQueue& open, TileTime* currentInfo, Tile* currentTile, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& customCosts)
+void TemporalAStar::ExpandNeighbor(OpenQueue& open, TileTime* currentInfo, Tile* currentTile, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& customCosts)
 {
 	int timestep = currentInfo->timestep + 1;
 	bool isWaitAction = currentInfo->tile == neighborTile;
@@ -182,7 +182,7 @@ bool BaseHeuristic::operator()(TileTime* A, TileTime* B)
 // TESTING
 //////////////////////////////////////////////////////////////////////////
 
-SpatialAStar::Path SpatialAStar::FindPath2(Tile* start, Tile* goal, TileCosts& customCosts)
+TemporalAStar::Path TemporalAStar::FindPath2(Tile* start, Tile* goal, TileCosts& customCosts)
 {
 	timer.Begin();
 	Path path;
@@ -241,7 +241,7 @@ SpatialAStar::Path SpatialAStar::FindPath2(Tile* start, Tile* goal, TileCosts& c
 	return path;
 }
 
-void SpatialAStar::ExpandNeighbor2(OpenQueue2& open, TileTime2* current, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& customCosts)
+void TemporalAStar::ExpandNeighbor2(OpenQueue2& open, TileTime2* current, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& customCosts)
 {
 	if (!neighborTile || !neighborTile->isWalkable) return;
 
@@ -319,7 +319,7 @@ void SpatialAStar::ExpandNeighbor2(OpenQueue2& open, TileTime2* current, Tile* n
 	}
 }
 
-int SpatialAStar::GetCustomCosts(int timestep, Tile* tile, TileCosts& customCosts)
+int TemporalAStar::GetCustomCosts(int timestep, Tile* tile, TileCosts& customCosts)
 {
 	bool hasCustomCost = customCosts.count(timestep) && customCosts[timestep].count(tile);
 	return hasCustomCost ? customCosts[timestep][tile] : 0;

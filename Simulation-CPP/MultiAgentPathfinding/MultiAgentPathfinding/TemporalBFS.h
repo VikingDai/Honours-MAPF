@@ -6,7 +6,7 @@
 #include "Tile.h"
 #include "GridMap.h"
 
-class SpatialBFS
+class TemporalBFS
 {
 public:
 	int nodesExpanded;
@@ -25,7 +25,7 @@ public:
 	std::map<TileTime*, TileTime*> cameFrom;
 
 public:
-	SpatialBFS(GridMap* gridMap);
+	TemporalBFS(GridMap* gridMap);
 
 public:
 	Path FindNextPath(Tile* start, Tile* goal);

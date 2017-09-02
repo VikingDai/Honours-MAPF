@@ -1,15 +1,15 @@
-#include "SpatialBFS.h"
+#include "TemporalBFS.h"
 
-SpatialBFS::SpatialBFS(GridMap* inGridMap)
+TemporalBFS::TemporalBFS(GridMap* inGridMap)
 {
 	gridMap = inGridMap;
 }
 
-SpatialBFS::Path SpatialBFS::FindNextPath(Tile* start, Tile* goal)
+TemporalBFS::Path TemporalBFS::FindNextPath(Tile* start, Tile* goal)
 {
 	nodesExpanded = 0;
 
-	SpatialBFS::Path path;
+	TemporalBFS::Path path;
 
 	if (!start || !goal)
 		return path;
@@ -53,11 +53,11 @@ SpatialBFS::Path SpatialBFS::FindNextPath(Tile* start, Tile* goal)
 	return path;
 }
 
-std::vector<SpatialBFS::Path> SpatialBFS::SearchToDepth(Tile* start, Tile* goal, int depth)
+std::vector<TemporalBFS::Path> TemporalBFS::SearchToDepth(Tile* start, Tile* goal, int depth)
 {
 	nodesExpanded = 0;
 
-	std::vector<SpatialBFS::Path> paths;
+	std::vector<TemporalBFS::Path> paths;
 
 	if (!start || !goal || depth <= 0) 
 		return paths;
@@ -108,7 +108,7 @@ std::vector<SpatialBFS::Path> SpatialBFS::SearchToDepth(Tile* start, Tile* goal,
 	return paths;
 }
 
-void SpatialBFS::AddNeighbor(TileTime* current, Tile* neighbor)
+void TemporalBFS::AddNeighbor(TileTime* current, Tile* neighbor)
 {
 	if (!current || !neighbor) return;
 

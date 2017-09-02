@@ -6,23 +6,23 @@
 #include "Statistics.h"
 #include <map>
 #include "AStar.h"
-#include "SpatialBFS.h"
-#include "SpatialAStar.h"
+#include "TemporalBFS.h"
+#include "TemporalAStar.h"
 
 int Simulation::timestep;
 
-SpatialAStar::Path pathToDraw;
-std::vector<SpatialAStar::Path> pathsToDraw;
+TemporalAStar::Path pathToDraw;
+std::vector<TemporalAStar::Path> pathsToDraw;
 
 Simulation::Simulation()
 {
-	currentScenario = "warehouse10.scenario";
+	currentScenario = "alternative.scenario";
 	//currentScenario = "den520d-10.scenario";
 
 	Stats::Reset();
 
 	timestep = 0;
-	aStar = new SpatialAStar(&environment.gridMap);
+	aStar = new TemporalAStar(&environment.gridMap);
 	coordinator = new AgentCoordinator(&environment.gridMap);
 
 	scenario.LoadScenario("../scenarios/" + currentScenario, environment);
@@ -30,7 +30,7 @@ Simulation::Simulation()
 	//////////////////////////////////////////////////////////////////////////
 	// TEST SPATIAL A*
 
-	/*SpatialAStar spatialAStar(&environment.gridMap);
+	/*TemporalAStar TemporalAStar(&environment.gridMap);
 	Tile* start = environment.gridMap.getTileAt(2, 2);
 	Tile* goal = environment.gridMap.getTileAt(4, 4);
 
@@ -40,7 +40,7 @@ Simulation::Simulation()
 	/*for (int i = 0; i < 50; i++)
 	{
 		std::cout << "FINDING PATH " << i << std::endl;
-		pathsToDraw.push_back(spatialAStar.FindPath2(start, goal));
+		pathsToDraw.push_back(TemporalAStar.FindPath2(start, goal));
 		std::cout << std::endl;
 	}*/
 
@@ -50,9 +50,9 @@ Simulation::Simulation()
 	//////////////////////////////////////////////////////////////////////////
 	// TEST BFS
 	
-	bfs = new SpatialBFS(&environment.gridMap);
+	bfs = new TemporalBFS(&environment.gridMap);
 
-	//SpatialBFS bfs(&environment.gridMap);
+	//TemporalBFS bfs(&environment.gridMap);
 	//Tile* start = environment.gridMap.getTileAt(2, 2);
 	//Tile* goal = environment.gridMap.getTileAt(2, 6);
 
@@ -73,7 +73,7 @@ Simulation::Simulation()
 	//	bfsTimer.PrintTimeElapsed("GENERATING TOOK");
 	//}
 
-	/*for (SpatialBFS::Path path : pathsToDraw)
+	/*for (TemporalBFS::Path path : pathsToDraw)
 	{
 		for (Tile* tile : path)
 			std::cout << *tile << " > ";
@@ -124,7 +124,7 @@ void Simulation::Step()
 	//Tile* start = environment.gridMap.getTileAt(2, 1);
 	//Tile* goal = environment.gridMap.getTileAt(0, 1);
 	//pathToDraw = bfs->FindNextPath(start, goal);
-	///*SpatialBFS::Path& path = bfs->FindNextPath(start, goal);
+	///*TemporalBFS::Path& path = bfs->FindNextPath(start, goal);
 	//pathsToDraw.push_back(path);*/
 
 	//std::cout << "Found path: " << std::endl;
@@ -183,7 +183,7 @@ void Simulation::Render(Graphics* graphics)
 	float sep = .6;
 	for (int i = 0; i < pathsToDraw.size(); i++)
 	{
-		SpatialBFS::Path& path = pathsToDraw[i];
+		TemporalBFS::Path& path = pathsToDraw[i];
 		float pathSep = sep / pathsToDraw.size();
 		std::vector<vec3> points;
 		for (Tile* tile : path)

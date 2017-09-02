@@ -117,6 +117,9 @@
     <ClCompile Include="SpatialBFS.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PathAssigner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\libs\opengl\common\vboindexer.hpp">
@@ -209,13 +212,16 @@
     <ClInclude Include="Helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SpatialAStar.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="AStar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SpatialBFS.h">
+    <ClInclude Include="TemporalAStar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TemporalBFS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PathAssigner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

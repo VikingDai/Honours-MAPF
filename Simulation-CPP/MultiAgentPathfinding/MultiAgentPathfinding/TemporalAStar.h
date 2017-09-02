@@ -83,7 +83,7 @@ public:
 	bool operator()(TileTime2* A, TileTime2* B);
 };
 
-class SpatialAStar
+class TemporalAStar
 {
 public:
 	std::list<TileTime*> freeTileInfos;
@@ -108,9 +108,9 @@ private:
 	std::vector<Tile*> modifiedTiles;
 
 public:
-	SpatialAStar(GridMap* gridMap);
+	TemporalAStar(GridMap* gridMap);
 	void SetGridMap(GridMap* gridMap) { this->gridMap = gridMap; }
-	~SpatialAStar();
+	~TemporalAStar();
 
 	Path FindPath(Tile* start, Tile* goal, TileCosts& customCostTable = TileCosts());
 	void ExpandNeighbor(OpenQueue& open, TileTime* currentInfo, Tile* currentTile, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& customCosts);
