@@ -15,6 +15,11 @@ class Agent : public EObject
 public:
 	Agent(GridMap* gridMap, Tile* startTile, Tile* goalTile = nullptr);
 
+private:
+	static int agentCounter;
+public:
+	static void ResetAgentCounter() { agentCounter = 0; }
+
 public:
 	TemporalBFS* bfs;
 	TemporalAStar* search;

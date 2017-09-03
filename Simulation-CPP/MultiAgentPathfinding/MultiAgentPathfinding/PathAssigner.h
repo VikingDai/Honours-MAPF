@@ -57,7 +57,7 @@ private:
 	/** Create constraints describing path collisions */
 	void CreateCollisionConstraints(PathCollisions& pathCollisions);
 
-	std::map<TemporalAStar::Path*, SCIP_VAR*> pathToVarMap;
+	std::map<const TemporalAStar::Path*, SCIP_VAR*> pathToVarMap;
 	SCIP_VAR* GetPathVar(TemporalAStar::Path* path) { return pathToVarMap[path]; }
 
 public:

@@ -25,6 +25,9 @@ void PathAssigner::Init()
 
 	// create empty problem
 	SCIP_CALL_EXC(SCIPcreateProbBasic(scip, "PathAssignment"));
+
+	// disable output to console
+	SCIP_CALL_EXC(SCIPsetIntParam(scip, "display/verblevel", 0));
 }
 
 void PathAssigner::InitAgent(std::vector<Agent*> agents)
@@ -231,6 +234,7 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 #if DEBUG_MIP
 	SCIPinfoMessage(scip, nullptr, "\nSolving...\n");
 #endif
+
 	SCIP_CALL_EXC(SCIPsolve(scip));
 
 	SCIP_CALL_EXC(SCIPfreeTransform(scip));

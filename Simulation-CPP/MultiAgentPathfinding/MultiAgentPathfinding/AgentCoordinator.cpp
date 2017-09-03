@@ -29,6 +29,48 @@ void AgentCoordinator::Reset()
 
 }
 
+void AgentCoordinator::Step(
+	std::vector<Agent*>& agents, 
+	std::set<Agent*>& agentsRequiringPath, 
+	std::map<Agent*, TileCollision>& agentCollisionMap, 
+	TemporalAStar::TileCosts& collisionCosts)
+{
+	// Generate additional paths
+	generatePathTimer.Begin();
+	for (Agent* agent : agentsRequiringPath)
+	{
+		std::cout << "Generating path for " << *agent << std::endl;
+		GeneratePath(agent, agentCollisionMap, collisionCosts);
+	}
+	generatePathTimer.End();
+	generatePathTimer.PrintTimeElapsed("Generating paths");
+
+	agentsRequiringPath.clear();
+
+	BuildCollisionTable(agents);
+
+	PathCollisions collisions = CheckCollisions(agents, agentCollisionMap);
+
+	// Assign conflict-free paths to agents using a MIP
+	std::vector<Agent*> mipConflicts = pathAssigner->AssignPaths(agents, collisions);
+
+	if (mipConflicts.empty())
+		std::cout << "MIP told us no conflicts, we are done!" << std::endl;
+
+	for (Agent* agent : mipConflicts)
+		agentsRequiringPath.emplace(agent);
+
+	if (!agentsRequiringPath.empty())
+	{
+		std::map<Agent*, TileCollision>::iterator it;
+		for (it = agentCollisionMap.begin(); it != agentCollisionMap.end(); it++)
+			agentsRequiringPath.emplace(it->first);
+	}
+
+	for (Agent* agent : agentsRequiringPath)
+		std::cout << "Generating a new path for agent " << agent << std::endl;
+}
+
 void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 {
 	coordinatorTimer.Begin();
@@ -63,41 +105,42 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 		std::cout << "AgentCoordinator: Run " << i << std::endl;
 		std::cout << "************************" << std::endl;
 
-		// Generate additional paths
-		generatePathTimer.Begin();
-		for (Agent* agent : agentsRequiringPath)
-		{
-			std::cout << "Generating path for " << *agent << std::endl;
-			GeneratePath(agent, firstRun, agentCollisionMap, collisionCosts);
-		}
-		generatePathTimer.End();
-		generatePathTimer.PrintTimeElapsed("Generating paths");
+		Step(agents, agentsRequiringPath, agentCollisionMap, collisionCosts);
+		//// Generate additional paths
+		//generatePathTimer.Begin();
+		//for (Agent* agent : agentsRequiringPath)
+		//{
+		//	std::cout << "Generating path for " << *agent << std::endl;
+		//	GeneratePath(agent, agentCollisionMap, collisionCosts);
+		//}
+		//generatePathTimer.End();
+		//generatePathTimer.PrintTimeElapsed("Generating paths");
 
-		agentsRequiringPath.clear();
+		//agentsRequiringPath.clear();
 
-		BuildCollisionTable(agents);
+		//BuildCollisionTable(agents);
 
-		PathCollisions collisions = CheckCollisions(agents, agentCollisionMap);
+		//PathCollisions collisions = CheckCollisions(agents, agentCollisionMap);
 
-		// Assign conflict-free paths to agents using a MIP
-		std::vector<Agent*> mipConflicts = pathAssigner->AssignPaths(agents, collisions);//ResolveConflicts(agents, collisions);
+		//// Assign conflict-free paths to agents using a MIP
+		//std::vector<Agent*> mipConflicts = pathAssigner->AssignPaths(agents, collisions);//ResolveConflicts(agents, collisions);
 
-		if (mipConflicts.empty())
-			std::cout << "MIP told us no conflicts, we are done!" << std::endl;
+		//if (mipConflicts.empty())
+		//	std::cout << "MIP told us no conflicts, we are done!" << std::endl;
 
-		for (Agent* agent : mipConflicts)
-			agentsRequiringPath.emplace(agent);
+		//for (Agent* agent : mipConflicts)
+		//	agentsRequiringPath.emplace(agent);
 
-		if (!agentsRequiringPath.empty())
-		{
-			std::map<Agent*, TileCollision>::iterator it;
-			for (it = agentCollisionMap.begin(); it != agentCollisionMap.end(); it++)
-				agentsRequiringPath.emplace(it->first);
-		}
+		//if (!agentsRequiringPath.empty())
+		//{
+		//	std::map<Agent*, TileCollision>::iterator it;
+		//	for (it = agentCollisionMap.begin(); it != agentCollisionMap.end(); it++)
+		//		agentsRequiringPath.emplace(it->first);
+		//}
 
-		i++;
+		//i++;
 
-		firstRun = false;
+		//firstRun = false;
 	}
 	while (!agentsRequiringPath.empty());
 
@@ -107,23 +150,19 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 }
 
 void AgentCoordinator::GeneratePath(
-	Agent* agent, 
-	bool bfirstRun, 
-	std::map<Agent*, TileCollision> agentCollisionMap, 
+	Agent* agent,
+	std::map<Agent*, TileCollision> agentCollisionMap,
 	TemporalAStar::TileCosts& collisionCosts)
 {
 	Tile* currentTile = map->getTileAt(agent->x, agent->y);
 
 	// check any collisions in the path and update the custom costs table
-	if (!bfirstRun)
+	for (auto& it : agentCollisionMap[agent])
 	{
-		for (auto& it : agentCollisionMap[agent])
-		{
-			Tile* tile = it.first;
-			int time = it.second;
-			collisionCosts[time][tile] += 1;
-			std::cout << "Collision cost at time " << time << " on " << *tile << " is " << collisionCosts[time][tile] << std::endl;
-		}
+		Tile* tile = it.first;
+		int time = it.second;
+		collisionCosts[time][tile] += 1;
+		//std::cout << "Collision cost at time " << time << " on " << *tile << " is " << collisionCosts[time][tile] << std::endl;
 	}
 
 	//TemporalAStar::Path& path = aStar->FindPath(currentTile, agent->goal, customCosts);
@@ -225,71 +264,6 @@ vector<set<TemporalAStar::Path*>> AgentCoordinator::CheckCollisions(vector<Agent
 	}
 
 	return pathCollisions;
-}
-
-
-std::vector<std::pair<Tile*, int>> AgentCoordinator::TilesInCollision(Agent* agent, TemporalAStar::Path& path)
-{
-	std::vector<std::pair<Tile*, int>> tilesInCollision;
-
-	for (int timestep = 0; timestep < path.size(); timestep++)
-	{
-		Tile* tile = path[timestep];
-
-		vector<AgentPath> agentsOnTile = tileToPathMapAtTimestep[timestep][tile];
-		// count unique agents with paths on this tile
-		std::set<Agent*> seenAgents;
-		for (AgentPath& agentPath : agentsOnTile)
-			seenAgents.emplace(agentPath.agent);
-
-		if (seenAgents.size() > 1)
-			tilesInCollision.push_back(std::pair<Tile*, int>(tile, timestep));
-	}
-
-	// check for collisions when two agents pass one another
-	Tile* previousTile = map->getTileAt(agent->x, agent->y);
-
-	for (int timestep = 0; timestep < path.size(); timestep++)
-	{
-		Tile* tile = path[timestep];
-
-		// check all paths on this tile at the current timestep
-		TileToPathMap& tileToPathMap = tileToPathMapAtTimestep[timestep];
-		vector<AgentPath>& paths = tileToPathMap[previousTile];
-		for (AgentPath& agentPath : paths) // check agents using our previous tile at the current timestep
-		{
-			if (agentPath.agent == agent) continue; // skip any paths using the same agent
-
-			if (!agentPath.path)
-			{
-				cerr << "PATH NOT VALID" << endl;
-				continue;
-			}
-
-			TemporalAStar::Path& otherPath = (*agentPath.path);
-
-			if (timestep >= otherPath.size()) continue;
-
-			Tile* currentTileOther = otherPath[timestep];
-			Tile* previousTileOther = timestep > 0 ? otherPath[timestep - 1] : map->getTileAt(agentPath.agent->x, agentPath.agent->y);
-
-			assert(currentTileOther == previousTile); // the line where we set paths should have made this true
-													  // there is a collision if two agents 'swap' position
-
-			if (tile == previousTileOther && previousTile == currentTileOther)
-			{
-				float v = 1.f / (float) (timestep + 1);
-				tile->color = vec3(v, 0, v);
-				previousTile->color = vec3(v, 0, v);
-
-				tilesInCollision.push_back(std::pair<Tile*, int>(tile, timestep));
-			}
-		}
-
-		previousTile = tile;
-	}
-
-	return tilesInCollision;
 }
 
 void AgentCoordinator::BuildCollisionTable(std::vector<Agent*>& agents)

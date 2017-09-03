@@ -2,6 +2,7 @@
 
 namespace Options
 {
+	bool randomizeSeed = true;
 	bool shouldShowLineToGoal = true;
 	bool shouldShowPaths = true;
 	bool shouldRender = true;

@@ -5,7 +5,7 @@
 #include "MathUtils.h"
 #include "Graphics.h"
 
-static int agentCount = 0;
+int Agent::agentCounter = 0;
 
 Agent::Agent(GridMap* gridMap, Tile* startTile, Tile* goalTile) : EObject(startTile->x, startTile->y)
 {
@@ -13,8 +13,8 @@ Agent::Agent(GridMap* gridMap, Tile* startTile, Tile* goalTile) : EObject(startT
 
 	color = vec3(0, MathUtils::RandomFloat(), MathUtils::RandomFloat());
 
-	agentId = agentCount;
-	agentCount += 1;
+	agentId = agentCounter;
+	agentCounter += 1;
 
 	renderPos = vec3(startTile->x, startTile->y, 0);
 	

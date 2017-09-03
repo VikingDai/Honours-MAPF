@@ -89,7 +89,7 @@ Simulation::Simulation()
 
 	//////////////////////////////////////////////////////////////////////////
 	// TEST BFS
-	
+
 	bfs = new TemporalBFS(&environment.gridMap);
 
 	//TemporalBFS bfs(&environment.gridMap);
@@ -122,37 +122,25 @@ Simulation::Simulation()
 
 	// END TEST BFS
 	//////////////////////////////////////////////////////////////////////////
-
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// TEST A*
-
-	//AStar* testAstar = new AStar(&environment.gridMap);
-	//Tile* start = environment.gridMap.getTileAt(0, 0);
-	//Tile* goal = environment.gridMap.getTileAt(8, 8);
-
-	//start->color = glm::vec3(1, 1, 0);
-	//goal->color = glm::vec3(1, 1, 0);
-
-	//AStar::Path& path = testAstar->FindPath(start, goal);
-	/*while (!path.empty())
-	{
-		path.front()->color = glm::vec3(0, 0, 1);
-		std::cout << *path.front() << std::endl;
-		path.pop();
-	}*/
-
-	//pathsToDraw = testAstar->FindPaths(start, goal);
 }
 
 
 void Simulation::LoadScenario()
 {
+	Agent::ResetAgentCounter();
+
+	if (Options::randomizeSeed) seed = rand();
+
+	std::cout << "Set seed to " << seed << std::endl;
+	srand(seed);
+
 	scenario.LoadScenario(scenarioFiles[scenarioIndex], environment);
 	coordinator = new AgentCoordinator(&environment.gridMap);
-	srand(seed);
 	//environment.Reset();
+
+	TemporalAStar* testAstar = new TemporalAStar(&environment.gridMap);
+	Tile* start = environment.gridMap.getTileAt(0, 0);
+	Tile* goal = environment.gridMap.getTileAt(8, 8);
 }
 
 
@@ -223,7 +211,7 @@ void Simulation::Render(Graphics* graphics)
 		if (agent->goal)
 			graphics->DrawBatch(glm::ivec3(agent->goal->x, agent->goal->y, 0), agent->color, glm::vec3(0.5f));
 	graphics->ShapeBatchEnd();
-	
+
 	////////////////////////////////////////////////////////////////////////////// TESTING
 	graphics->LineBatchBegin();
 	float sep = .6;
@@ -251,7 +239,7 @@ void Simulation::Render(Graphics* graphics)
 	}
 	graphics->DrawLine(points, glm::vec3(0, 1, 1), 2.5f);
 	points.clear();
-	
+
 	graphics->LineBatchEnd();
 }
 
@@ -260,11 +248,14 @@ void Simulation::BuildOptions()
 	// Make listbox to select a scenario
 	ImGui2::Combo("Select Scenario", &scenarioIndex, scenarioFiles);
 	ImGui::InputInt("Seed", &seed);
+	ImGui::Checkbox("RandomSeed", &Options::randomizeSeed);
 
 	ImGui::InputInt("Iterations", &iterations);
 
-	// Reset button
+	// Load scenario button
 	if (ImGui::Button("Load scenario")) LoadScenario();
+
+	if (ImGui::Button("Solve")) Step();
 
 	ImGui::Checkbox("Tick", &Options::tickSimulation);
 	ImGui::Checkbox("Render", &Options::shouldRender);
@@ -277,6 +268,9 @@ void Simulation::BuildOptions()
 		sprintf(agentName, "agent %d : %d paths (%d)", agent->getAgentId(), agent->potentialPaths.size(), agent->getPath().size());
 		ImGui::Checkbox(agentName, &debugAgents[agent]);
 	}
+
+	if (!simulationTimes.empty())
+		ImGui::PlotHistogram("Histogram", &simulationTimes[0], simulationTimes.size(), 0, "Simulation Times", 0.0f, 100.f, ImVec2(0, 80));
 }
 
 void Simulation::LogInfo()

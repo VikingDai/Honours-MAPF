@@ -22,6 +22,8 @@ private:
 	std::vector<std::string> scenarioFiles;
 	int scenarioIndex;
 
+	std::vector<float> simulationTimes;
+
 public:
 	static int timestep;
 
