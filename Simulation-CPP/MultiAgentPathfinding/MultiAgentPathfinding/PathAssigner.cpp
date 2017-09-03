@@ -64,8 +64,6 @@ void PathAssigner::InitAgent(std::vector<Agent*> agents)
 SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, PathCollisions& pathCollisions)
 {
 	// create empty problem
-	//SCIP_CALL_EXC(SCIPcreateProbBasic(scip, "string"));
-
 	const SCIP_Real NEG_INFINITY = -SCIPinfinity(scip);
 	const SCIP_Real POS_INFINITY = SCIPinfinity(scip);
 
@@ -98,7 +96,7 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, PathCollis
 		agentVariables.push_back(penaltyVar);
 
 		// for each path construct a variable in the form 'a1p1'
-		std::vector<TemporalAStar::Path>& paths = agent->allPaths;
+		std::vector<TemporalAStar::Path>& paths = agent->potentialPaths;
 		for (int i = 0; i < paths.size(); i++)
 		{
 			TemporalAStar::Path& path = paths[i];
@@ -207,6 +205,8 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 	std::vector<Agent*> agents,
 	std::vector<std::set<TemporalAStar::Path*>>& collisions)
 {
+	mipTimer.Begin();
+
 	Init();
 	/*SCIP* scip;
 	SCIP_CALL_EXC(SCIPcreate(&scip));
@@ -293,6 +293,10 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 	}
 
 	Cleanup();
+
+	mipTimer.End();
+	mipTimer.PrintTimeElapsed("MIP Path assignment");
+	Stats::avgMipTime = mipTimer.GetAvgTime();
 
 	return penaltyAgents;
 }

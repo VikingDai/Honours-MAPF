@@ -87,7 +87,6 @@ int main()
 		//ImGui::SetNextWindowSize(ImVec2((maxSize - minSize) / 2.f, static_cast<float>(display_h)), ImGuiSetCond_Always);
 		ImGui::SetNextWindowPos(ImVec2(0, 20), ImGuiSetCond_Once);
 		ImGui::Begin("Options", &open, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize);
-		ImGui::Text("Test: %f", g_TimeAcc);
 		simulation->BuildOptions();
 		ImVec2 pos = ImGui::GetWindowPos();
 		ImVec2 size = ImGui::GetWindowSize();

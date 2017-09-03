@@ -9,16 +9,50 @@
 #include "TemporalBFS.h"
 #include "TemporalAStar.h"
 
+#include <string>
+#include <iostream>
+#include <filesystem>
+
+namespace fs = std::experimental::filesystem;
+
 int Simulation::timestep;
 
 TemporalAStar::Path pathToDraw;
 std::vector<TemporalAStar::Path> pathsToDraw;
 
+#define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
+
+namespace ImGui2
+{
+	static auto vector_getter = [](void* vec, int idx, const char** out_text)
+	{
+		auto& vector = *static_cast<std::vector<std::string>*>(vec);
+		if (idx < 0 || idx >= static_cast<int>(vector.size())) { return false; }
+		*out_text = vector.at(idx).c_str();
+		return true;
+	};
+
+	bool Combo(const char* label, int* currIndex, std::vector<std::string>& values)
+	{
+		if (values.empty()) { return false; }
+		return ImGui::Combo(label, currIndex, vector_getter, static_cast<void*>(&values), values.size());
+	}
+
+	bool ListBox(const char* label, int* currIndex, std::vector<std::string>& values, int numToShow)
+	{
+		if (values.empty()) { return false; }
+		return ImGui::ListBox(label, currIndex, vector_getter, static_cast<void*>(&values), values.size(), numToShow);
+	}
+}
+
 Simulation::Simulation()
 {
-	//currentScenario = "warehouse10.scenario";
-	currentScenario = "alternative.scenario";
-	//currentScenario = "den520d-10.scenario";
+	seed = 0;
+	srand(seed);
+
+	iterations = 1;
+	//currentScenario = "alternative";
+	//currentScenario = "den520d-10";
 
 	Stats::Reset();
 
@@ -26,7 +60,12 @@ Simulation::Simulation()
 	aStar = new TemporalAStar(&environment.gridMap);
 	coordinator = new AgentCoordinator(&environment.gridMap);
 
-	scenario.LoadScenario("../scenarios/" + currentScenario, environment);
+	// get files in scenario folder
+	scenarioIndex = 0;
+	std::string path = "../scenarios";
+	for (fs::directory_entry entry : fs::directory_iterator(path))
+		scenarioFiles.push_back(entry.path().string());
+
 
 	//////////////////////////////////////////////////////////////////////////
 	// TEST SPATIAL A*
@@ -108,9 +147,12 @@ Simulation::Simulation()
 }
 
 
-void Simulation::Reset()
+void Simulation::LoadScenario()
 {
-	environment.Reset();
+	scenario.LoadScenario(scenarioFiles[scenarioIndex], environment);
+	coordinator = new AgentCoordinator(&environment.gridMap);
+	srand(seed);
+	//environment.Reset();
 }
 
 
@@ -169,6 +211,9 @@ void Simulation::Render(Graphics* graphics)
 	{
 		if (Options::shouldShowPaths || debugAgents[agent])
 			agent->drawPaths(graphics);
+
+		if (Options::shouldShowLineToGoal)
+			agent->drawLineToGoal(graphics);
 	}
 	graphics->LineBatchEnd();
 
@@ -212,20 +257,24 @@ void Simulation::Render(Graphics* graphics)
 
 void Simulation::BuildOptions()
 {
-	if (ImGui::Button("Reset scenario"))
-	{
-		scenario.LoadScenario("../scenarios/" + currentScenario, environment);
-		coordinator = new AgentCoordinator(&environment.gridMap);
-	}
+	// Make listbox to select a scenario
+	ImGui2::Combo("Select Scenario", &scenarioIndex, scenarioFiles);
+	ImGui::InputInt("Seed", &seed);
+
+	ImGui::InputInt("Iterations", &iterations);
+
+	// Reset button
+	if (ImGui::Button("Load scenario")) LoadScenario();
 
 	ImGui::Checkbox("Tick", &Options::tickSimulation);
 	ImGui::Checkbox("Render", &Options::shouldRender);
 	ImGui::Checkbox("Show paths", &Options::shouldShowPaths);
+	ImGui::Checkbox("Show line to goal", &Options::shouldShowLineToGoal);
 
 	for (Agent* agent : environment.agents)
 	{
 		char agentName[50];
-		sprintf(agentName, "agent %d : %d paths (%d)", agent->getAgentId(), agent->allPaths.size(), agent->getPath().size());
+		sprintf(agentName, "agent %d : %d paths (%d)", agent->getAgentId(), agent->potentialPaths.size(), agent->getPath().size());
 		ImGui::Checkbox(agentName, &debugAgents[agent]);
 	}
 }

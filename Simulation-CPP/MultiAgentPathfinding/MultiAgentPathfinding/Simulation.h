@@ -10,19 +10,25 @@ class Graphics;
 class Simulation
 {
 private:
+	int seed;
+	int iterations;
+
 	TemporalBFS* bfs;
 	TemporalAStar* aStar;
 	AgentCoordinator* coordinator;
-	Scenario scenario;
 
-	std::string currentScenario;
+	/** Scenario related */
+	Scenario scenario;
+	std::vector<std::string> scenarioFiles;
+	int scenarioIndex;
+
 public:
 	static int timestep;
 
 	Environment environment;
 	Simulation();
 
-	void Reset();
+	void LoadScenario();
 	void Step();
 	void Render(Graphics* graphics);
 	void BuildOptions();

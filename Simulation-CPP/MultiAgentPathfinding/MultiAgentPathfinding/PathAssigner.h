@@ -69,5 +69,8 @@ public:
 	void AddPath(Agent* agent, TemporalAStar::Path* path);
 
 	void Cleanup();
+
+private:
+	Timer mipTimer;
 };
 

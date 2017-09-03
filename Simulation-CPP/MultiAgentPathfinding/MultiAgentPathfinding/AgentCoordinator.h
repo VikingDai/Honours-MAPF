@@ -30,8 +30,8 @@ public:
 private:
 	PathAssigner* pathAssigner;
 
-	Timer mipTimer;
 	Timer coordinatorTimer;
+	Timer generatePathTimer;
 
 	using PathCollisions = std::vector<std::set<TemporalAStar::Path*>>;
 	using TileToPathMap = std::map<Tile*, std::vector<AgentPath>>;
@@ -45,19 +45,23 @@ private:
 	std::deque<TileToPathMap> tileToPathMapAtTimestep;
 	std::map<Tile*, std::map<int, std::vector<AgentPath>>> collisionTable;
 
+	/* Check if any paths are in collision AND maps agents to tile collisions */
 	std::vector<std::set<TemporalAStar::Path*>> CheckCollisions(std::vector<Agent*>& agents, std::map<Agent*, TileCollision>& agentsInCollision);
 	std::vector<std::pair<Tile*, int>> TilesInCollision(Agent* agent, TemporalAStar::Path& path);
 
-	void PopTimestep()
-	{
-		//if (!tileToPathMapAtTimestep.empty())
-		//	tileToPathMapAtTimestep.pop_front();
-	}
-
-	void BuildTable(std::vector<Agent*>& agents);
+	void BuildCollisionTable(std::vector<Agent*>& agents);
 
 	void PrintAllPaths(std::vector<Agent*>& agents);
 	void PrintPath(Agent* agent, TemporalAStar::Path& path);
+
+private:
+	/** Generates a new path for an agent */
+	void GeneratePath(
+		Agent* agent, 
+		bool useCollisions, 
+		std::map<Agent*, TileCollision> agentCollisionMap, 
+		TemporalAStar::TileCosts& collisionCosts);
+
 
 public:
 	TemporalAStar* aStar;
@@ -67,10 +71,7 @@ public:
 
 	void Reset();
 
+	/** Gives each agent a conflict-free path */
 	void UpdateAgents(std::vector<Agent*>& agents);
-
-	void GeneratePath(Agent* agent, bool useCollisions, std::map<Agent*, TileCollision> agentCollisionMap);
-
-	void DrawPotentialPaths(Graphics* graphics, std::vector<Agent*> agents);
 };
 

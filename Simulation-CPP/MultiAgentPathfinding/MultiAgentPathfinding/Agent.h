@@ -13,24 +13,27 @@ class GridMap;
 class Agent : public EObject
 {
 public:
+	Agent(GridMap* gridMap, Tile* startTile, Tile* goalTile = nullptr);
+
+public:
 	TemporalBFS* bfs;
+	TemporalAStar* search;
 
 private:
-	TemporalAStar* search;
 	int agentId;
 
-
-	TemporalAStar::Path currentPath;
+	TemporalAStar::Path chosenPath;
 public:
-	std::vector<TemporalAStar::Path> allPaths;
+	std::vector<TemporalAStar::Path> potentialPaths;
+
 	void setPath(TemporalAStar::Path& path);
-	TemporalAStar::Path& getPath() { return currentPath; }
+	TemporalAStar::Path& getPath() { return chosenPath; }
 
 public:
 	Tile* goal;
 
 	vec3 color;
-	Agent(GridMap* gridMap, Tile* startTile, Tile* goalTile = nullptr);
+	
 	virtual void step();
 	
 
@@ -42,6 +45,7 @@ public:
 	void update(float dt);
 
 	void drawPaths(Graphics* graphics);
+	void drawLineToGoal(Graphics* graphics);
 
 	friend std::ostream& operator<<(std::ostream& os, Agent& agent);
 };
