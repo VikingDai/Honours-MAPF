@@ -9,15 +9,17 @@
 PathAssigner::PathAssigner(GridMap* inGridMap)
 {
 	map = inGridMap;
-	InitSCIP();
+	Init();
 }
 
 PathAssigner::~PathAssigner()
 {
 }
 
-void PathAssigner::InitSCIP()
+void PathAssigner::Init()
 {
+	std::cout << "Initializing Path Assignment Mixed Integer Problem" << std::endl;
+
 	SCIP_CALL_EXC(SCIPcreate(&scip));
 	SCIP_CALL_EXC(SCIPincludeDefaultPlugins(scip));
 
@@ -25,7 +27,41 @@ void PathAssigner::InitSCIP()
 	SCIP_CALL_EXC(SCIPcreateProbBasic(scip, "PathAssignment"));
 }
 
-SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, PathCollisions& pathCollisions, std::map<TemporalAStar::Path*, int>& pathLengths)
+void PathAssigner::InitAgent(std::vector<Agent*> agents)
+{
+	for (Agent* agent : agents)
+	{
+		// create penalty variable
+		SCIP_VAR* penaltyVar;
+		std::ostringstream penaltyVarNameStream;
+		penaltyVarNameStream << "a" << agent->getAgentId() << "q";
+		const char* penaltyVarName = penaltyVarNameStream.str().c_str();
+		char penaltyVarNameC[50];
+		sprintf(penaltyVarNameC, "a%dq", agent->getAgentId());
+
+		SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &penaltyVar, penaltyVarNameC, 0, 1, 1000, SCIP_VARTYPE_INTEGER));
+		SCIP_CALL_EXC(SCIPaddVar(scip, penaltyVar));
+
+		varToAgentMap[penaltyVar] = agent;
+		varNames[penaltyVar] = penaltyVarNameStream.str();
+
+		allVariables.push_back(penaltyVar);
+
+		// create choice constraint
+		SCIP_CONS* agentChoiceCons;
+		char choiceConsName[50];
+		sprintf_s(choiceConsName, "agentChoice%d", agent->getAgentId());
+
+		SCIP_CALL_EXC(SCIPcreateConsBasicLinear(scip, &agentChoiceCons, choiceConsName, 0, nullptr, nullptr, 1, 1));
+
+		// add penalty var to constraint
+		SCIP_CALL_EXC(SCIPaddCoefLinear(scip, agentChoiceCons, penaltyVar, 1.0));
+
+		SCIP_CALL_EXC(SCIPaddCons(scip, agentChoiceCons)); // add constraint
+	}
+}
+
+SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, PathCollisions& pathCollisions)
 {
 	// create empty problem
 	//SCIP_CALL_EXC(SCIPcreateProbBasic(scip, "string"));
@@ -34,7 +70,7 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, PathCollis
 	const SCIP_Real POS_INFINITY = SCIPinfinity(scip);
 
 	// create variables for paths as well as penalties and constraints
-	std::map<TemporalAStar::Path*, SCIP_VAR*> pathToSCIPvarMap;
+	pathToVarMap.clear();
 
 	for (Agent* agent : agents)
 	{
@@ -61,8 +97,9 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, PathCollis
 		allVariables.push_back(penaltyVar);
 		agentVariables.push_back(penaltyVar);
 
+		// for each path construct a variable in the form 'a1p1'
 		std::vector<TemporalAStar::Path>& paths = agent->allPaths;
-		for (int i = 0; i < paths.size(); i++) // for each path construct a variable in the form 'a1p1'
+		for (int i = 0; i < paths.size(); i++)
 		{
 			TemporalAStar::Path& path = paths[i];
 			assert(!path.empty());
@@ -77,13 +114,11 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, PathCollis
 			char pathVarNameC[50];
 			sprintf(pathVarNameC, "a%dp%d", agentId, i);
 
-			//int pathSize = pathLengths[&path];
-			int pathSize = path.size();
-			SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &pathVar, pathVarNameC, 0, 1, pathSize, SCIP_VARTYPE_INTEGER));
+			SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &pathVar, pathVarNameC, 0, 1, path.size(), SCIP_VARTYPE_INTEGER));
 			SCIP_CALL_EXC(SCIPaddVar(scip, pathVar));
 
 			// add it to the map
-			pathToSCIPvarMap[&path] = pathVar;
+			pathToVarMap[&path] = pathVar;
 			varToPathMap[pathVar] = &path;
 			varToAgentMap[pathVar] = agent;
 			varNames[pathVar] = pathVarNameStream.str();
@@ -92,52 +127,87 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, PathCollis
 			agentVariables.push_back(pathVar);
 		}
 
-		// Create a constraint describing that an agent can pick one path or a penalty
-		SCIP_CONS* agentChoiceCons;
-		char choiceConsName[50];
-		sprintf_s(choiceConsName, "agentChoice%d", agentId);
-		SCIP_CALL_EXC(SCIPcreateConsBasicLinear(scip, &agentChoiceCons, choiceConsName, 0, nullptr, nullptr, 1, 1));
-		for (SCIP_VAR* agentPath : agentVariables)
-			SCIP_CALL_EXC(SCIPaddCoefLinear(scip, agentChoiceCons, agentPath, 1.0));
-
-		// add then release constraint
-		SCIP_CALL_EXC(SCIPaddCons(scip, agentChoiceCons));
-		SCIP_CALL_EXC(SCIPreleaseCons(scip, &agentChoiceCons));
+		CreateAgentChoiceConstraints(agentId, agentVariables);
 	}
 
-	// create constraints for path collisions
-	int collisionCount = 0;
+	CreateCollisionConstraints(pathCollisions);
 
-	for (std::set<TemporalAStar::Path*>& paths : pathCollisions)
+
+	return SCIP_OKAY;
+}
+
+void PathAssigner::AddPath(Agent* agent, TemporalAStar::Path* path)
+{
+	int pathId = agentPathVars[agent].size();
+	// create variable describing path
+	SCIP_VAR* pathVar;
+
+	std::ostringstream pathVarNameStream;
+	pathVarNameStream << "a" << agent->getAgentId() << "p" << pathId;
+	const char* pathVarName = pathVarNameStream.str().c_str();
+
+	char pathVarNameC[50];
+	sprintf(pathVarNameC, "a%dp%d", agent->getAgentId(), pathId);
+
+	//int pathSize = pathLengths[&path];
+	int pathSize = path->size();
+	SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &pathVar, pathVarNameC, 0, 1, pathSize, SCIP_VARTYPE_INTEGER));
+	SCIP_CALL_EXC(SCIPaddVar(scip, pathVar));
+
+	// add it to the map
+	pathToVarMap[path] = pathVar;
+	varToPathMap[pathVar] = path;
+	varToAgentMap[pathVar] = agent;
+	varNames[pathVar] = pathVarNameStream.str();
+
+	allVariables.push_back(pathVar);
+	agentPathVars[agent].push_back(pathVar);
+}
+
+void PathAssigner::CreateAgentChoiceConstraints(int agentId, std::vector<SCIP_VAR*> agentVariables)
+{
+	SCIP_CONS* agentChoiceCons;
+	char choiceConsName[50];
+	sprintf_s(choiceConsName, "agentChoice%d", agentId);
+
+	SCIP_CALL_EXC(SCIPcreateConsBasicLinear(scip, &agentChoiceCons, choiceConsName, 0, nullptr, nullptr, 1, 1));
+	
+	for (SCIP_VAR* agentPath : agentVariables)
+		SCIP_CALL_EXC(SCIPaddCoefLinear(scip, agentChoiceCons, agentPath, 1.0));
+
+	SCIP_CALL_EXC(SCIPaddCons(scip, agentChoiceCons)); // add constraint
+	SCIP_CALL_EXC(SCIPreleaseCons(scip, &agentChoiceCons)); // release it
+}
+
+void PathAssigner::CreateCollisionConstraints(PathCollisions& pathCollisions)
+{
+	for (int i = 0; i < pathCollisions.size(); i++)
 	{
+		std::set<TemporalAStar::Path*>& paths = pathCollisions[i];
+
 		SCIP_CONS* collisionCons;
 		char collisionConsName[50];
-		sprintf_s(collisionConsName, "collision%d", collisionCount);
+		sprintf_s(collisionConsName, "collision%d", i);
 		SCIP_CALL_EXC(SCIPcreateConsBasicLinear(scip, &collisionCons, collisionConsName, 0, nullptr, nullptr, 0, 1));
 
 		// apply collision constraints to path variables
 		for (TemporalAStar::Path* path : paths)
 		{
-			SCIP_VAR* var = pathToSCIPvarMap[path];
+			SCIP_VAR* var = pathToVarMap[path];
 			SCIP_CALL_EXC(SCIPaddCoefLinear(scip, collisionCons, var, 1.0));
 		}
 
 		// add then release constraint
 		SCIP_CALL_EXC(SCIPaddCons(scip, collisionCons));
 		SCIP_CALL_EXC(SCIPreleaseCons(scip, &collisionCons));
-
-		collisionCount += 1;
 	}
-
-	return SCIP_OKAY;
 }
 
 std::vector<Agent*> PathAssigner::AssignPaths(
 	std::vector<Agent*> agents,
-	std::vector<std::set<TemporalAStar::Path*>>& collisions,
-	std::map<TemporalAStar::Path*, int>& PathLengths)
+	std::vector<std::set<TemporalAStar::Path*>>& collisions)
 {
-	InitSCIP();
+	Init();
 	/*SCIP* scip;
 	SCIP_CALL_EXC(SCIPcreate(&scip));
 	SCIP_CALL_EXC(SCIPincludeDefaultPlugins(scip));*/
@@ -148,7 +218,7 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 	//SCIPinfoMessage(scip, nullptr, "****************************\n");
 	//SCIPinfoMessage(scip, nullptr, "\n");
 
-	SCIP_CALL_EXC(CreateProblem(agents, collisions, PathLengths));
+	SCIP_CALL_EXC(CreateProblem(agents, collisions));
 
 #if DEBUG_MIP
 	SCIPinfoMessage(scip, nullptr, "Original problem:\n");

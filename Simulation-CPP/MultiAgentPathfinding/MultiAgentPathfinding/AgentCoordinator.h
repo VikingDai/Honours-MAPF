@@ -48,8 +48,6 @@ private:
 	std::vector<std::set<TemporalAStar::Path*>> CheckCollisions(std::vector<Agent*>& agents, std::map<Agent*, TileCollision>& agentsInCollision);
 	std::vector<std::pair<Tile*, int>> TilesInCollision(Agent* agent, TemporalAStar::Path& path);
 
-	std::map<TemporalAStar::Path*, int> pathLengths;
-
 	void PopTimestep()
 	{
 		//if (!tileToPathMapAtTimestep.empty())
@@ -70,8 +68,6 @@ public:
 	void Reset();
 
 	void UpdateAgents(std::vector<Agent*>& agents);
-
-	void NormalizePaths(std::vector<Agent *>& agents);
 
 	void GeneratePath(Agent* agent, bool useCollisions, std::map<Agent*, TileCollision> agentCollisionMap);
 

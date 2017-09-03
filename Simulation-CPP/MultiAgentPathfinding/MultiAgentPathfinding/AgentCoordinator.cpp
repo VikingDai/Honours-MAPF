@@ -87,7 +87,7 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 
 		// Assign conflict-free paths to agents using a MIP
 		mipTimer.Begin();
-		std::vector<Agent*> mipConflicts = pathAssigner->AssignPaths(agents, collisions, pathLengths);//ResolveConflicts(agents, collisions);
+		std::vector<Agent*> mipConflicts = pathAssigner->AssignPaths(agents, collisions);//ResolveConflicts(agents, collisions);
 		mipTimer.End();
 		mipTimer.PrintTimeElapsed("MIP Path assignment");
 		Stats::avgMipTime = mipTimer.GetAvgTime();
