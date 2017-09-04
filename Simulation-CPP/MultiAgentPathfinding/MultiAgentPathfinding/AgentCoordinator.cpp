@@ -22,6 +22,7 @@ AgentCoordinator::AgentCoordinator(GridMap* inMap)
 	map = inMap;
 	aStar = new TemporalAStar(inMap);
 	pathAssigner = new PathAssigner(inMap);
+	isRunning = false;
 }
 
 void AgentCoordinator::Reset()
@@ -29,12 +30,21 @@ void AgentCoordinator::Reset()
 
 }
 
-void AgentCoordinator::Step(
-	std::vector<Agent*>& agents, 
-	std::set<Agent*>& agentsRequiringPath, 
-	std::map<Agent*, TileCollision>& agentCollisionMap, 
-	TemporalAStar::TileCosts& collisionCosts)
+bool AgentCoordinator::Step(std::vector<Agent*>& agents)
 {
+	bool firstRun = false;
+
+	if (!isRunning)
+	{
+		firstRun = true;
+		isRunning = Init(agents);
+		if (!isRunning)
+		{
+			std::cout << "All agents already have paths! Found solution" << std::endl;
+			return true;
+		}
+	}
+
 	// Generate additional paths
 	generatePathTimer.Begin();
 	for (Agent* agent : agentsRequiringPath)
@@ -48,14 +58,17 @@ void AgentCoordinator::Step(
 	agentsRequiringPath.clear();
 
 	BuildCollisionTable(agents);
-
 	PathCollisions collisions = CheckCollisions(agents, agentCollisionMap);
 
 	// Assign conflict-free paths to agents using a MIP
 	std::vector<Agent*> mipConflicts = pathAssigner->AssignPaths(agents, collisions);
 
 	if (mipConflicts.empty())
+	{
 		std::cout << "MIP told us no conflicts, we are done!" << std::endl;
+		isRunning = false;
+		return true;
+	}
 
 	for (Agent* agent : mipConflicts)
 		agentsRequiringPath.emplace(agent);
@@ -67,36 +80,63 @@ void AgentCoordinator::Step(
 			agentsRequiringPath.emplace(it->first);
 	}
 
-	for (Agent* agent : agentsRequiringPath)
-		std::cout << "Generating a new path for agent " << agent << std::endl;
+	return false;
 }
 
-void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
+bool AgentCoordinator::Init(std::vector<Agent*>& agents)
 {
+	std::cout << "Initializing AgentCoordinator" << std::endl;
+
 	coordinatorTimer.Begin();
 
-	set<Agent*> agentsRequiringPath;
-	std::map<Agent*, TileCollision> agentCollisionMap;
-
-	bool anyPathsChanged = false;
+	agentsRequiringPath.clear();
+	agentCollisionMap.clear();
+	collisionCosts.clear();
+	
+	anyPathsChanged = false;
 
 	// if the agent has a goal to reach but does not have a path, generate a path
 	for (Agent* agent : agents)
 	{
 		if (agent->goal && agent->getPath().empty())
 		{
+			std::cout << *agent << " requires a new path" << std::endl;
 			agentsRequiringPath.emplace(agent);
 			agent->potentialPaths.clear();
 			anyPathsChanged = true;
 		}
 	}
 
-	// only assign new paths if any agents require them
-	if (!anyPathsChanged) return;
+	return anyPathsChanged;
+}
 
-	bool firstRun = true;
 
-	TemporalAStar::TileCosts collisionCosts;
+void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
+{
+	//coordinatorTimer.Begin();
+
+	//set<Agent*> agentsRequiringPath;
+	//std::map<Agent*, TileCollision> agentCollisionMap;
+
+	//bool anyPathsChanged = false;
+
+	//// if the agent has a goal to reach but does not have a path, generate a path
+	//for (Agent* agent : agents)
+	//{
+	//	if (agent->goal && agent->getPath().empty())
+	//	{
+	//		agentsRequiringPath.emplace(agent);
+	//		agent->potentialPaths.clear();
+	//		anyPathsChanged = true;
+	//	}
+	//}
+
+	//// only assign new paths if any agents require them
+	//if (!anyPathsChanged) return;
+
+	//bool firstRun = true;
+
+	//TemporalAStar::TileCosts collisionCosts;
 
 	// detect collisions and resolve them using the MIP solver
 	int i = 0;
@@ -105,7 +145,12 @@ void AgentCoordinator::UpdateAgents(vector<Agent*>& agents)
 		std::cout << "AgentCoordinator: Run " << i << std::endl;
 		std::cout << "************************" << std::endl;
 
-		Step(agents, agentsRequiringPath, agentCollisionMap, collisionCosts);
+		if (Step(agents))
+		{
+			std::cout << "FOUND A CONFLICT-FREE SOLUTION" << std::endl;
+			break;
+		}
+
 		//// Generate additional paths
 		//generatePathTimer.Begin();
 		//for (Agent* agent : agentsRequiringPath)
@@ -276,14 +321,20 @@ void AgentCoordinator::BuildCollisionTable(std::vector<Agent*>& agents)
 	// get the largest path size and resize the table to fit
 	int longestPathSize = -1;
 	for (Agent* agent : agents)
+	{
+		std::cout << *agent << std::endl;
 		for (TemporalAStar::Path& path : agent->potentialPaths)
 			longestPathSize = std::max(longestPathSize, (int) path.size());
+	}
+
+	std::cout << "Longest path: " << longestPathSize << std::endl;
 	tileToPathMapAtTimestep.resize(longestPathSize);
 
 	// add these paths to the table, we pad the path with the last tile if the
 	// path is less than the longest path size
 	for (Agent* agent : agents)
 	{
+		std::cout << *agent << std::endl;
 		for (TemporalAStar::Path& path : agent->potentialPaths)
 		{
 			int lastIndex = path.size() - 1;

@@ -152,23 +152,12 @@ void Simulation::Step()
 			tile->color = vec3(1, 1, 1);
 	}
 
-	//Tile* start = environment.gridMap.getTileAt(2, 1);
-	//Tile* goal = environment.gridMap.getTileAt(0, 1);
-	//pathToDraw = bfs->FindNextPath(start, goal);
-	///*TemporalBFS::Path& path = bfs->FindNextPath(start, goal);
-	//pathsToDraw.push_back(path);*/
-
-	//std::cout << "Found path: " << std::endl;
-	//// print the path
-	//for (Tile* tile : pathToDraw)
-	//	std::cout << *tile << " > " << std::endl;
-	//std::cout << std::endl;
-
-	//start->color = glm::vec3(1, 0, 0);
-	//goal->color = glm::vec3(0, 1, 0);
-
 	// allocate paths to agents which have no collisions
-	coordinator->UpdateAgents(environment.agents);
+
+	//coordinator->UpdateAgents(environment.agents);
+
+	if (!coordinator->Step(environment.agents))
+		return;
 
 	// we have resolved all conflicts, now move agents along their paths
 	for (Agent* agent : environment.agents)
