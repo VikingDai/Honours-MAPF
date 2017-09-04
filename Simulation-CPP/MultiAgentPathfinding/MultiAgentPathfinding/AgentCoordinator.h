@@ -65,10 +65,13 @@ private:
 		bool firstRun);
 
 	/** Check if any paths are in collision AND maps agents to tile collisions */
-	std::vector<std::set<TemporalAStar::Path*>> CheckCollisions(std::vector<Agent*>& agents, std::map<Agent*, TileCollision>& agentsInCollision);
+	std::vector<std::set<TemporalAStar::Path*>> CheckCollisions(std::vector<Agent*>& agents);
 
 	/** */
 	void BuildCollisionTable(std::vector<Agent*>& agents);
+
+	/** Updates the collision table and stores any path collisions */
+	void UpdateCollisions(TemporalAStar::Path& path);
 
 private:
 	TemporalAStar::Path* newestPath;

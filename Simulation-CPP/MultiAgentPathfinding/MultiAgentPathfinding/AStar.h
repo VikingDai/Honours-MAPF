@@ -9,7 +9,7 @@ public:
 	Heuristic() = default;
 	bool operator()(Tile* A, Tile* B)
 	{
-		return A->estimate > B->estimate;
+		return A->estimate < B->estimate;
 	};
 };
 
@@ -26,7 +26,8 @@ public:
 	using Path = std::deque<Tile*>;
 
 private:
-	using OpenQueue = std::priority_queue<Tile*, std::vector<Tile*>, Heuristic>;
+	using OpenQueue = std::vector<Tile*>;
+	//using OpenQueue = std::priority_queue<Tile*, std::vector<Tile*>, Heuristic>;
 	void AddNeighbor(OpenQueue& open, std::vector<Tile*>& modifiedTiles, Tile* current, Tile* neighbor, Tile* start, Tile* goal);
 
 public:

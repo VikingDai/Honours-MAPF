@@ -22,21 +22,23 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 	OpenQueue open;
 
 	start->CalculateEstimate(0, goal);
-	open.push(start);
+	open.push_back(start);
 	modifiedTiles.push_back(start);
 
 	Tile* current = start;
 	while (!open.empty())
 	{
-		current = open.top();
-		open.pop();
-		current->hasBeenExpanded = true;
+		std::sort(open.begin(), open.end(), Heuristic());
+		current = open.front();
+		open.erase(open.begin());
 
 		if (current == goal) // found path to the goal
 		{
 			std::cout << "FOUND goal!" << std::endl;
 			break;
 		}
+
+		current->hasBeenExpanded = true;
 
 		// add the neighbors of the current tile (up, down, left, right) to the open list
 		AddNeighbor(open, modifiedTiles, current, gridMap->getTileRelativeTo(current, 0, 1), start, goal); // up
@@ -90,7 +92,7 @@ void AStar::AddNeighbor(OpenQueue& open, std::vector<Tile*>& modifiedTiles, Tile
 		neighbor->CalculateEstimate(newNeighborCost, goal);
 		neighbor->parent = current;
 
-		open.push(neighbor);
+		open.push_back(neighbor);
 
 		neighbor->color = glm::vec3(0, 1, 0);
 
