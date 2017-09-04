@@ -6,6 +6,7 @@
 #include "TemporalAStar.h"
 #include "Graphics.h"
 #include "TemporalBFS.h"
+#include "AStar.h"
 
 class Tile;
 class GridMap;
@@ -22,7 +23,8 @@ public:
 
 public:
 	TemporalBFS* bfs;
-	TemporalAStar* search;
+	TemporalAStar* temporalAStar;
+	AStar* aStar;
 
 private:
 	int agentId;

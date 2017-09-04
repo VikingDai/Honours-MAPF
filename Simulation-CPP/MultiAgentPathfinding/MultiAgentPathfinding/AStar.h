@@ -9,29 +9,27 @@ public:
 	Heuristic() = default;
 	bool operator()(Tile* A, Tile* B)
 	{
-		return A->estimate < B->estimate;
+		return A->estimate > B->estimate;
 	};
 };
 
 
 class AStar
 {
-public:
+private:
 	GridMap* gridMap;
 
 public:
 	AStar(GridMap* gridMap);
 
 public:
-	//using OpenQueue = std::priority_queue<Tile*, std::vector<Tile*>, Heuristic>;
-	using OpenQueue = std::vector<Tile*>; // #TODO use a custom data structure instead of sorting this vector
 	using Path = std::deque<Tile*>;
 
+private:
+	using OpenQueue = std::priority_queue<Tile*, std::vector<Tile*>, Heuristic>;
+	void AddNeighbor(OpenQueue& open, std::vector<Tile*>& modifiedTiles, Tile* current, Tile* neighbor, Tile* start, Tile* goal);
+
+public:
 	Path FindPath(Tile* start, Tile* goal);
-
-	void AddNeighbor(OpenQueue& open, Tile* current, Tile* neighbor, Tile* start, Tile* goal);
-	void AddSameCostNeighbor(OpenQueue& open, Tile* current, Tile* neighbor, Tile* start, Tile* goal);
-
-	std::vector<Path> FindPaths(Tile* start, Tile* goal);
 };
 

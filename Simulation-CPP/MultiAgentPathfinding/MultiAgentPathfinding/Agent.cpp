@@ -21,6 +21,10 @@ Agent::Agent(GridMap* gridMap, Tile* startTile, Tile* goalTile) : EObject(startT
 	goal = goalTile;
 
 	bfs = new TemporalBFS(gridMap);
+
+	temporalAStar = new TemporalAStar(gridMap);
+
+	aStar = new AStar(gridMap);
 }
 
 void Agent::step()

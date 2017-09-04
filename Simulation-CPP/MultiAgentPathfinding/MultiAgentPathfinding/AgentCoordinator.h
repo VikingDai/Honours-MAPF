@@ -27,41 +27,32 @@ class AgentCoordinator
 private:
 	TemporalAStar* aStar;
 	GridMap* map;
+	PathAssigner* pathAssigner;
 
 public:
 	AgentCoordinator(GridMap* map);
 	
 private:
 	bool isRunning;
-
-private:
-	PathAssigner* pathAssigner;
-
 	Timer coordinatorTimer;
 	Timer generatePathTimer;
 
+private:
+	void PrintPath(Agent* agent, TemporalAStar::Path& path);
+
+private:
 	using PathCollisions = std::vector<std::set<TemporalAStar::Path*>>;
 	using TileToPathMap = std::map<Tile*, std::vector<AgentPath>>;
 	
 	/** (tile => time => num collisions) */
 	using TileCollision = std::vector<std::pair<Tile*, int>>;
 
-	std::deque<TileToPathMap> tileToPathMapAtTimestep;
-	std::map<Tile*, std::map<int, std::vector<AgentPath>>> collisionTable;
-
-	/** Check if any paths are in collision AND maps agents to tile collisions */
-	std::vector<std::set<TemporalAStar::Path*>> CheckCollisions(std::vector<Agent*>& agents, std::map<Agent*, TileCollision>& agentsInCollision);
-
-	void BuildCollisionTable(std::vector<Agent*>& agents);
-
-	void PrintAllPaths(std::vector<Agent*>& agents);
-	void PrintPath(Agent* agent, TemporalAStar::Path& path);
-
 private:
 	std::set<Agent*> agentsRequiringPath;
 	std::map<Agent*, TileCollision> agentCollisionMap;
-	bool anyPathsChanged;
 	TemporalAStar::TileCosts collisionCosts;
+	std::deque<TileToPathMap> tileToPathMapAtTimestep;
+	std::map<Tile*, std::map<int, std::vector<AgentPath>>> collisionTable;
 
 private:
 	bool Init(std::vector<Agent*>& agents);
@@ -70,10 +61,17 @@ private:
 	void GeneratePath(
 		Agent* agent, 
 		std::map<Agent*, TileCollision> agentCollisionMap, 
-		TemporalAStar::TileCosts& collisionCosts);
+		TemporalAStar::TileCosts& collisionCosts,
+		bool firstRun);
+
+	/** Check if any paths are in collision AND maps agents to tile collisions */
+	std::vector<std::set<TemporalAStar::Path*>> CheckCollisions(std::vector<Agent*>& agents, std::map<Agent*, TileCollision>& agentsInCollision);
+
+	/** */
+	void BuildCollisionTable(std::vector<Agent*>& agents);
 
 private:
-	TemporalAStar::Path& newestPath;
+	TemporalAStar::Path* newestPath;
 
 public:
 	void Reset();
