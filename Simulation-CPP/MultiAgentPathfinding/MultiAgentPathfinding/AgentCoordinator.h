@@ -38,7 +38,7 @@ private:
 	Timer generatePathTimer;
 
 private:
-	//void PrintPath(Agent* agent, TemporalAStar::Path& path);
+	void PrintPath(Agent* agent, TemporalAStar::Path& path);
 
 public:
 	using PathCollisions = std::vector<std::set<AgentPathRef*>>;
@@ -55,6 +55,8 @@ private:
 	TemporalAStar::TileCosts collisionCosts;
 	std::deque<TileToPathMap> tileToPathMapAtTimestep;
 	std::map<Tile*, std::map<int, std::vector<AgentPathRef*>>> collisionTable;
+
+	std::vector<std::pair<Tile*, AgentPathRef*>> bottomLayer;
 
 private:
 	bool Init(std::vector<Agent*>& agents);

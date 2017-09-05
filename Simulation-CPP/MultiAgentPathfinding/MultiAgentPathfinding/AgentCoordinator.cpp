@@ -172,7 +172,7 @@ void AgentCoordinator::GeneratePath(
 			UpdateCollisions(new AgentPathRef(agent, agent->potentialPaths.size() - 1));
 		}
 
-		//PrintPath(agent, path);
+		PrintPath(agent, path);
 	}
 	else
 	{
@@ -198,8 +198,7 @@ void AgentCoordinator::GeneratePath(
 		}
 
 
-
-		//PrintPath(agent, path);
+		PrintPath(agent, path);
 	}
 }
 
@@ -212,7 +211,18 @@ void AgentCoordinator::UpdateCollisions(AgentPathRef* agentPathRef)
 
 	// resize table to fit the new path
 	if (path.size() > tileToPathMapAtTimestep.size())
+	{
+		int oldSize = tileToPathMapAtTimestep.size();
 		tileToPathMapAtTimestep.resize(path.size());
+		
+		// use the bottom layer to pad
+		for (int timestep = oldSize; timestep < path.size(); timestep++)
+			for (std::pair<Tile*, AgentPathRef*>& it : bottomLayer)
+				tileToPathMapAtTimestep[timestep][it.first].push_back(it.second);
+	}
+
+	Tile* lastTile = agentPathRef->getPath()[agentPathRef->getPath().size() - 1];
+	bottomLayer.emplace_back(lastTile, agentPathRef);
 
 	Tile* previousTile = map->getTileAt(agentPathRef->agent->x, agentPathRef->agent->y);
 
@@ -220,8 +230,9 @@ void AgentCoordinator::UpdateCollisions(AgentPathRef* agentPathRef)
 	int lastIndex = path.size() - 1;
 	for (int timestep = 0; timestep < longestPathSize; timestep++)
 	{
-		// update the table with this path
+		// get the tile at the timestep along the path
 		Tile* currentTile = timestep <= lastIndex ? path[timestep] : path[lastIndex];
+
 		TileToPathMap& tilePathMap = tileToPathMapAtTimestep[timestep];
 		vector<AgentPathRef*>& pathsUsingTile = tilePathMap[currentTile];
 
@@ -249,12 +260,10 @@ void AgentCoordinator::UpdateCollisions(AgentPathRef* agentPathRef)
 				for (AgentPathRef* agentPath : pathsUsingTile)
 				{
 					collisionTable[currentTile][timestep].push_back(agentPath);
-					std::cout << "SEIOTNRIETNSNTREI" << std::endl;
 					//PrintPath(agentPath->agent, agentPath->getPath());
 				}
 			}
 
-			std::cout << "ZENOQQQQQ" << std::endl;
 			//PrintPath(newAgentPath.agent, *newAgentPath.path);
 			collisionTable[currentTile][timestep].push_back(agentPathRef);
 		}
@@ -287,8 +296,6 @@ void AgentCoordinator::UpdateCollisions(AgentPathRef* agentPathRef)
 				currentTile->color = vec3(v, 0, v);
 				previousTile->color = vec3(v, 0, v);
 
-				/*set<TemporalAStar::Path*> pathsInvolved = { agentPath.path, &path };
-				pathCollisions.push_back(pathsInvolved);*/
 
 				//agentCollisionMap[agent].emplace_back(currentTile, timestep);
 
@@ -302,21 +309,20 @@ void AgentCoordinator::UpdateCollisions(AgentPathRef* agentPathRef)
 		previousTile = currentTile;
 
 
-
-		// finally add the path to this tile
+		// finally update the table with this path
 		pathsUsingTile.emplace_back(agentPathRef);
 	}
 
 	//return pathCollisions;
 }
 
-//void AgentCoordinator::PrintPath(Agent* agent, TemporalAStar::Path& path)
-//{
-//	cout << "Path for " << *agent << " of length " << path.size() << " | ";
-//	for (Tile* tile : path)
-//		std::cout << *tile << " > ";
-//	std::cout << std::endl;
-//}
+void AgentCoordinator::PrintPath(Agent* agent, TemporalAStar::Path& path)
+{
+	cout << "Path for " << *agent << " of length " << path.size() << " | ";
+	for (Tile* tile : path)
+		std::cout << *tile << " > ";
+	std::cout << std::endl;
+}
 
 //vector<set<TemporalAStar::Path*>> AgentCoordinator::CheckCollisions(vector<Agent*>& agents)
 //{
