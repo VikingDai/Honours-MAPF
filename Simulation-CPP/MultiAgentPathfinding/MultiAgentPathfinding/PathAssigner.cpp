@@ -4,7 +4,7 @@
 #include <sstream>
 #include <string>
 
-#define DEBUG_MIP 0
+#define DEBUG_MIP 1
 
 PathAssigner::PathAssigner(GridMap* inGridMap)
 {
@@ -27,7 +27,10 @@ void PathAssigner::Init()
 	SCIP_CALL_EXC(SCIPcreateProbBasic(scip, "PathAssignment"));
 
 	// disable output to console
+
+#if !DEBUG_MIP
 	SCIP_CALL_EXC(SCIPsetIntParam(scip, "display/verblevel", 0));
+#endif
 }
 
 void PathAssigner::InitAgent(std::vector<Agent*> agents)
@@ -102,8 +105,8 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, PathCollis
 		std::vector<TemporalAStar::Path>& paths = agent->potentialPaths;
 		for (int i = 0; i < paths.size(); i++)
 		{
-			TemporalAStar::Path& path = paths[i];
-			assert(!path.empty());
+			AgentPathRef* path = new AgentPathRef(agent, i);
+			assert(!path->getPath().empty());
 
 			// create variable describing path
 			SCIP_VAR* pathVar;
@@ -115,12 +118,12 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, PathCollis
 			char pathVarNameC[50];
 			sprintf(pathVarNameC, "a%dp%d", agentId, i);
 
-			SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &pathVar, pathVarNameC, 0, 1, path.size(), SCIP_VARTYPE_INTEGER));
+			SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &pathVar, pathVarNameC, 0, 1, path->getPath().size(), SCIP_VARTYPE_INTEGER));
 			SCIP_CALL_EXC(SCIPaddVar(scip, pathVar));
 
 			// add it to the map
-			pathToVarMap[&path] = pathVar;
-			varToPathMap[pathVar] = &path;
+			pathToVarMap[path->agent][path->pathIndex] = pathVar;
+			varToPathMap[pathVar] = path;
 			varToAgentMap[pathVar] = agent;
 			varNames[pathVar] = pathVarNameStream.str();
 
@@ -137,7 +140,7 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, PathCollis
 	return SCIP_OKAY;
 }
 
-void PathAssigner::AddPath(Agent* agent, TemporalAStar::Path* path)
+void PathAssigner::AddPath(Agent* agent, AgentPathRef* path)
 {
 	int pathId = agentPathVars[agent].size();
 	// create variable describing path
@@ -151,12 +154,12 @@ void PathAssigner::AddPath(Agent* agent, TemporalAStar::Path* path)
 	sprintf(pathVarNameC, "a%dp%d", agent->getAgentId(), pathId);
 
 	//int pathSize = pathLengths[&path];
-	int pathSize = path->size();
+	int pathSize = path->getPath().size();
 	SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &pathVar, pathVarNameC, 0, 1, pathSize, SCIP_VARTYPE_INTEGER));
 	SCIP_CALL_EXC(SCIPaddVar(scip, pathVar));
 
 	// add it to the map
-	pathToVarMap[path] = pathVar;
+	pathToVarMap[path->agent][path->pathIndex] = pathVar;
 	varToPathMap[pathVar] = path;
 	varToAgentMap[pathVar] = agent;
 	varNames[pathVar] = pathVarNameStream.str();
@@ -184,7 +187,7 @@ void PathAssigner::CreateCollisionConstraints(PathCollisions& pathCollisions)
 {
 	for (int i = 0; i < pathCollisions.size(); i++)
 	{
-		std::set<TemporalAStar::Path*>& paths = pathCollisions[i];
+		std::set<AgentPathRef*>& paths = pathCollisions[i];
 
 		SCIP_CONS* collisionCons;
 		char collisionConsName[50];
@@ -192,9 +195,9 @@ void PathAssigner::CreateCollisionConstraints(PathCollisions& pathCollisions)
 		SCIP_CALL_EXC(SCIPcreateConsBasicLinear(scip, &collisionCons, collisionConsName, 0, nullptr, nullptr, 0, 1));
 
 		// apply collision constraints to path variables
-		for (TemporalAStar::Path* path : paths)
+		for (AgentPathRef* path : paths)
 		{
-			SCIP_VAR* var = pathToVarMap[path];
+			SCIP_VAR* var = pathToVarMap[path->agent][path->pathIndex];
 			SCIP_CALL_EXC(SCIPaddCoefLinear(scip, collisionCons, var, 1.0));
 		}
 
@@ -205,7 +208,7 @@ void PathAssigner::CreateCollisionConstraints(PathCollisions& pathCollisions)
 }
 
 std::vector<Agent*> PathAssigner::AssignPaths(
-	std::vector<Agent*> agents,
+	std::vector<Agent*>& agents,
 	PathCollisions& collisions)
 {
 	mipTimer.Begin();
@@ -269,12 +272,12 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 #if DEBUG_MIP
 					std::cout << *agent << " FOUND A PATH SUCCESFULLY!" << std::endl;
 #endif
-					TemporalAStar::Path& path = *varToPathMap[var];
+					TemporalAStar::Path& path = varToPathMap[var]->getPath();
 					agent->setPath(path);
 				}
 				else // the variable is a penalty var
 				{
-					agent->setPath(TemporalAStar::Path{ map->getTileAt(agent->x, agent->y) });
+					//agent->setPath(TemporalAStar::Path{ map->getTileAt(agent->x, agent->y) });
 #if DEBUG_MIP
 					std::cout << *agent << " was assigned the penalty var. We failed to find a solution!" << std::endl;
 #endif

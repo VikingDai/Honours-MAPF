@@ -14,24 +14,13 @@
 class GridMap;
 class Tile;
 
-struct AgentPathRef
-{
-	Agent* agent;
-	int pathIndex;
-
-	AgentPathRef(Agent* agent, int pathIndex) : agent(agent), pathIndex(pathIndex) {}
-
-	TemporalAStar::Path& getPath() { return agent->potentialPaths[pathIndex]; }
-};
-
-
-struct AgentPath
-{
-	Agent* agent;
-	TemporalAStar::Path* path;
-
-	AgentPath(Agent* agent, TemporalAStar::Path* path) : agent(agent), path(path) {}
-};
+//struct AgentPath
+//{
+//	Agent* agent;
+//	TemporalAStar::Path* path;
+//
+//	AgentPath(Agent* agent, TemporalAStar::Path* path) : agent(agent), path(path) {}
+//};
 
 class AgentCoordinator
 {
@@ -49,11 +38,13 @@ private:
 	Timer generatePathTimer;
 
 private:
-	void PrintPath(Agent* agent, TemporalAStar::Path& path);
+	//void PrintPath(Agent* agent, TemporalAStar::Path& path);
+
+public:
+	using PathCollisions = std::vector<std::set<AgentPathRef*>>;
 
 private:
-	using PathCollisions = std::vector<std::set<TemporalAStar::Path*>>;
-	using TileToPathMap = std::map<Tile*, std::vector<AgentPath>>;
+	using TileToPathMap = std::map<Tile*, std::vector<AgentPathRef*>>;
 	
 	/** (tile => time => num collisions) */
 	using TileCollision = std::vector<std::pair<Tile*, int>>;
@@ -63,9 +54,7 @@ private:
 	std::map<Agent*, TileCollision> agentCollisionMap;
 	TemporalAStar::TileCosts collisionCosts;
 	std::deque<TileToPathMap> tileToPathMapAtTimestep;
-	std::map<Tile*, std::map<int, std::vector<AgentPathRef>>> collisionTable;
-	
-	std::vector<std::vector<TemporalAStar::Path*>> crossCollisions;
+	std::map<Tile*, std::map<int, std::vector<AgentPathRef*>>> collisionTable;
 
 private:
 	bool Init(std::vector<Agent*>& agents);
@@ -84,12 +73,7 @@ private:
 	//void BuildCollisionTable(std::vector<Agent*>& agents);
 
 	/** Updates the collision table and stores any path collisions */
-	std::vector<TemporalAStar::Path*> UpdateCollisions(Agent* agent, TemporalAStar::Path& path);
-
-	
-
-private:
-	TemporalAStar::Path* newestPath;
+	void UpdateCollisions(AgentPathRef* agentPathRef);
 
 public:
 	void Reset();

@@ -2,7 +2,6 @@
 
 #include <vector>
 #include "Agent.h"
-#include "TemporalAStar.h"
 
 /** SCIP includes */
 #include <scip/scip.h>
@@ -25,12 +24,14 @@ public:
 	~PathAssigner();
 
 private:
+	using PathCollisions = std::vector<std::set<AgentPathRef*>>;
+
 	GridMap* map;
 
 	/** SCIP helper structures */
 	std::vector<SCIP_VAR*> allVariables;
 	std::map<SCIP_VAR*, Agent*> varToAgentMap;
-	std::map<SCIP_VAR*, TemporalAStar::Path*> varToPathMap;
+	std::map<SCIP_VAR*, AgentPathRef*> varToPathMap;
 	std::map<SCIP_VAR*, std::string> varNames;
 
 	std::vector<SCIP_CONS*> pathCollisionCons;
@@ -45,8 +46,6 @@ private:
 	/** Create penalty variable and agent choice constraint for each agent */
 	void InitAgent(std::vector<Agent*> agents);
 
-	using PathCollisions = std::vector<std::set<TemporalAStar::Path*>>;
-
 	SCIP_RETCODE CreateProblem(
 		std::vector<Agent*>& agents,
 		PathCollisions& pathCollisions);
@@ -57,16 +56,16 @@ private:
 	/** Create constraints describing path collisions */
 	void CreateCollisionConstraints(PathCollisions& pathCollisions);
 
-	std::map<const TemporalAStar::Path*, SCIP_VAR*> pathToVarMap;
-	SCIP_VAR* GetPathVar(TemporalAStar::Path* path) { return pathToVarMap[path]; }
+	std::map<Agent*, std::map<int, SCIP_VAR*>> pathToVarMap;
+	SCIP_VAR* GetPathVar(AgentPathRef* path) { return pathToVarMap[path->agent][path->pathIndex]; }
 
 public:
 	/** Assigns a path to each agent. Returns a vector of agents who were unable to find a conflict-free path. */
 	std::vector<Agent*> AssignPaths(
-		std::vector<Agent*> agents, 
+		std::vector<Agent*>& agents, 
 		PathCollisions& collisions);
 
-	void AddPath(Agent* agent, TemporalAStar::Path* path);
+	void AddPath(Agent* agent, AgentPathRef* path);
 
 	void Cleanup();
 

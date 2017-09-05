@@ -57,3 +57,12 @@ public:
 	friend std::ostream& operator<<(std::ostream& os, Agent& agent);
 };
 
+struct AgentPathRef
+{
+	Agent* agent;
+	int pathIndex;
+
+	AgentPathRef(Agent* agent, int pathIndex) : agent(agent), pathIndex(pathIndex) {}
+
+	TemporalAStar::Path& getPath() { return agent->potentialPaths[pathIndex]; }
+};
