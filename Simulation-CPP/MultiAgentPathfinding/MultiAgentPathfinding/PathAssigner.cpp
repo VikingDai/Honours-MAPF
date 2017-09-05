@@ -206,7 +206,7 @@ void PathAssigner::CreateCollisionConstraints(PathCollisions& pathCollisions)
 
 std::vector<Agent*> PathAssigner::AssignPaths(
 	std::vector<Agent*> agents,
-	std::vector<std::set<TemporalAStar::Path*>>& collisions)
+	PathCollisions& collisions)
 {
 	mipTimer.Begin();
 

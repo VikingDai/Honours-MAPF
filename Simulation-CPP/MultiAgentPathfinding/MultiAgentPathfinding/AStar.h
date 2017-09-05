@@ -27,7 +27,6 @@ public:
 
 private:
 	using OpenQueue = std::vector<Tile*>;
-	//using OpenQueue = std::priority_queue<Tile*, std::vector<Tile*>, Heuristic>;
 	void AddNeighbor(OpenQueue& open, std::vector<Tile*>& modifiedTiles, Tile* current, Tile* neighbor, Tile* start, Tile* goal);
 
 public:

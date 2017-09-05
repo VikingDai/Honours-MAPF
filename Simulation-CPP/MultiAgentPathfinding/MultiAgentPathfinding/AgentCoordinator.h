@@ -14,6 +14,17 @@
 class GridMap;
 class Tile;
 
+struct AgentPathRef
+{
+	Agent* agent;
+	int pathIndex;
+
+	AgentPathRef(Agent* agent, int pathIndex) : agent(agent), pathIndex(pathIndex) {}
+
+	TemporalAStar::Path& getPath() { return agent->potentialPaths[pathIndex]; }
+};
+
+
 struct AgentPath
 {
 	Agent* agent;
@@ -52,7 +63,9 @@ private:
 	std::map<Agent*, TileCollision> agentCollisionMap;
 	TemporalAStar::TileCosts collisionCosts;
 	std::deque<TileToPathMap> tileToPathMapAtTimestep;
-	std::map<Tile*, std::map<int, std::vector<AgentPath>>> collisionTable;
+	std::map<Tile*, std::map<int, std::vector<AgentPathRef>>> collisionTable;
+	
+	std::vector<std::vector<TemporalAStar::Path*>> crossCollisions;
 
 private:
 	bool Init(std::vector<Agent*>& agents);
@@ -65,13 +78,15 @@ private:
 		bool firstRun);
 
 	/** Check if any paths are in collision AND maps agents to tile collisions */
-	std::vector<std::set<TemporalAStar::Path*>> CheckCollisions(std::vector<Agent*>& agents);
+	//std::vector<std::set<TemporalAStar::Path*>> CheckCollisions(std::vector<Agent*>& agents);
 
 	/** */
-	void BuildCollisionTable(std::vector<Agent*>& agents);
+	//void BuildCollisionTable(std::vector<Agent*>& agents);
 
 	/** Updates the collision table and stores any path collisions */
-	void UpdateCollisions(TemporalAStar::Path& path);
+	std::vector<TemporalAStar::Path*> UpdateCollisions(Agent* agent, TemporalAStar::Path& path);
+
+	
 
 private:
 	TemporalAStar::Path* newestPath;
