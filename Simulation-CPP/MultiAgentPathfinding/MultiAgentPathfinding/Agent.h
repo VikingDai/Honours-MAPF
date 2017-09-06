@@ -65,4 +65,10 @@ struct AgentPathRef
 	AgentPathRef(Agent* agent, int pathIndex) : agent(agent), pathIndex(pathIndex) {}
 
 	TemporalAStar::Path& getPath() { return agent->potentialPaths[pathIndex]; }
+
+	friend std::ostream& operator<<(std::ostream& os, AgentPathRef& pathRef)
+	{
+		os << "Path " << pathRef.pathIndex << ": Agent(" << pathRef.agent->getAgentId() << ")";
+		return os;
+	}
 };

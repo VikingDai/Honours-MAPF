@@ -33,6 +33,7 @@ public:
 	AgentCoordinator(GridMap* map);
 	
 private:
+	int iteration;
 	bool isRunning;
 	Timer coordinatorTimer;
 	Timer generatePathTimer;
@@ -49,6 +50,9 @@ private:
 	/** (tile => time => num collisions) */
 	using TileCollision = std::vector<std::pair<Tile*, int>>;
 
+	/** This path is in collision with other paths at time*/
+	using CollisionAtTime = std::map<int, std::vector<AgentPathRef*>>;
+
 private:
 	std::set<Agent*> agentsRequiringPath;
 	std::map<Agent*, TileCollision> agentCollisionMap;
@@ -64,8 +68,6 @@ private:
 	/** Generates a new path for an agent */
 	void GeneratePath(
 		Agent* agent, 
-		std::map<Agent*, TileCollision> agentCollisionMap, 
-		TemporalAStar::TileCosts& collisionCosts,
 		bool firstRun);
 
 	/** Check if any paths are in collision AND maps agents to tile collisions */
@@ -75,7 +77,7 @@ private:
 	//void BuildCollisionTable(std::vector<Agent*>& agents);
 
 	/** Updates the collision table and stores any path collisions */
-	void UpdateCollisions(AgentPathRef* agentPathRef);
+	CollisionAtTime UpdateCollisions(AgentPathRef* agentPathRef);
 
 public:
 	void Reset();
