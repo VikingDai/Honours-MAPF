@@ -251,23 +251,6 @@ AgentCoordinator::CollisionSet AgentCoordinator::DetectTileCollisions()
 	collisionSet.insert(collisionSet.end(), crossCollisionSet.begin(), crossCollisionSet.end());
 
 	return collisionSet;
-
-	/*for (auto& it : collisionTable)
-	{
-		for (auto& it2 : it.second)
-		{
-			std::set<AgentPathRef*> paths;
-			std::vector<AgentPathRef*>& pathsInCollision = it2.second;
-			std::cout << "COLLISION" << std::endl;
-			for (AgentPathRef* pathRef : pathsInCollision)
-			{
-				std::cout << "\t"; PrintPath(pathRef->agent, pathRef->getPath());
-				paths.emplace(pathRef);
-			}
-
-			collisionSet.push_back(paths);
-		}
-	}*/
 }
 
 AgentCoordinator::CollisionAtTime AgentCoordinator::UpdateCollisions(AgentPathRef* pathRef)
@@ -293,7 +276,7 @@ AgentCoordinator::CollisionAtTime AgentCoordinator::UpdateCollisions(AgentPathRe
 
 	int longestPathSize = tileToPathMapAtTimestep.size();
 	int lastIndex = path.size() - 1;
-	for (int timestep = 0; timestep < longestPathSize - 1; timestep++)
+	for (int timestep = 0; timestep < longestPathSize; timestep++)
 	{
 		// get the tile at the timestep along the path
 		Tile* currentTile = timestep <= lastIndex ? path[timestep] : path[lastIndex];
@@ -340,10 +323,9 @@ AgentCoordinator::CollisionAtTime AgentCoordinator::UpdateCollisions(AgentPathRe
 
 			MAPF::Path& otherPath = pathRefOther->getPath();
 
-			if (timestep + 1 >= otherPath.size()) continue;
-
-			Tile* currentTileOther = otherPath[timestep];
-			Tile* nextTileOther = otherPath[timestep + 1];
+			int lastIndexOther = otherPath.size() - 1;
+			Tile* currentTileOther = timestep <= lastIndexOther ? otherPath[timestep] : otherPath[lastIndexOther];
+			Tile* nextTileOther = timestep + 1 <= lastIndexOther ? otherPath[timestep + 1] : otherPath[lastIndexOther];
 
 			assert(currentTileOther == nextTile); // the line where we set paths should have made this true
 

@@ -8,7 +8,7 @@
 
 int NODES_EXPANDED = 0;
 
-#define DEBUG_VERBOSE 1
+#define DEBUG_VERBOSE 0
 #define TEST_GENERATE_DIFFERENT 1
 
 TemporalAStar::TemporalAStar(GridMap* inGridMap)

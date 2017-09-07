@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <stack>
 
+#define DEBUG_ASTAR 0
+
 AStar::AStar(GridMap* inGridMap)
 {
 	gridMap = inGridMap;
@@ -33,10 +35,7 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 		open.erase(open.begin());
 
 		if (current == goal) // found path to the goal
-		{
-			std::cout << "FOUND goal!" << std::endl;
 			break;
-		}
 
 		current->hasBeenExpanded = true;
 
@@ -74,7 +73,9 @@ void AStar::AddNeighbor(OpenQueue& open, std::vector<Tile*>& modifiedTiles, Tile
 
 	if (neighbor->isInOpen)
 	{
+#if DEBUG_ASTAR
 		std::cout << "UPDATED " << *neighbor << " in open list." << std::endl;
+#endif
 
 		// update neighbor in the fringe by checking if this new parent tile is better
 		bool newCostIsBetter = newNeighborCost < neighbor->cost;
@@ -86,7 +87,9 @@ void AStar::AddNeighbor(OpenQueue& open, std::vector<Tile*>& modifiedTiles, Tile
 	}
 	else // add neighbor to the fringe
 	{
+#if DEBUG_ASTAR
 		std::cout << "ADDED " << *neighbor << " to open list." << std::endl;
+#endif
 
 		neighbor->isInOpen = true;
 		neighbor->CalculateEstimate(newNeighborCost, goal);
