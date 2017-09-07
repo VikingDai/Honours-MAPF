@@ -8,7 +8,7 @@
 
 int NODES_EXPANDED = 0;
 
-#define DEBUG_VERBOSE 0
+#define DEBUG_VERBOSE 1
 #define TEST_GENERATE_DIFFERENT 1
 
 TemporalAStar::TemporalAStar(GridMap* inGridMap)
@@ -191,7 +191,7 @@ MAPF::Path TemporalAStar::FindPath2(Tile* start, Tile* goal, TileCosts& customCo
 	modifiedTileTimes.clear();
 
 	TileTime2* initial = new TileTime2();
-	initial->SetInfo(0, start, 0, start->CalculateEstimate(0, goal));
+	initial->SetInfo(1, start, 0, start->CalculateEstimate(0, goal));
 	initial->bIsInOpen = true;
 	open2.push(initial);
 	modifiedTileTimes.emplace(initial);
@@ -266,7 +266,10 @@ void TemporalAStar::ExpandNeighbor2(OpenQueue2& open, TileTime2* current, Tile* 
 
 	float cost = current->cost + 1;
 
-	cost += GetCustomCosts(current->timestep, neighborTile, customCosts);
+	float customCost = GetCustomCosts(current->timestep, neighborTile, customCosts);
+	if (customCost > 0) 
+		std::cout << "\t\t\t\tUSING CUSTOM COST ON TILE " << *neighborTile << " ON TIME " << current->timestep << " VALUE " << customCost << std::endl;
+	cost += customCost;
 
 	if (neighbor->bIsInOpen && !neighbor->bNeedsReset) // relax the node - update the parent
 	{

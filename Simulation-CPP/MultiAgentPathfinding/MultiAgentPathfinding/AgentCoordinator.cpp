@@ -291,14 +291,13 @@ AgentCoordinator::CollisionAtTime AgentCoordinator::UpdateCollisions(AgentPathRe
 	Tile* lastTile = pathRef->getPath()[pathRef->getPath().size() - 1];
 	bottomLayer.emplace_back(lastTile, pathRef);
 
-	Tile* previousTile = map->getTileAt(pathRef->agent->x, pathRef->agent->y);
-
 	int longestPathSize = tileToPathMapAtTimestep.size();
 	int lastIndex = path.size() - 1;
-	for (int timestep = 0; timestep < longestPathSize; timestep++)
+	for (int timestep = 0; timestep < longestPathSize - 1; timestep++)
 	{
 		// get the tile at the timestep along the path
 		Tile* currentTile = timestep <= lastIndex ? path[timestep] : path[lastIndex];
+		Tile* nextTile = timestep + 1 <= lastIndex ? path[timestep + 1] : path[lastIndex];
 
 		TileToPathMap& tilePathMap = tileToPathMapAtTimestep[timestep];
 		std::vector<AgentPathRef*>& pathsUsingTile = tilePathMap[currentTile];
@@ -332,7 +331,7 @@ AgentCoordinator::CollisionAtTime AgentCoordinator::UpdateCollisions(AgentPathRe
 
 		// check for collisions where two agents pass one another
 		TileToPathMap& tileToPathMap = tileToPathMapAtTimestep[timestep];
-		std::vector<AgentPathRef*>& paths = tileToPathMap[previousTile];
+		std::vector<AgentPathRef*>& paths = tileToPathMap[nextTile];
 		for (AgentPathRef* pathRefOther : paths) // check agents using our previous tile at the current timestep
 		{
 			if (pathRefOther->agent == pathRef->agent) continue; // skip any paths using the same agent
@@ -341,36 +340,33 @@ AgentCoordinator::CollisionAtTime AgentCoordinator::UpdateCollisions(AgentPathRe
 
 			MAPF::Path& otherPath = pathRefOther->getPath();
 
-			if (timestep >= otherPath.size()) continue;
+			if (timestep + 1 >= otherPath.size()) continue;
 
 			Tile* currentTileOther = otherPath[timestep];
-			Tile* previousTileOther =
-				timestep > 0 ? 
-				otherPath[timestep - 1] : 
-				map->getTileAt(pathRefOther->agent->x, pathRefOther->agent->y);
+			Tile* nextTileOther = otherPath[timestep + 1];
 
-			assert(currentTileOther == previousTile); // the line where we set paths should have made this true
+			assert(currentTileOther == nextTile); // the line where we set paths should have made this true
 
 			// there is a collision if two agents 'swap' position
-			if (currentTile == previousTileOther && previousTile == currentTileOther)
+			if (currentTile == nextTileOther && nextTile == currentTileOther)
 			{
 				float v = 1.f / (float) (timestep + 1);
 				currentTile->color = vec3(v, 0, v);
-				previousTile->color = vec3(v, 0, v);
+				nextTile->color = vec3(v, 0, v);
 
-				agentCollisionMap[pathRef->agent].emplace_back(previousTile, timestep);
-				agentCollisionMap[pathRefOther->agent].emplace_back(previousTileOther, timestep);
+				agentCollisionMap[pathRef->agent].emplace_back(nextTile, timestep);
+				agentCollisionMap[pathRefOther->agent].emplace_back(nextTileOther, timestep);
 
 				crossCollisionSet.push_back({ pathRef, pathRefOther });
 
 				pathCollisions[timestep].push_back(pathRefOther);
 
-				collisionTable[previousTile][timestep].push_back(pathRef);
-				collisionTable[previousTileOther][timestep].push_back(pathRefOther);
+				collisionTable[nextTile][timestep].push_back(pathRef);
+				collisionTable[nextTileOther][timestep].push_back(pathRefOther);
 			}
 		}
 
-		previousTile = currentTile;
+		//previousTile = currentTile;
 
 
 		// finally update the table with this path
