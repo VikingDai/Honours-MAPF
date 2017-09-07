@@ -102,7 +102,7 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, PathCollis
 		agentVariables.push_back(penaltyVar);
 
 		// for each path construct a variable in the form 'a1p1'
-		std::vector<TemporalAStar::Path>& paths = agent->potentialPaths;
+		std::vector<MAPF::Path>& paths = agent->potentialPaths;
 		for (int i = 0; i < paths.size(); i++)
 		{
 			AgentPathRef* path = new AgentPathRef(agent, i);
@@ -272,12 +272,12 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 #if DEBUG_MIP
 					std::cout << *agent << " FOUND A PATH SUCCESFULLY!" << std::endl;
 #endif
-					TemporalAStar::Path& path = varToPathMap[var]->getPath();
+					MAPF::Path& path = varToPathMap[var]->getPath();
 					agent->setPath(path);
 				}
 				else // the variable is a penalty var
 				{
-					//agent->setPath(TemporalAStar::Path{ map->getTileAt(agent->x, agent->y) });
+					//agent->setPath(MAPF::Path{ map->getTileAt(agent->x, agent->y) });
 #if DEBUG_MIP
 					std::cout << *agent << " was assigned the penalty var. We failed to find a solution!" << std::endl;
 #endif

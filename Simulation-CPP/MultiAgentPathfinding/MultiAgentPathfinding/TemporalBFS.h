@@ -5,6 +5,7 @@
 #include <queue>
 #include "Tile.h"
 #include "GridMap.h"
+#include "MAPF.h"
 
 class TemporalBFS
 {
@@ -17,10 +18,8 @@ public:
 public:
 	using TileTime = std::pair<Tile*, int>;
 
-	using Path = std::deque<Tile*>;
-
 	std::queue<TileTime*> frontier;
-	std::vector<Path> allPaths;
+	std::vector<MAPF::Path> allPaths;
 
 	std::map<TileTime*, TileTime*> cameFrom;
 
@@ -28,8 +27,8 @@ public:
 	TemporalBFS(GridMap* gridMap);
 
 public:
-	Path FindNextPath(Tile* start, Tile* goal);
-	std::vector<Path> SearchToDepth(Tile* start, Tile* goal, int depth);
+	MAPF::Path FindNextPath(Tile* start, Tile* goal);
+	std::vector<MAPF::Path> SearchToDepth(Tile* start, Tile* goal, int depth);
 	void AddNeighbor(TileTime* current, Tile* neighbor);
 };
 

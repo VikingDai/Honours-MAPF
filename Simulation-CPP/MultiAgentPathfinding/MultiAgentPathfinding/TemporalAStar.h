@@ -6,6 +6,7 @@
 #include "Timer.h"
 #include "Helper.h"
 #include <set>
+#include "MAPF.h"
 
 class Tile;
 class GridMap;
@@ -94,7 +95,6 @@ public:
 
 public:
 	using OpenQueue = std::priority_queue<TileTime*, std::vector<TileTime*>, BaseHeuristic>;
-	using Path = std::deque<Tile*>;
 	using TileCosts = std::map<int, std::map<Tile*, float>>;
 
 private:
@@ -112,7 +112,7 @@ public:
 	void SetGridMap(GridMap* gridMap) { this->gridMap = gridMap; }
 	~TemporalAStar();
 
-	Path FindPath(Tile* start, Tile* goal, TileCosts& customCostTable = TileCosts());
+	MAPF::Path FindPath(Tile* start, Tile* goal, TileCosts& customCostTable = TileCosts());
 	void ExpandNeighbor(OpenQueue& open, TileTime* currentInfo, Tile* currentTile, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& customCosts);
 
 
@@ -126,7 +126,7 @@ public: // TESTING NEW STUFF
 
 	std::map<Tile*, std::map<int, TileTime2*>> spatialGridMap;
 
-	Path FindPath2(Tile* start, Tile* goal, TileCosts& customCosts = TileCosts());
+	MAPF::Path FindPath2(Tile* start, Tile* goal, TileCosts& customCosts = TileCosts());
 
 	//OpenQueue2 open2;
 

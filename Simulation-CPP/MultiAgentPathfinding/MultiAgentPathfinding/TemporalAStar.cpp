@@ -20,18 +20,18 @@ TemporalAStar::~TemporalAStar()
 {
 }
 
-TemporalAStar::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
+MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
 {
 	timer.Begin();
 	NODES_EXPANDED = 0;
 
-	Path path;
+	MAPF::Path path;
 
 	if (!start || !goal || start == goal)
-		return Path{ start };
+		return MAPF::Path{ start };
 
 	if (!start->isWalkable || !goal->isWalkable)
-		return Path{ start };
+		return MAPF::Path{ start };
 
 	modifiedTiles.clear();
 	OpenQueue open;
@@ -182,10 +182,10 @@ bool BaseHeuristic::operator()(TileTime* A, TileTime* B)
 // TESTING
 //////////////////////////////////////////////////////////////////////////
 
-TemporalAStar::Path TemporalAStar::FindPath2(Tile* start, Tile* goal, TileCosts& customCosts)
+MAPF::Path TemporalAStar::FindPath2(Tile* start, Tile* goal, TileCosts& customCosts)
 {
 	timer.Begin();
-	Path path;
+	MAPF::Path path;
 	OpenQueue2 open2;
 
 	modifiedTileTimes.clear();
@@ -219,8 +219,8 @@ TemporalAStar::Path TemporalAStar::FindPath2(Tile* start, Tile* goal, TileCosts&
 		ExpandNeighbor2(open2, current, gridMap->getTileRelativeTo(current->tile, -1, 0), start, goal, customCosts);
 	}
 
-	//std::cout << "BUILDING PATH!" << std::endl;
-	while (current->parent != nullptr)
+	// build the path
+	while (current != nullptr)
 	{
 		if (current->countFrom.find(current->parent) == current->countFrom.end())
 			current->countFrom[current->parent] = 0;
@@ -230,10 +230,9 @@ TemporalAStar::Path TemporalAStar::FindPath2(Tile* start, Tile* goal, TileCosts&
 		current = current->parent;
 	}
 
+	// reset any modified tiles
 	for (TileTime2* modified : modifiedTileTimes)
-	{
 		modified->Reset();
-	}
 
 	timer.End();
 	Stats::avgSearchTime = timer.GetAvgTime();

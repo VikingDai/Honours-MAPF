@@ -38,22 +38,22 @@ void Agent::step()
 		x = nextTile->x;
 		y = nextTile->y;
 
-		std::vector<TemporalAStar::Path> pathsToRemove;
-		for (TemporalAStar::Path& allPath : potentialPaths)
+		std::vector<MAPF::Path> pathsToRemove;
+		for (MAPF::Path& allPath : potentialPaths)
 		{
 			allPath.pop_front();
 			if (allPath.empty())
 				pathsToRemove.push_back(allPath);
 		}
 
-		for (TemporalAStar::Path& pathToRemove : pathsToRemove)
+		for (MAPF::Path& pathToRemove : pathsToRemove)
 		{
 			auto it = std::find(potentialPaths.begin(), potentialPaths.end(), pathToRemove);
 			if (it != potentialPaths.end())
 				potentialPaths.erase(it);
 		}
 
-		for (TemporalAStar::Path& allPath : potentialPaths)
+		for (MAPF::Path& allPath : potentialPaths)
 			assert(!allPath.empty());
 	}
 	
@@ -62,7 +62,7 @@ void Agent::step()
 		goal = nullptr;
 }
 
-void Agent::setPath(TemporalAStar::Path& inPath)
+void Agent::setPath(MAPF::Path& inPath)
 {
 	chosenPath = inPath;
 }
@@ -79,7 +79,7 @@ void Agent::drawPaths(Graphics* graphics)
 
 	for (int i = 0; i < potentialPaths.size(); i++) //AStar::Path& path : allPaths)
 	{
-		TemporalAStar::Path& path = potentialPaths[i];
+		MAPF::Path& path = potentialPaths[i];
 		float pathSep = .4 / potentialPaths.size();
 		for (Tile* tile : path)
 		{

@@ -7,6 +7,7 @@
 #include "Graphics.h"
 #include "TemporalBFS.h"
 #include "AStar.h"
+#include "MAPF.h"
 
 class Tile;
 class GridMap;
@@ -29,12 +30,12 @@ public:
 private:
 	int agentId;
 
-	TemporalAStar::Path chosenPath;
+	MAPF::Path chosenPath;
 public:
-	std::vector<TemporalAStar::Path> potentialPaths;
+	std::vector<MAPF::Path> potentialPaths;
 
-	void setPath(TemporalAStar::Path& path);
-	TemporalAStar::Path& getPath() { return chosenPath; }
+	void setPath(MAPF::Path& path);
+	MAPF::Path& getPath() { return chosenPath; }
 
 public:
 	Tile* goal;
@@ -64,7 +65,7 @@ struct AgentPathRef
 
 	AgentPathRef(Agent* agent, int pathIndex) : agent(agent), pathIndex(pathIndex) {}
 
-	TemporalAStar::Path& getPath() { return agent->potentialPaths[pathIndex]; }
+	MAPF::Path& getPath() { return agent->potentialPaths[pathIndex]; }
 
 	friend std::ostream& operator<<(std::ostream& os, AgentPathRef& pathRef)
 	{

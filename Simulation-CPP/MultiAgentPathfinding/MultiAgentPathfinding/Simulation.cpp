@@ -17,8 +17,8 @@ namespace fs = std::experimental::filesystem;
 
 int Simulation::timestep;
 
-TemporalAStar::Path pathToDraw;
-std::vector<TemporalAStar::Path> pathsToDraw;
+MAPF::Path pathToDraw;
+std::vector<MAPF::Path> pathsToDraw;
 
 #define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
 
@@ -206,7 +206,7 @@ void Simulation::Render(Graphics* graphics)
 	float sep = .6;
 	for (int i = 0; i < pathsToDraw.size(); i++)
 	{
-		TemporalBFS::Path& path = pathsToDraw[i];
+		MAPF::Path& path = pathsToDraw[i];
 		float pathSep = sep / pathsToDraw.size();
 		std::vector<vec3> points;
 		for (Tile* tile : path)

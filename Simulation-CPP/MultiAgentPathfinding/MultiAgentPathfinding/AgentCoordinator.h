@@ -11,15 +11,17 @@
 #include "Timer.h"
 #include "PathAssigner.h"
 
+#include "MAPF.h"
+
 class GridMap;
 class Tile;
 
 //struct AgentPath
 //{
 //	Agent* agent;
-//	TemporalAStar::Path* path;
+//	MAPF::Path* path;
 //
-//	AgentPath(Agent* agent, TemporalAStar::Path* path) : agent(agent), path(path) {}
+//	AgentPath(Agent* agent, MAPF::Path* path) : agent(agent), path(path) {}
 //};
 
 class AgentCoordinator
@@ -39,7 +41,7 @@ private:
 	Timer generatePathTimer;
 
 private:
-	void PrintPath(Agent* agent, TemporalAStar::Path& path);
+	void PrintPath(Agent* agent, MAPF::Path& path);
 
 public:
 	using PathCollisions = std::vector<std::set<AgentPathRef*>>;
@@ -71,7 +73,7 @@ private:
 		bool firstRun);
 
 	/** Check if any paths are in collision AND maps agents to tile collisions */
-	//std::vector<std::set<TemporalAStar::Path*>> CheckCollisions(std::vector<Agent*>& agents);
+	//std::vector<std::set<MAPF::Path*>> CheckCollisions(std::vector<Agent*>& agents);
 
 	/** */
 	//void BuildCollisionTable(std::vector<Agent*>& agents);

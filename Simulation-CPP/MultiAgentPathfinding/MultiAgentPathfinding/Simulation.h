@@ -4,6 +4,7 @@
 #include "TemporalAStar.h"
 #include "Scenario.h"
 #include "TemporalBFS.h"
+#include "MAPF.h"
 
 class Graphics;
 

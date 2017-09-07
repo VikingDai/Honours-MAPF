@@ -5,11 +5,11 @@ TemporalBFS::TemporalBFS(GridMap* inGridMap)
 	gridMap = inGridMap;
 }
 
-TemporalBFS::Path TemporalBFS::FindNextPath(Tile* start, Tile* goal)
+MAPF::Path TemporalBFS::FindNextPath(Tile* start, Tile* goal)
 {
 	nodesExpanded = 0;
 
-	TemporalBFS::Path path;
+	MAPF::Path path;
 
 	if (!start || !goal)
 		return path;
@@ -53,11 +53,11 @@ TemporalBFS::Path TemporalBFS::FindNextPath(Tile* start, Tile* goal)
 	return path;
 }
 
-std::vector<TemporalBFS::Path> TemporalBFS::SearchToDepth(Tile* start, Tile* goal, int depth)
+std::vector<MAPF::Path> TemporalBFS::SearchToDepth(Tile* start, Tile* goal, int depth)
 {
 	nodesExpanded = 0;
 
-	std::vector<TemporalBFS::Path> paths;
+	std::vector<MAPF::Path> paths;
 
 	if (!start || !goal || depth <= 0) 
 		return paths;
@@ -90,7 +90,7 @@ std::vector<TemporalBFS::Path> TemporalBFS::SearchToDepth(Tile* start, Tile* goa
 	// rebuild paths
 	for (TileTime* tileTime : tilesAtGoal)
 	{
-		Path path;
+		MAPF::Path path;
 		TileTime* current = tileTime;
 
 		while (cameFrom.find(current) != cameFrom.end())
