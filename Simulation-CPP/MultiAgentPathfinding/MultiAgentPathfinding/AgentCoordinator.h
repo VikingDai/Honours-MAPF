@@ -43,9 +43,6 @@ private:
 private:
 	void PrintPath(Agent* agent, MAPF::Path& path);
 
-public:
-	using PathCollisions = std::vector<std::set<AgentPathRef*>>;
-
 private:
 	using TileToPathMap = std::map<Tile*, std::vector<AgentPathRef*>>;
 	
@@ -72,8 +69,12 @@ private:
 		Agent* agent, 
 		bool firstRun);
 
-	/** Check if any paths are in collision AND maps agents to tile collisions */
-	//std::vector<std::set<MAPF::Path*>> CheckCollisions(std::vector<Agent*>& agents);
+	using CollisionSet = std::vector<std::set<AgentPathRef*>>;
+	/** Groups together paths which are in collision with one another */
+
+	std::set<std::pair<Tile*, int>> tilesInCollision;
+	CollisionSet DetectTileCollisions();
+	CollisionSet crossCollisionSet;
 
 	/** */
 	//void BuildCollisionTable(std::vector<Agent*>& agents);
