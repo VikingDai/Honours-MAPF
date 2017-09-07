@@ -16,14 +16,6 @@
 class GridMap;
 class Tile;
 
-//struct AgentPath
-//{
-//	Agent* agent;
-//	MAPF::Path* path;
-//
-//	AgentPath(Agent* agent, MAPF::Path* path) : agent(agent), path(path) {}
-//};
-
 class AgentCoordinator
 {
 private:
