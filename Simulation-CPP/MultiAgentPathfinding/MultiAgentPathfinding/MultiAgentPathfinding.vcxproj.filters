@@ -93,6 +93,9 @@
     <ClCompile Include="imgui-SFML.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Globals.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\libs\imgui\imconfig.h">
@@ -168,6 +171,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="imgui-SFML.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Globals.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -5,83 +5,119 @@
 #include <SFML/System/Clock.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/Font.hpp>
 
 #include "Simulation.h"
+#include "Globals.h"
 
 int main()
 {
 	sf::ContextSettings settings;
 	settings.antialiasingLevel = 8;
 
-
+	/** Create the window */
 	sf::RenderWindow window(sf::VideoMode(1280, 720), "Multi-agent Pathfinding", sf::Style::Default, settings);
 	window.setFramerateLimit(60);
 	ImGui::SFML::Init(window);
 
-	Simulation simulation;
+	if (!Globals::InitGlobals())
+		return false;
 
-	/*sf::View view = window.getDefaultView();
-	view.zoom(50.f);
-	window.setView(view);*/
+	bool scrolling = false;
+	bool firstTick = false;
+	sf::Vector2i lastMousePos;
+
+	Simulation simulation;
 
 	float cameraSpeed = 100.f;
 
-	float zoom = 0.05f;
-
+	/** Initial view settings */
 	sf::View view = window.getView();
+	float zoom = 1.f;
 	view.zoom(zoom);
 	view.setCenter(sf::Vector2f(0, 0));
 	window.setView(view);
 
-	bool scrolling = false;
-	sf::Vector2i lastMousePos;
-
 	sf::Clock deltaClock;
 	while (window.isOpen())
 	{
+		sf::Time deltaTime = deltaClock.restart();
+		float dt = deltaTime.asSeconds();
+
 		sf::Event event;
 		while (window.pollEvent(event))
 		{
 			ImGui::SFML::ProcessEvent(event);
 
-			if (event.type == sf::Event::Closed)
+			switch (event.type)
+			{
+			case sf::Event::Closed:
+			{
 				window.close();
-			else if (event.type == sf::Event::MouseWheelMoved) // Zoom in or out if the mouse wheel moves
+				break;
+			}
+			case sf::Event::MouseWheelMoved:
 			{
 				float zoomScale = 1.f + event.mouseWheel.delta * -0.1f;
 				view.zoom(zoomScale);
 				zoom *= zoomScale;
+				break;
 			}
-			else if (event.type == sf::Event::KeyPressed)
+			case sf::Event::KeyPressed:
 			{
 				if (event.key.code == sf::Keyboard::Space)
 					simulation.Step();
+				if (event.key.code == sf::Keyboard::Escape)
+					window.close();
+
+				break;
+			}
+			case sf::Event::MouseMoved:
+			{
+				if (scrolling)
+				{
+					if (firstTick)
+					{
+						lastMousePos.x = event.mouseMove.x;
+						lastMousePos.y = event.mouseMove.y;
+						firstTick = false;
+					}
+					else
+					{
+						sf::Vector2i currentMousePos(event.mouseMove.x, event.mouseMove.y);
+						sf::Vector2i deltaPos = lastMousePos - currentMousePos;
+						view.move(sf::Vector2f(deltaPos.x, deltaPos.y) * dt * zoom * cameraSpeed);
+						lastMousePos = currentMousePos;
+						std::cout << deltaPos.x << ", " << deltaPos.y << std::endl;
+					}
+				}
+				break;
+			}
+			case sf::Event::MouseButtonPressed:
+			{
+				if (event.mouseButton.button == sf::Mouse::Left)
+				{
+					if (!scrolling)
+					{
+						firstTick = true;
+						scrolling = true;
+					}
+				}
+				break;
+			}
+			case sf::Event::MouseButtonReleased:
+			{
+				if (event.mouseButton.button == sf::Mouse::Left)
+					scrolling = false;
+				break;
+			}
 			}
 		}
 
-		sf::Time deltaTime = deltaClock.restart();
-		float dt = deltaTime.asSeconds();
+		/** Update the simulation */
+		simulation.Update(dt);
 
-		/** Moving camera through left click and dragging */
-		if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
-		{
-			if (!scrolling)
-			{
-				lastMousePos = sf::Mouse::getPosition();
-				scrolling = true;
-			}
-			else
-			{
-				sf::Vector2i currentMousePos = sf::Mouse::getPosition();
-				sf::Vector2i deltaPos = lastMousePos - currentMousePos;
-				view.move(sf::Vector2f(deltaPos.x, deltaPos.y) * dt * zoom * cameraSpeed);
-				lastMousePos = currentMousePos;
-			}
-		}
-		else
-		{
-			scrolling = false;
-		}
+		/** Move view by left clicking and dragging */
 
 		window.setView(view);
 		ImGui::SFML::Update(window, deltaTime);

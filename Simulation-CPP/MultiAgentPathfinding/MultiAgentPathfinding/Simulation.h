@@ -32,6 +32,7 @@ public:
 	Environment environment;
 	Simulation();
 
+	void Update(float dt);
 	void LoadScenario();
 	void Step();
 	void Render(sf::RenderWindow& window);

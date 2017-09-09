@@ -10,6 +10,7 @@
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Text.hpp>
 
 class Tile;
 class GridMap;
@@ -43,6 +44,8 @@ public:
 	Tile* goal;
 
 	sf::Color color;
+	sf::Text textAgentId;
+	sf::Font textFont;
 	
 	virtual void Step();
 	
@@ -51,12 +54,14 @@ public:
 
 	int GetAgentId() { return agentId; }
 
-	vec3 renderPos;
+	sf::Vector2f renderPos;
 	void Update(float dt);
 
-	void DrawPaths(sf::RenderWindow& window);
+	void DrawPath(sf::RenderWindow& window);
+	void DrawPotentialPaths(sf::RenderWindow& window);
 	void DrawLineToGoal(sf::RenderWindow& window);
 	void DrawGoal(sf::RenderWindow& window);
+	void DrawAgent(sf::RenderWindow& window);
 
 	friend std::ostream& operator<<(std::ostream& os, Agent& agent);
 };

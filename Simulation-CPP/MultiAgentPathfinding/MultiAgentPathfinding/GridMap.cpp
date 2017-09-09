@@ -56,10 +56,13 @@ void GridMap::loadMap(std::string filename)
 
 			bool isWalkable = c == ' ' || c == '.';
 
-			Tile* tile = new Tile(x, y, isWalkable);
-			tileGrid[index] = tile;
-			tiles.push_back(tile);
-			if (isWalkable) walkableTiles.push_back(tile);
+			if (isWalkable)
+			{
+				Tile* tile = new Tile(x, y, isWalkable);
+				tileGrid[index] = tile;
+				tiles.push_back(tile);
+				if (isWalkable) walkableTiles.push_back(tile);
+			}
 
 			index += 1;
 		}

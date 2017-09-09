@@ -2,24 +2,14 @@
 #include <iostream>
 #include "glm/vec3.hpp"
 #include "TemporalAStar.h"
+#include "Agent.h"
 
 #include <SFML/Graphics.hpp>
+#include "Globals.h"
 
 Environment::Environment()
 {
-	std::cout << "Loaded environment" << std::endl;
-	//gridMap.loadMap("../maps/straightMap.map");
-	//gridMap.loadMap("../maps/squareMap.map");
-	//gridMap.loadMap("../maps/warehouse.map");
-	//gridMap.loadMap("../maps/maze512-1-8.map");
-
-	//gridMap.loadMap("../maps/waitTest.map");
-
-	//for (int i = 0; i < 1; i++)
-	//{
-	//	Tile* randomTile = gridMap.walkableTiles[rand() % gridMap.walkableTiles.size()];
-	//	agents.push_back(new Agent(randomTile));
-	//}
+	std::cout << "Created environment" << std::endl;
 }
 
 void Environment::Reset()
@@ -40,24 +30,11 @@ void Environment::Step()
 
 void Environment::Render(sf::RenderWindow& window)
 {
-	// draw grid map texture
+	/** draw grid map texture */
 	sf::Sprite sprite(gridMapRenderTexture.getTexture());
-	sprite.setScale(sf::Vector2f(0.1f, 0.1f));
-	sprite.setPosition(sf::Vector2f(-0.5f, -0.5f));
+	sprite.setScale(sf::Vector2f(0.1f, 0.1f) * Globals::renderSize);
+	sprite.setPosition(sf::Vector2f(-0.5f, -0.5f) * Globals::renderSize);
 	window.draw(sprite);
-
-	// draw the agents as circles
-	for (Agent* agent : agents)
-	{
-		agent->Update(0.016f);
-
-		float circleRadius = -0.4f;
-		sf::CircleShape circ(circleRadius);
-		circ.setOrigin(sf::Vector2f(circleRadius, circleRadius));
-		circ.setPosition(sf::Vector2f(agent->renderPos.x, agent->renderPos.y));
-		circ.setFillColor(agent->color);
-		window.draw(circ);
-	}
 }
 
 bool Environment::GenerateGridMapTexture()
@@ -65,23 +42,32 @@ bool Environment::GenerateGridMapTexture()
 	Timer timerGridMap;
 	timerGridMap.Begin();
 
-	if (!gridMapRenderTexture.create(gridMap.getWidth() * 10.f, gridMap.getHeight() * 10.f))
+	if (!gridMapRenderTexture.create(
+		gridMap.getWidth()  * 10.f,
+		gridMap.getHeight() * 10.f))
+	{
+		std::cout << "Failed to create grid map texture" << std::endl;
 		return false;
+	}
 
-	gridMapRenderTexture.clear(sf::Color::Black);
+	gridMapRenderTexture.clear(sf::Color(50, 50, 50));
 
 	for (Tile* tile : gridMap.tiles)
 	{
-		sf::Color color = tile->isWalkable ? sf::Color::White : sf::Color::Black;
-
-		sf::Vector2f rectSize(10.f, 10.f);
+		sf::Vector2f& rectSize = sf::Vector2f(10.f, 10.f);
 		sf::RectangleShape rect(rectSize);
 		rect.setOrigin(rectSize * 0.5f);
-		rect.setPosition(sf::Vector2f(tile->x, tile->y) * 10.f + rectSize * 0.5f);
-		rect.setOutlineColor(sf::Color::Black);
-		rect.setOutlineThickness(-1.f);
-		rect.setFillColor(color);
 
+		sf::Vector2f& rectPos = 
+			sf::Vector2f(tile->x, tile->y) * 10.f + // scaled pos 
+			rectSize * 0.5f; // offset
+
+		rect.setPosition(rectPos);
+		rect.setOutlineColor(sf::Color::Black);
+		rect.setOutlineThickness(rectSize.x * -0.1f);
+		sf::Color color = tile->isWalkable ? sf::Color::White : sf::Color::Black;
+		rect.setFillColor(color);
+		
 		gridMapRenderTexture.draw(rect);
 	}
 

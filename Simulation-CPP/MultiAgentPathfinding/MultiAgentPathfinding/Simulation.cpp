@@ -13,6 +13,7 @@
 #include <filesystem>
 
 #include <SFML/Graphics.hpp>
+#include "Globals.h"
 
 namespace fs = std::experimental::filesystem;
 
@@ -66,6 +67,9 @@ Simulation::Simulation()
 	std::string path = "../scenarios";
 	for (fs::directory_entry entry : fs::directory_iterator(path))
 		scenarioFiles.push_back(entry.path().string());
+
+	for (fs::directory_entry entry : fs::directory_iterator("."))
+		std::cout << entry.path().string() << std::endl;
 
 
 	//////////////////////////////////////////////////////////////////////////
@@ -126,6 +130,14 @@ Simulation::Simulation()
 }
 
 
+void Simulation::Update(float dt)
+{
+	for (Agent* agent : environment.agents)
+	{
+		agent->Update(dt);
+	}
+}
+
 void Simulation::LoadScenario()
 {
 	Agent::ResetAgentCounter();
@@ -178,24 +190,33 @@ void Simulation::Render(sf::RenderWindow& window)
 
 	if (!Options::shouldRender) return;
 
-
+	/** Draw the grid map */
 	environment.Render(window);
 
-	//if (Options::shouldShowPaths)
-		//coordinator->DrawPotentialPaths(graphics, environment.agents);
-
+	/** Draw the agent */
 	for (Agent* agent : environment.agents)
 	{
+		agent->DrawGoal(window);
+
+		agent->DrawAgent(window);
+
 		if (Options::shouldShowPaths || debugAgents[agent])
-			agent->DrawPaths(window);
+			agent->DrawPotentialPaths(window);
 
 		if (Options::shouldShowLineToGoal)
 			agent->DrawLineToGoal(window);
+
+		agent->DrawPath(window);
 	}
 
-	// draw goals
-	for (Agent* agent : environment.agents)
-		agent->DrawGoal(window);
+	std::string fontPath = "../extra_fonts/DroidSans.ttf";
+	sf::Font font;
+	font.loadFromFile(fontPath);
+	sf::Text text("Test", font);
+	text.setPosition(sf::Vector2f(0, 0));
+	text.setCharacterSize(10);
+	text.setColor(sf::Color::White);
+	window.draw(text);
 }
 
 void Simulation::BuildOptions()

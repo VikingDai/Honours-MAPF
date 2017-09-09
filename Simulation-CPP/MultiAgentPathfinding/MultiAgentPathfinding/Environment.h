@@ -2,11 +2,11 @@
 #include <vector>
 #include "EObject.h"
 #include "GridMap.h"
-#include "Agent.h"
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/RenderTexture.hpp>
 
 class Graphics;
+class Agent;
 
 class Environment
 {

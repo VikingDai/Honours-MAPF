@@ -109,7 +109,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>libscipopt.lib;sfml-graphics.lib;sfml-window.lib;sfml-system.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libscipopt.lib;sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\libs\scip\lib;$(SolutionDir)\libs\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -154,6 +154,7 @@
     <ClCompile Include="..\libs\imgui\imgui_draw.cpp" />
     <ClCompile Include="AgentCoordinator.cpp" />
     <ClCompile Include="AStar.cpp" />
+    <ClCompile Include="Globals.cpp" />
     <ClCompile Include="imgui-SFML.cpp" />
     <ClCompile Include="MAPF.cpp" />
     <ClCompile Include="PathAssigner.cpp" />
@@ -180,6 +181,8 @@
     <ClInclude Include="..\libs\imgui\imgui_internal.h" />
     <ClInclude Include="AgentCoordinator.h" />
     <ClInclude Include="AStar.h" />
+    <ClInclude Include="Globals.h" />
+    <ClInclude Include="Graphics.h" />
     <ClInclude Include="imgui-SFML.h" />
     <ClInclude Include="MAPF.h" />
     <ClInclude Include="PathAssigner.h" />
