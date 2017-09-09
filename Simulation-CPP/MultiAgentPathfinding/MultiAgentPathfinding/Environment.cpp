@@ -4,6 +4,8 @@
 #include "glm/vec3.hpp"
 #include "TemporalAStar.h"
 
+#include <SFML/Graphics.hpp>
+
 Environment::Environment()
 {
 	std::cout << "Loaded environment" << std::endl;
@@ -71,4 +73,30 @@ void Environment::Render(Graphics* graphics)
 
 	//	graphics->DrawLine(points, agent->color);//vec3(0, 0, 0));
 	//}
+}
+
+void Environment::Render2(sf::RenderWindow& window)
+{
+	for (Tile* tile : gridMap.tiles)
+	{
+		vec3 color = tile->isWalkable ? vec3(1) : vec3(0);
+
+		if (tile->color != vec3(0))
+			color = tile->color;
+
+		sf::RectangleShape rect(sf::Vector2f(1, 1));
+		rect.setPosition(sf::Vector2f(tile->x, tile->y));
+		window.draw(rect);
+	}
+
+	// draw the agents as circles
+	for (Agent* agent : agents)
+	{
+		agent->update(0.016f);
+
+		sf::CircleShape circ(0.4f);
+		circ.setPosition(sf::Vector2f(agent->renderPos.x, agent->renderPos.y));
+		circ.setFillColor(sf::Color::Blue);
+		window.draw(circ);
+	}
 }

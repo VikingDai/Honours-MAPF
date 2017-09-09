@@ -178,6 +178,16 @@ void AgentCoordinator::GeneratePath(
 				int timestep = it.first;
 				std::vector<AgentPathRef*>& paths = it.second;
 
+				//for (AgentPathRef* pathRef : paths)
+				//{
+				//	MAPF::Path& path = pathRef->getPath();
+				//	for (int i = 0; i < path.size(); i++)
+				//		for (Tile* tile : path)
+				//			collisionCosts[i][tile] += .999;
+				//}
+						
+
+
 				for (AgentPathRef* pathRef : paths)
 				{
 					MAPF::Path& path = pathRef->getPath();
@@ -209,20 +219,19 @@ void AgentCoordinator::GeneratePath(
 				int timestep = it.first;
 				std::vector<AgentPathRef*>& paths = it.second;
 
+				/*for (AgentPathRef* pathRef : paths)
+				{
+					MAPF::Path& path = pathRef->getPath();
+					for (int i = 0; i < path.size(); i++)
+						for (Tile* tile : path)
+							collisionCosts[i][tile] += .999;
+				}*/
+
 				for (AgentPathRef* pathRef : paths)
 				{
 					MAPF::Path& path = pathRef->getPath();
 					Tile* tile = timestep < path.size() ? path[timestep] : path[path.size() - 1];
 					collisionCosts[timestep][tile] += 1;
-
-					//MAPF::Path& path = pathRef->getPath();
-					//for (int timestep = 0; timestep < path.size(); timestep++)
-					//{
-					//	Tile* tile = timestep < path.size() ? path[timestep] : path[path.size() - 1];
-					//	collisionCosts[timestep][tile] += 1;
-					//}
-
-					//std::cout << "\t" << *pathRef << std::endl;
 				}
 			}
 		}

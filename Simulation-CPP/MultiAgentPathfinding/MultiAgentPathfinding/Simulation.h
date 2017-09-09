@@ -5,6 +5,7 @@
 #include "Scenario.h"
 #include "TemporalBFS.h"
 #include "MAPF.h"
+#include <SFML/Graphics/RenderWindow.hpp>
 
 class Graphics;
 
@@ -34,6 +35,7 @@ public:
 	void LoadScenario();
 	void Step();
 	void Render(Graphics* graphics);
+	void Render2(sf::RenderWindow& window);
 	void BuildOptions();
 	void LogInfo();
 	void BuildMenuBar();

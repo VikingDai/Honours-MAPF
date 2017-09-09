@@ -123,6 +123,9 @@
     <ClCompile Include="TemporalBFS.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="imgui-SFML.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\libs\opengl\common\vboindexer.hpp">
@@ -228,6 +231,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MAPF.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui-SFML.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

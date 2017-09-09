@@ -13,6 +13,8 @@
 #include <iostream>
 #include <filesystem>
 
+#include <SFML/Graphics.hpp>
+
 namespace fs = std::experimental::filesystem;
 
 int Simulation::timestep;
@@ -230,6 +232,22 @@ void Simulation::Render(Graphics* graphics)
 	points.clear();
 
 	graphics->LineBatchEnd();
+}
+
+void Simulation::Render2(sf::RenderWindow& window)
+{
+	environment.Render2(window);
+
+	//for (int x = 0; x < 50; x++)
+	//{
+	//	for (int y = 0; y < 50; y++)
+	//	{
+	//		sf::RectangleShape rectangle(sf::Vector2f(1, 1));
+	//		rectangle.setPosition(sf::Vector2f(x * 1.5, y * 1.5));
+	//		window.draw(rectangle);
+	//		//std::cout << x << "," << y << std::endl;
+	//	}
+	//}
 }
 
 void Simulation::BuildOptions()

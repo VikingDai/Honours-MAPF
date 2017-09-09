@@ -3,6 +3,7 @@
 #include "EObject.h"
 #include "GridMap.h"
 #include "Agent.h"
+#include <SFML/Graphics/RenderWindow.hpp>
 
 class Graphics;
 
@@ -20,6 +21,7 @@ public:
 	void Reset();
 	void Step();
 	void Render(Graphics* graphics);
+	void Render2(sf::RenderWindow& window);
 	
 };
 

@@ -105,12 +105,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\libs\scip\include;$(SolutionDir)\libs\opengl;$(SolutionDir)\libs\glfw\include;$(SolutionDir)\libs\glew-2.0.0\include;$(SolutionDir)\libs\glm;$(SolutionDir)\libs\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libs\scip\include;$(SolutionDir)\libs\opengl;$(SolutionDir)\libs\glfw\include;$(SolutionDir)\libs\glew-2.0.0\include;$(SolutionDir)\libs\glm;$(SolutionDir)\libs\imgui;$(SolutionDir)\libs\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>libscipopt.lib;opengl32.lib;glew32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\libs\scip\lib;$(SolutionDir)\libs\glew-2.0.0\lib\Release\x64;$(SolutionDir)\libs\glfw\lib-vc2015;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libscipopt.lib;opengl32.lib;glew32.lib;glfw3.lib;sfml-graphics.lib;sfml-window.lib;sfml-system.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\libs\scip\lib;$(SolutionDir)\libs\glew-2.0.0\lib\Release\x64;$(SolutionDir)\libs\glfw\lib-vc2015;$(SolutionDir)\libs\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -138,14 +138,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\libs\scip\include;$(SolutionDir)\libs\opengl;$(SolutionDir)\libs\glfw\include;$(SolutionDir)\libs\glew-2.0.0\include;$(SolutionDir)\libs\glm;$(SolutionDir)\libs\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libs\scip\include;$(SolutionDir)\libs\opengl;$(SolutionDir)\libs\glfw\include;$(SolutionDir)\libs\glew-2.0.0\include;$(SolutionDir)\libs\glm;$(SolutionDir)\libs\imgui;$(SolutionDir)\libs\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>libscipopt.lib;opengl32.lib;glew32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\libs\scip\lib;$(SolutionDir)\libs\glew-2.0.0\lib\Release\x64;$(SolutionDir)\libs\glfw\lib-vc2015;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libscipopt.lib;opengl32.lib;glew32.lib;glfw3.lib;sfml-graphics.lib;sfml-window.lib;sfml-system.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\libs\scip\lib;$(SolutionDir)\libs\glew-2.0.0\lib\Release\x64;$(SolutionDir)\libs\glfw\lib-vc2015;$(SolutionDir)\libs\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -162,6 +162,7 @@
     <ClCompile Include="..\libs\opengl\common\vboindexer.cpp" />
     <ClCompile Include="AgentCoordinator.cpp" />
     <ClCompile Include="AStar.cpp" />
+    <ClCompile Include="imgui-SFML.cpp" />
     <ClCompile Include="MAPF.cpp" />
     <ClCompile Include="PathAssigner.cpp" />
     <ClCompile Include="TemporalAStar.cpp" />
@@ -198,6 +199,7 @@
     <ClInclude Include="..\libs\opengl\common\vboindexer.hpp" />
     <ClInclude Include="AgentCoordinator.h" />
     <ClInclude Include="AStar.h" />
+    <ClInclude Include="imgui-SFML.h" />
     <ClInclude Include="MAPF.h" />
     <ClInclude Include="PathAssigner.h" />
     <ClInclude Include="TemporalAStar.h" />
