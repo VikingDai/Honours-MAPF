@@ -10,7 +10,11 @@
 
 int main()
 {
-	sf::RenderWindow window(sf::VideoMode(640, 480), "ImGui + SFML = <3");
+	sf::ContextSettings settings;
+	settings.antialiasingLevel = 8;
+
+
+	sf::RenderWindow window(sf::VideoMode(1280, 720), "Multi-agent Pathfinding", sf::Style::Default, settings);
 	window.setFramerateLimit(60);
 	ImGui::SFML::Init(window);
 
@@ -20,9 +24,14 @@ int main()
 	view.zoom(50.f);
 	window.setView(view);*/
 
-	float zoom = 1.f;
+	float cameraSpeed = 100.f;
+
+	float zoom = 0.05f;
 
 	sf::View view = window.getView();
+	view.zoom(zoom);
+	view.setCenter(sf::Vector2f(0, 0));
+	window.setView(view);
 
 	bool scrolling = false;
 	sf::Vector2i lastMousePos;
@@ -39,7 +48,9 @@ int main()
 				window.close();
 			else if (event.type == sf::Event::MouseWheelMoved) // Zoom in or out if the mouse wheel moves
 			{
-				view.zoom(1.f + event.mouseWheel.delta * -0.1f);
+				float zoomScale = 1.f + event.mouseWheel.delta * -0.1f;
+				view.zoom(zoomScale);
+				zoom *= zoomScale;
 			}
 			else if (event.type == sf::Event::KeyPressed)
 			{
@@ -47,6 +58,9 @@ int main()
 					simulation.Step();
 			}
 		}
+
+		sf::Time deltaTime = deltaClock.restart();
+		float dt = deltaTime.asSeconds();
 
 		/** Moving camera through left click and dragging */
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
@@ -60,34 +74,14 @@ int main()
 			{
 				sf::Vector2i currentMousePos = sf::Mouse::getPosition();
 				sf::Vector2i deltaPos = lastMousePos - currentMousePos;
-				view.move(sf::Vector2f(deltaPos.x, deltaPos.y));
+				view.move(sf::Vector2f(deltaPos.x, deltaPos.y) * dt * zoom * cameraSpeed);
 				lastMousePos = currentMousePos;
-				std::cout << deltaPos.x << ", " << deltaPos.y << std::endl;
 			}
 		}
 		else
 		{
 			scrolling = false;
 		}
-
-		/*if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-		{
-			sf::View view = window.getDefaultView();
-			view.zoom(zoom *= 1.01f);
-			std::cout << zoom << std::endl;
-			window.setView(view);
-		}
-
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-		{
-			sf::View view = window.getDefaultView();
-			view.zoom(zoom *= 0.99f);
-			std::cout << zoom << std::endl;
-			window.setView(view);
-		}*/
-
-		sf::Time deltaTime = deltaClock.restart();
-		float dt = deltaTime.asSeconds();
 
 		window.setView(view);
 		ImGui::SFML::Update(window, deltaTime);
@@ -119,7 +113,7 @@ int main()
 		//ImGui::End();
 
 		window.clear();
-		simulation.Render2(window);
+		simulation.Render(window);
 		ImGui::SFML::Render(window);
 		window.display();
 	}

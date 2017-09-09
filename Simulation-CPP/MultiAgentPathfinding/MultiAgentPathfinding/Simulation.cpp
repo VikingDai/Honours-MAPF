@@ -1,6 +1,5 @@
 #include "Simulation.h"
 #include <iostream>
-#include "Graphics.h"
 #include "imgui.h"
 #include "Options.h"
 #include "Statistics.h"
@@ -163,91 +162,40 @@ void Simulation::Step()
 
 	// we have resolved all conflicts, now move agents along their paths
 	for (Agent* agent : environment.agents)
-		agent->step();
+		agent->Step();
 
 	std::cout << "Updating timestep: " << timestep << std::endl;
 
 	timestep += 1;
 }
 
-// #TODO  Move these options elsewhere
-
 std::map<Agent*, bool> debugAgents;
 
-void Simulation::Render(Graphics* graphics)
+void Simulation::Render(sf::RenderWindow& window)
 {
 	if (Options::tickSimulation)
 		Step();
 
 	if (!Options::shouldRender) return;
 
-	environment.Render(graphics);
+
+	environment.Render(window);
+
 	//if (Options::shouldShowPaths)
 		//coordinator->DrawPotentialPaths(graphics, environment.agents);
 
-	graphics->LineBatchBegin();
 	for (Agent* agent : environment.agents)
 	{
 		if (Options::shouldShowPaths || debugAgents[agent])
-			agent->drawPaths(graphics);
+			agent->DrawPaths(window);
 
 		if (Options::shouldShowLineToGoal)
-			agent->drawLineToGoal(graphics);
+			agent->DrawLineToGoal(window);
 	}
-	graphics->LineBatchEnd();
 
 	// draw goals
-	graphics->ShapeBatchBegin(SHAPE_SQUARE);
 	for (Agent* agent : environment.agents)
-		if (agent->goal)
-			graphics->DrawBatch(glm::ivec3(agent->goal->x, agent->goal->y, 0), agent->color, glm::vec3(0.5f));
-	graphics->ShapeBatchEnd();
-
-	////////////////////////////////////////////////////////////////////////////// TESTING
-	graphics->LineBatchBegin();
-	float sep = .6;
-	for (int i = 0; i < pathsToDraw.size(); i++)
-	{
-		MAPF::Path& path = pathsToDraw[i];
-		float pathSep = sep / pathsToDraw.size();
-		std::vector<vec3> points;
-		for (Tile* tile : path)
-		{
-			points.emplace_back(vec3(tile->x + pathSep * i - sep / 2, tile->y + pathSep * i - sep / 2, 0));
-		}
-
-		graphics->DrawLine(points, glm::vec3(0, 1, 1), 2.5f);
-		points.clear();
-	}
-	graphics->LineBatchEnd();
-
-	////////////////////////////////////////////////////////////////////////// TESTING 2
-	graphics->LineBatchBegin();
-	std::vector<vec3> points;
-	for (Tile* tile : pathToDraw)
-	{
-		points.emplace_back(vec3(tile->x, tile->y, 0));
-	}
-	graphics->DrawLine(points, glm::vec3(0, 1, 1), 2.5f);
-	points.clear();
-
-	graphics->LineBatchEnd();
-}
-
-void Simulation::Render2(sf::RenderWindow& window)
-{
-	environment.Render2(window);
-
-	//for (int x = 0; x < 50; x++)
-	//{
-	//	for (int y = 0; y < 50; y++)
-	//	{
-	//		sf::RectangleShape rectangle(sf::Vector2f(1, 1));
-	//		rectangle.setPosition(sf::Vector2f(x * 1.5, y * 1.5));
-	//		window.draw(rectangle);
-	//		//std::cout << x << "," << y << std::endl;
-	//	}
-	//}
+		agent->DrawGoal(window);
 }
 
 void Simulation::BuildOptions()
@@ -272,7 +220,7 @@ void Simulation::BuildOptions()
 	for (Agent* agent : environment.agents)
 	{
 		char agentName[50];
-		sprintf(agentName, "agent %d : %d paths (%d)", agent->getAgentId(), agent->potentialPaths.size(), agent->getPath().size());
+		sprintf(agentName, "agent %d : %d paths (%d)", agent->GetAgentId(), agent->potentialPaths.size(), agent->GetPath().size());
 		ImGui::Checkbox(agentName, &debugAgents[agent]);
 	}
 

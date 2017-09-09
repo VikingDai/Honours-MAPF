@@ -3,7 +3,8 @@
 #include "Tile.h"
 #include "GridMap.h"
 #include "MathUtils.h"
-#include "Graphics.h"
+
+#include <SFML/Graphics.hpp>
 
 int Agent::agentCounter = 0;
 
@@ -11,13 +12,13 @@ Agent::Agent(GridMap* gridMap, Tile* startTile, Tile* goalTile) : EObject(startT
 {
 	assert(startTile);
 
-	color = vec3(0, MathUtils::RandomFloat(), MathUtils::RandomFloat());
+	color = sf::Color(0, MathUtils::RandomFloat() * 255, MathUtils::RandomFloat() * 255);
 
 	agentId = agentCounter;
 	agentCounter += 1;
 
 	renderPos = vec3(startTile->x, startTile->y, 0);
-	
+
 	goal = goalTile;
 
 	bfs = new TemporalBFS(gridMap);
@@ -27,7 +28,7 @@ Agent::Agent(GridMap* gridMap, Tile* startTile, Tile* goalTile) : EObject(startT
 	aStar = new AStar(gridMap);
 }
 
-void Agent::step()
+void Agent::Step()
 {
 	if (!chosenPath.empty())
 	{
@@ -56,53 +57,71 @@ void Agent::step()
 		for (MAPF::Path& allPath : potentialPaths)
 			assert(!allPath.empty());
 	}
-	
-	
+
+
 	if (chosenPath.empty()) // we have reached our goal
 		goal = nullptr;
 }
 
-void Agent::setPath(MAPF::Path& inPath)
+void Agent::SetPath(MAPF::Path& inPath)
 {
 	chosenPath = inPath;
 }
 
-void Agent::update(float dt)
+void Agent::Update(float dt)
 {
 	renderPos.x += (x - renderPos.x) * dt * 10.f;
 	renderPos.y += (y - renderPos.y) * dt * 10.f;
 }
 
-void Agent::drawPaths(Graphics* graphics)
+void Agent::DrawPaths(sf::RenderWindow& window)
 {
-	std::vector<vec3> points;
+	float pathSep = .4 / potentialPaths.size();
 
-	for (int i = 0; i < potentialPaths.size(); i++) //AStar::Path& path : allPaths)
+	for (int pathIndex = 0; pathIndex < potentialPaths.size(); pathIndex++)
 	{
-		MAPF::Path& path = potentialPaths[i];
-		float pathSep = .4 / potentialPaths.size();
-		for (Tile* tile : path)
+		MAPF::Path& path = potentialPaths[pathIndex];
+		if (path.empty()) continue;
+
+		sf::VertexArray points(sf::Lines, path.size());
+
+		for (int tileIndex = 0; tileIndex < path.size(); tileIndex++)
 		{
-			points.emplace_back(vec3(tile->x + pathSep * i - 0.2f, tile->y + pathSep * i - 0.2f, 0));
+			Tile* tile = path[tileIndex];
+			sf::Vector2f pos(tile->x, tile->y);
+			points[tileIndex] = sf::Vertex(sf::Vector2f(tile->x + pathSep * pathIndex - 0.2f, tile->y + pathSep * pathIndex - 0.2f), color);
 		}
-		float thickness = chosenPath == path ? 5.f : 2.f;
-		graphics->DrawLine(points, color, thickness);
-		points.clear();
-	}
+
+		window.draw(&points[0], path.size(), sf::Lines);
+ 	}
 }
 
-void Agent::drawLineToGoal(Graphics* graphics)
+void Agent::DrawLineToGoal(sf::RenderWindow& window)
+{
+	if (!goal) return;
+	sf::Color lineColor = color;
+	lineColor.a = 100;
+	sf::Vertex points[2];
+	points[0] = sf::Vertex(sf::Vector2f(x, y), lineColor);
+	points[1] = sf::Vertex(sf::Vector2f(goal->x, goal->y), lineColor);
+
+	window.draw(points, 2, sf::Lines);
+}
+
+void Agent::DrawGoal(sf::RenderWindow& window)
 {
 	if (!goal) return;
 
-	std::vector<vec3> points;
-	points.emplace_back(vec3(x, y, 0));
-	points.emplace_back(vec3(goal->x, goal->y, 0));
-	graphics->DrawLine(points, color, 1.f);
+	sf::Vector2f rectSize(0.3f, 0.3f);
+	sf::RectangleShape rect(rectSize);
+	rect.setOrigin(rectSize * 0.5f);
+	rect.setPosition(sf::Vector2f(goal->x, goal->y));
+	rect.setFillColor(color);
+	window.draw(rect);
 }
 
 std::ostream& operator<<(std::ostream& os, Agent& agent)
 {
-	os << "Agent " << agent.getAgentId() << "[" << agent.x << "," << agent.y << " | Goal " << *agent.goal << "]";
+	os << "Agent " << agent.GetAgentId() << "[" << agent.x << "," << agent.y << " | Goal " << *agent.goal << "]";
 	return os;
 }

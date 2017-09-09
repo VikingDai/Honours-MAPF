@@ -119,7 +119,7 @@ bool AgentCoordinator::Init(std::vector<Agent*>& agents)
 	for (Agent* agent : agents)
 	{
 		// if the agent has a goal to reach but does not have a path, generate a path
-		if (agent->goal && agent->getPath().empty())
+		if (agent->goal && agent->GetPath().empty())
 		{
 			std::cout << "GENERATING FRESH PATH FOR AGENT" << *agent << std::endl;
 			agentsRequiringPath.emplace(agent);
@@ -190,7 +190,7 @@ void AgentCoordinator::GeneratePath(
 
 				for (AgentPathRef* pathRef : paths)
 				{
-					MAPF::Path& path = pathRef->getPath();
+					MAPF::Path& path = pathRef->GetPath();
 					Tile* tile = timestep < path.size() ? path[timestep] : path[path.size() - 1];
 					collisionCosts[timestep][tile] += 1;
 				}
@@ -229,7 +229,7 @@ void AgentCoordinator::GeneratePath(
 
 				for (AgentPathRef* pathRef : paths)
 				{
-					MAPF::Path& path = pathRef->getPath();
+					MAPF::Path& path = pathRef->GetPath();
 					Tile* tile = timestep < path.size() ? path[timestep] : path[path.size() - 1];
 					collisionCosts[timestep][tile] += 1;
 				}
@@ -266,7 +266,7 @@ AgentCoordinator::CollisionAtTime AgentCoordinator::UpdateCollisions(AgentPathRe
 {
 	CollisionAtTime pathCollisions;
 
-	MAPF::Path& path = pathRef->getPath();
+	MAPF::Path& path = pathRef->GetPath();
 
 	// resize table to fit the new path
 	if (path.size() > tileToPathMapAtTimestep.size())
@@ -280,7 +280,7 @@ AgentCoordinator::CollisionAtTime AgentCoordinator::UpdateCollisions(AgentPathRe
 				tileToPathMapAtTimestep[timestep][it.first].push_back(it.second);
 	}
 
-	Tile* lastTile = pathRef->getPath()[pathRef->getPath().size() - 1];
+	Tile* lastTile = pathRef->GetPath()[pathRef->GetPath().size() - 1];
 	bottomLayer.emplace_back(lastTile, pathRef);
 
 	int longestPathSize = tileToPathMapAtTimestep.size();
@@ -330,7 +330,7 @@ AgentCoordinator::CollisionAtTime AgentCoordinator::UpdateCollisions(AgentPathRe
 
 			//std::cout << "Checking " << *agent << " against " << *agentPath.agent << std::endl;
 
-			MAPF::Path& otherPath = pathRefOther->getPath();
+			MAPF::Path& otherPath = pathRefOther->GetPath();
 
 			int lastIndexOther = otherPath.size() - 1;
 			Tile* currentTileOther = timestep <= lastIndexOther ? otherPath[timestep] : otherPath[lastIndexOther];

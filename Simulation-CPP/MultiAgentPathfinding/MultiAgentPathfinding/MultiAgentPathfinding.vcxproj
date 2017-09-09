@@ -105,12 +105,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\libs\scip\include;$(SolutionDir)\libs\opengl;$(SolutionDir)\libs\glfw\include;$(SolutionDir)\libs\glew-2.0.0\include;$(SolutionDir)\libs\glm;$(SolutionDir)\libs\imgui;$(SolutionDir)\libs\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libs\scip\include;$(SolutionDir)\libs\opengl;$(SolutionDir)\libs\glm;$(SolutionDir)\libs\imgui;$(SolutionDir)\libs\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>libscipopt.lib;opengl32.lib;glew32.lib;glfw3.lib;sfml-graphics.lib;sfml-window.lib;sfml-system.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\libs\scip\lib;$(SolutionDir)\libs\glew-2.0.0\lib\Release\x64;$(SolutionDir)\libs\glfw\lib-vc2015;$(SolutionDir)\libs\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libscipopt.lib;sfml-graphics.lib;sfml-window.lib;sfml-system.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\libs\scip\lib;$(SolutionDir)\libs\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -138,39 +138,29 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\libs\scip\include;$(SolutionDir)\libs\opengl;$(SolutionDir)\libs\glfw\include;$(SolutionDir)\libs\glew-2.0.0\include;$(SolutionDir)\libs\glm;$(SolutionDir)\libs\imgui;$(SolutionDir)\libs\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libs\scip\include;$(SolutionDir)\libs\opengl;$(SolutionDir)\libs\glm;$(SolutionDir)\libs\imgui;$(SolutionDir)\libs\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>libscipopt.lib;opengl32.lib;glew32.lib;glfw3.lib;sfml-graphics.lib;sfml-window.lib;sfml-system.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\libs\scip\lib;$(SolutionDir)\libs\glew-2.0.0\lib\Release\x64;$(SolutionDir)\libs\glfw\lib-vc2015;$(SolutionDir)\libs\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libscipopt.lib;sfml-graphics.lib;sfml-window.lib;sfml-system.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\libs\scip\lib;$(SolutionDir)\libs\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\libs\imgui\imgui.cpp" />
     <ClCompile Include="..\libs\imgui\imgui_demo.cpp" />
     <ClCompile Include="..\libs\imgui\imgui_draw.cpp" />
-    <ClCompile Include="..\libs\imgui\imgui_impl_glfw_gl3.cpp" />
-    <ClCompile Include="..\libs\opengl\common\objloader.cpp" />
-    <ClCompile Include="..\libs\opengl\common\quaternion_utils.cpp" />
-    <ClCompile Include="..\libs\opengl\common\shader.cpp" />
-    <ClCompile Include="..\libs\opengl\common\tangentspace.cpp" />
-    <ClCompile Include="..\libs\opengl\common\text2D.cpp" />
-    <ClCompile Include="..\libs\opengl\common\texture.cpp" />
-    <ClCompile Include="..\libs\opengl\common\vboindexer.cpp" />
     <ClCompile Include="AgentCoordinator.cpp" />
     <ClCompile Include="AStar.cpp" />
     <ClCompile Include="imgui-SFML.cpp" />
     <ClCompile Include="MAPF.cpp" />
     <ClCompile Include="PathAssigner.cpp" />
     <ClCompile Include="TemporalAStar.cpp" />
-    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="EObject.cpp" />
     <ClCompile Include="Agent.cpp" />
     <ClCompile Include="Environment.cpp" />
-    <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="GridMap.cpp" />
     <ClCompile Include="Helper.cpp" />
     <ClCompile Include="Input.cpp" />
@@ -179,7 +169,6 @@
     <ClCompile Include="Scenario.cpp" />
     <ClCompile Include="Simulation.cpp" />
     <ClCompile Include="TemporalBFS.cpp" />
-    <ClCompile Include="Stage.cpp" />
     <ClCompile Include="Statistics.cpp" />
     <ClCompile Include="Tile.cpp" />
     <ClCompile Include="Timer.cpp" />
@@ -188,26 +177,16 @@
   <ItemGroup>
     <ClInclude Include="..\libs\imgui\imconfig.h" />
     <ClInclude Include="..\libs\imgui\imgui.h" />
-    <ClInclude Include="..\libs\imgui\imgui_impl_glfw_gl3.h" />
     <ClInclude Include="..\libs\imgui\imgui_internal.h" />
-    <ClInclude Include="..\libs\opengl\common\objloader.hpp" />
-    <ClInclude Include="..\libs\opengl\common\quaternion_utils.hpp" />
-    <ClInclude Include="..\libs\opengl\common\shader.hpp" />
-    <ClInclude Include="..\libs\opengl\common\tangentspace.hpp" />
-    <ClInclude Include="..\libs\opengl\common\text2D.hpp" />
-    <ClInclude Include="..\libs\opengl\common\texture.hpp" />
-    <ClInclude Include="..\libs\opengl\common\vboindexer.hpp" />
     <ClInclude Include="AgentCoordinator.h" />
     <ClInclude Include="AStar.h" />
     <ClInclude Include="imgui-SFML.h" />
     <ClInclude Include="MAPF.h" />
     <ClInclude Include="PathAssigner.h" />
     <ClInclude Include="TemporalAStar.h" />
-    <ClInclude Include="Camera.h" />
     <ClInclude Include="EObject.h" />
     <ClInclude Include="Agent.h" />
     <ClInclude Include="Environment.h" />
-    <ClInclude Include="Graphics.h" />
     <ClInclude Include="GridMap.h" />
     <ClInclude Include="Helper.h" />
     <ClInclude Include="Input.h" />
@@ -217,7 +196,6 @@
     <ClInclude Include="Scenario.h" />
     <ClInclude Include="Simulation.h" />
     <ClInclude Include="TemporalBFS.h" />
-    <ClInclude Include="Stage.h" />
     <ClInclude Include="Statistics.h" />
     <ClInclude Include="Tile.h" />
     <ClInclude Include="Timer.h" />

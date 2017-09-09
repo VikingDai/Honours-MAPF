@@ -6,6 +6,7 @@
 
 GridMap::GridMap()
 {
+	width = height = 0;
 }
 
 
@@ -37,7 +38,7 @@ void GridMap::loadMap(std::string filename)
 
 	numTiles = width * height;
 
-	printf("Loaded map: %s | Map Type: %s | Width: %d | Height %d\n", 
+	printf("Loaded map: %s | Map Type: %s | Width: %d | Height %d\n",
 		filename.c_str(), mapType.c_str(), width, height);
 
 	getline(infile, mapType);
@@ -55,13 +56,10 @@ void GridMap::loadMap(std::string filename)
 
 			bool isWalkable = c == ' ' || c == '.';
 
-			if (isWalkable)
-			{
-				Tile* tile = new Tile(x, y, isWalkable);
-				tileGrid[index] = tile;
-				tiles.push_back(tile);
-				if (isWalkable) walkableTiles.push_back(tile);
-			}
+			Tile* tile = new Tile(x, y, isWalkable);
+			tileGrid[index] = tile;
+			tiles.push_back(tile);
+			if (isWalkable) walkableTiles.push_back(tile);
 
 			index += 1;
 		}

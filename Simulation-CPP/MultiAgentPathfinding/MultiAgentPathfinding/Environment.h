@@ -4,6 +4,7 @@
 #include "GridMap.h"
 #include "Agent.h"
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/RenderTexture.hpp>
 
 class Graphics;
 
@@ -13,6 +14,7 @@ public:
 	std::vector<Agent*> agents;
 	std::vector<EObject*> objects;
 	GridMap gridMap;
+	sf::RenderTexture gridMapRenderTexture;
 
 public:
 	Environment();
@@ -20,8 +22,8 @@ public:
 
 	void Reset();
 	void Step();
-	void Render(Graphics* graphics);
-	void Render2(sf::RenderWindow& window);
-	
+	void Render(sf::RenderWindow& window);
+
+	bool GenerateGridMapTexture();
 };
 

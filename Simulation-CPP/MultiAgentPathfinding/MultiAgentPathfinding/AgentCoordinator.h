@@ -6,7 +6,6 @@
 #include <set>
 #include "Agent.h";
 #include "TemporalAStar.h"
-#include "Graphics.h"
 
 #include "Timer.h"
 #include "PathAssigner.h"

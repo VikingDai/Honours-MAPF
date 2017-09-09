@@ -4,10 +4,12 @@
 #include <deque>
 #include <iostream>
 #include "TemporalAStar.h"
-#include "Graphics.h"
 #include "TemporalBFS.h"
 #include "AStar.h"
 #include "MAPF.h"
+
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/Color.hpp>
 
 class Tile;
 class GridMap;
@@ -34,26 +36,27 @@ private:
 public:
 	std::vector<MAPF::Path> potentialPaths;
 
-	void setPath(MAPF::Path& path);
-	MAPF::Path& getPath() { return chosenPath; }
+	void SetPath(MAPF::Path& path);
+	MAPF::Path& GetPath() { return chosenPath; }
 
 public:
 	Tile* goal;
 
-	vec3 color;
+	sf::Color color;
 	
-	virtual void step();
+	virtual void Step();
 	
 
 	std::map<Tile*, int> customWeights;
 
-	int getAgentId() { return agentId; }
+	int GetAgentId() { return agentId; }
 
 	vec3 renderPos;
-	void update(float dt);
+	void Update(float dt);
 
-	void drawPaths(Graphics* graphics);
-	void drawLineToGoal(Graphics* graphics);
+	void DrawPaths(sf::RenderWindow& window);
+	void DrawLineToGoal(sf::RenderWindow& window);
+	void DrawGoal(sf::RenderWindow& window);
 
 	friend std::ostream& operator<<(std::ostream& os, Agent& agent);
 };
@@ -65,11 +68,11 @@ struct AgentPathRef
 
 	AgentPathRef(Agent* agent, int pathIndex) : agent(agent), pathIndex(pathIndex) {}
 
-	MAPF::Path& getPath() { return agent->potentialPaths[pathIndex]; }
+	MAPF::Path& GetPath() { return agent->potentialPaths[pathIndex]; }
 
 	friend std::ostream& operator<<(std::ostream& os, AgentPathRef& pathRef)
 	{
-		os << "Path " << pathRef.pathIndex << ": Agent(" << pathRef.agent->getAgentId() << ")";
+		os << "Path " << pathRef.pathIndex << ": Agent(" << pathRef.agent->GetAgentId() << ")";
 		return os;
 	}
 };

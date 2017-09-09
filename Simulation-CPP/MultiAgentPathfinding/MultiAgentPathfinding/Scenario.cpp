@@ -23,6 +23,7 @@ void Scenario::LoadScenario(std::string filename, Environment& environment)
 	printf("Loaded scenario: %s | Map Name: %s | %d Agents\n", filename.c_str(), mapName.c_str(), numAgents);
 
 	environment.gridMap.loadMap("../maps/" + mapName);
+	environment.GenerateGridMapTexture();
 
 	assert(environment.gridMap.getNumTiles() > numAgents);
 

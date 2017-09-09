@@ -40,10 +40,10 @@ void PathAssigner::InitAgent(std::vector<Agent*> agents)
 		// create penalty variable
 		SCIP_VAR* penaltyVar;
 		std::ostringstream penaltyVarNameStream;
-		penaltyVarNameStream << "a" << agent->getAgentId() << "q";
+		penaltyVarNameStream << "a" << agent->GetAgentId() << "q";
 		const char* penaltyVarName = penaltyVarNameStream.str().c_str();
 		char penaltyVarNameC[50];
-		sprintf(penaltyVarNameC, "a%dq", agent->getAgentId());
+		sprintf(penaltyVarNameC, "a%dq", agent->GetAgentId());
 
 		SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &penaltyVar, penaltyVarNameC, 0, 1, 1000, SCIP_VARTYPE_INTEGER));
 		SCIP_CALL_EXC(SCIPaddVar(scip, penaltyVar));
@@ -56,7 +56,7 @@ void PathAssigner::InitAgent(std::vector<Agent*> agents)
 		// create choice constraint
 		SCIP_CONS* agentChoiceCons;
 		char choiceConsName[50];
-		sprintf_s(choiceConsName, "agentChoice%d", agent->getAgentId());
+		sprintf_s(choiceConsName, "agentChoice%d", agent->GetAgentId());
 
 		SCIP_CALL_EXC(SCIPcreateConsBasicLinear(scip, &agentChoiceCons, choiceConsName, 0, nullptr, nullptr, 1, 1));
 
@@ -81,7 +81,7 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, PathCollis
 		std::vector<SCIP_VAR*> agentVariables;
 
 		// get the agent's id
-		int agentId = agent->getAgentId();
+		int agentId = agent->GetAgentId();
 
 		// create variable describing penalty when an agent fails to find a path in the form 'a1q'
 		SCIP_VAR* penaltyVar;
@@ -106,7 +106,7 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, PathCollis
 		for (int i = 0; i < paths.size(); i++)
 		{
 			AgentPathRef* path = new AgentPathRef(agent, i);
-			assert(!path->getPath().empty());
+			assert(!path->GetPath().empty());
 
 			// create variable describing path
 			SCIP_VAR* pathVar;
@@ -118,7 +118,7 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, PathCollis
 			char pathVarNameC[50];
 			sprintf(pathVarNameC, "a%dp%d", agentId, i);
 
-			SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &pathVar, pathVarNameC, 0, 1, path->getPath().size(), SCIP_VARTYPE_INTEGER));
+			SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &pathVar, pathVarNameC, 0, 1, path->GetPath().size(), SCIP_VARTYPE_INTEGER));
 			SCIP_CALL_EXC(SCIPaddVar(scip, pathVar));
 
 			// add it to the map
@@ -147,14 +147,14 @@ void PathAssigner::AddPath(Agent* agent, AgentPathRef* path)
 	SCIP_VAR* pathVar;
 
 	std::ostringstream pathVarNameStream;
-	pathVarNameStream << "a" << agent->getAgentId() << "p" << pathId;
+	pathVarNameStream << "a" << agent->GetAgentId() << "p" << pathId;
 	const char* pathVarName = pathVarNameStream.str().c_str();
 
 	char pathVarNameC[50];
-	sprintf(pathVarNameC, "a%dp%d", agent->getAgentId(), pathId);
+	sprintf(pathVarNameC, "a%dp%d", agent->GetAgentId(), pathId);
 
 	//int pathSize = pathLengths[&path];
-	int pathSize = path->getPath().size();
+	int pathSize = path->GetPath().size();
 	SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &pathVar, pathVarNameC, 0, 1, pathSize, SCIP_VARTYPE_INTEGER));
 	SCIP_CALL_EXC(SCIPaddVar(scip, pathVar));
 
@@ -272,8 +272,8 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 #if DEBUG_MIP
 					std::cout << *agent << " FOUND A PATH SUCCESFULLY!" << std::endl;
 #endif
-					MAPF::Path& path = varToPathMap[var]->getPath();
-					agent->setPath(path);
+					MAPF::Path& path = varToPathMap[var]->GetPath();
+					agent->SetPath(path);
 				}
 				else // the variable is a penalty var
 				{

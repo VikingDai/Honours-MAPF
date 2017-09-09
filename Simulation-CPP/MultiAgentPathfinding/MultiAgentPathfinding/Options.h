@@ -4,7 +4,7 @@ namespace Options
 {
 	bool randomizeSeed = true;
 	bool shouldShowLineToGoal = true;
-	bool shouldShowPaths = true;
+	bool shouldShowPaths = false;
 	bool shouldRender = true;
 	bool tickSimulation = false;
 	bool shouldFindPathOnReachingGoal = false;
