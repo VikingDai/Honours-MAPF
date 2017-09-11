@@ -46,6 +46,7 @@ private:
 	using CollisionAtTime = std::map<int, std::vector<AgentPathRef*>>;
 
 private:
+	std::map<Agent*, std::map<Agent*, int>> agentCollisionCount;
 	std::set<Agent*> agentsRequiringPath;
 	std::map<Agent*, TileCollision> agentCollisionMap;
 	TemporalAStar::TileCosts collisionCosts;

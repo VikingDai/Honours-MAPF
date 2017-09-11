@@ -47,7 +47,7 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 	}
 
 	// build the path
-	while (current != nullptr)
+	while (current->parent != nullptr)
 	{
 		path.push_front(current);
 		current = current->parent;

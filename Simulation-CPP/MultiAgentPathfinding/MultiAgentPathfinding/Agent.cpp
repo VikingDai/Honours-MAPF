@@ -159,6 +159,6 @@ void Agent::DrawAgent(sf::RenderWindow& window)
 
 std::ostream& operator<<(std::ostream& os, Agent& agent)
 {
-	os << "Agent " << agent.GetAgentId() << "[" << agent.x << "," << agent.y << " | Goal " << *agent.goal << "]";
+	os << "Agent " << agent.GetAgentId(); //<< "[" << agent.x << "," << agent.y << " | Goal " << *agent.goal << "]";
 	return os;
 }

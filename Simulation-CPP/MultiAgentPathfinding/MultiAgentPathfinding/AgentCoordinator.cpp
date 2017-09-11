@@ -173,6 +173,10 @@ void AgentCoordinator::GeneratePath(
 {
 	Tile* currentTile = map->getTileAt(agent->x, agent->y);
 
+	std::set<Agent*> otherAgents;
+
+	std::map<int, std::set<Tile*>> timeCollisionSet;
+
 	if (firstRun)
 	{
 		std::cout << "Normal A*: Generating path for " << *agent << std::endl;
@@ -189,15 +193,18 @@ void AgentCoordinator::GeneratePath(
 
 				for (AgentPathRef* pathRef : paths)
 				{
+					otherAgents.emplace(pathRef->agent);
 					MAPF::Path& path = pathRef->GetPath();
 					for (int i = 0; i < path.size(); i++)
 						for (Tile* tile : path)
-							collisionCosts[i][tile] += 1;
+							timeCollisionSet[i].emplace(tile);
+							//collisionCosts[i][tile] += 1;
 				}
-						
+
 
 				//for (AgentPathRef* pathRef : paths)
 				//{
+				//	otherAgents.emplace(pathRef->agent);
 				//	MAPF::Path& path = pathRef->GetPath();
 				//	Tile* tile = timestep < path.size() ? path[timestep] : path[path.size() - 1];
 				//	collisionCosts[timestep][tile] += 1;
@@ -209,6 +216,63 @@ void AgentCoordinator::GeneratePath(
 	}
 	else
 	{
+		bool inDeadlock = false;
+		for (auto& it : agentCollisionCount[agent])
+		{
+
+			int numCollisions = it.second;
+			std::cout << *agent << " has " << numCollisions << " collisions with " << *it.first << std::endl;
+			if (numCollisions > 30)
+			{
+				inDeadlock = true;
+			}
+		}
+
+		if (inDeadlock)
+		{
+			MAPF::Path& path = agent->bfs->FindNextPath(currentTile, agent->goal);
+
+			// associate the path to the agent
+			if (!path.empty())
+			{
+				agent->potentialPaths.push_back(path);
+				int lastIndex = agent->potentialPaths.size() - 1;
+				CollisionAtTime& otherPathCollisions = UpdateCollisions(new AgentPathRef(agent, lastIndex));
+
+				std::cout << "Path " << lastIndex << " for " << *agent << std::endl;
+
+				for (auto& it : otherPathCollisions)
+				{
+					int timestep = it.first;
+					std::vector<AgentPathRef*>& paths = it.second;
+
+					for (AgentPathRef* pathRef : paths)
+					{
+						otherAgents.emplace(pathRef->agent);
+						MAPF::Path& path = pathRef->GetPath();
+						for (int i = 0; i < path.size(); i++)
+							for (Tile* tile : path)
+								timeCollisionSet[i].emplace(tile);
+								//collisionCosts[i][tile] += 1;
+					}
+
+					//for (AgentPathRef* pathRef : paths)
+					//{
+					//	otherAgents.emplace(pathRef->agent);
+					//	MAPF::Path& path = pathRef->GetPath();
+					//	Tile* tile = timestep < path.size() ? path[timestep] : path[path.size() - 1];
+					//	collisionCosts[timestep][tile] += 1;
+					//}
+				}
+			}
+
+			PrintPath(agent, path);
+
+			return;
+		}
+
+
+
 		std::cout << "Temporal A*: Generating path for " << *agent << std::endl;
 
 		MAPF::Path& path = agent->temporalAStar->FindPath2(currentTile, agent->goal, collisionCosts);
@@ -222,6 +286,8 @@ void AgentCoordinator::GeneratePath(
 
 			std::cout << "Path " << lastIndex << " for " << *agent << std::endl;
 
+			
+
 			for (auto& it : otherPathCollisions)
 			{
 				int timestep = it.first;
@@ -229,14 +295,17 @@ void AgentCoordinator::GeneratePath(
 
 				for (AgentPathRef* pathRef : paths)
 				{
+					otherAgents.emplace(pathRef->agent);
 					MAPF::Path& path = pathRef->GetPath();
 					for (int i = 0; i < path.size(); i++)
 						for (Tile* tile : path)
-							collisionCosts[i][tile] += .999;
+							timeCollisionSet[i].emplace(tile);
+							//collisionCosts[i][tile] += 1;
 				}
 
 				//for (AgentPathRef* pathRef : paths)
 				//{
+				//	otherAgents.emplace(pathRef->agent);
 				//	MAPF::Path& path = pathRef->GetPath();
 				//	Tile* tile = timestep < path.size() ? path[timestep] : path[path.size() - 1];
 				//	collisionCosts[timestep][tile] += 1;
@@ -246,6 +315,21 @@ void AgentCoordinator::GeneratePath(
 
 
 		PrintPath(agent, path);
+	}
+
+	for (auto& it : timeCollisionSet)
+	{
+		int time = it.first;
+		for (Tile* tile : it.second)
+			collisionCosts[time][tile] += 1;
+	}
+
+	for (Agent* otherAgent : otherAgents)
+	{
+		agentCollisionCount[agent][otherAgent] += 1;
+		agentCollisionCount[otherAgent][agent] += 1;
+
+		std::cout << "arsitenoarstenraosito" << std::endl;
 	}
 }
 

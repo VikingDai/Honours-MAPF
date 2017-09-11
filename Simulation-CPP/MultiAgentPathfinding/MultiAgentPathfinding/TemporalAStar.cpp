@@ -191,7 +191,7 @@ MAPF::Path TemporalAStar::FindPath2(Tile* start, Tile* goal, TileCosts& customCo
 	modifiedTileTimes.clear();
 
 	TileTime2* initial = new TileTime2();
-	initial->SetInfo(1, start, 0, start->CalculateEstimate(0, goal));
+	initial->SetInfo(0, start, 0, start->CalculateEstimate(0, goal));
 	initial->bIsInOpen = true;
 	open2.push(initial);
 	modifiedTileTimes.emplace(initial);
@@ -220,7 +220,7 @@ MAPF::Path TemporalAStar::FindPath2(Tile* start, Tile* goal, TileCosts& customCo
 	}
 
 	// build the path
-	while (current != nullptr)
+	while (current->parent != nullptr)
 	{
 		if (current->countFrom.find(current->parent) == current->countFrom.end())
 			current->countFrom[current->parent] = 0;
