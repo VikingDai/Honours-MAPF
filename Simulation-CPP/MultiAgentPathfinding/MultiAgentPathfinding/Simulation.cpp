@@ -218,7 +218,8 @@ void Simulation::Render(sf::RenderWindow& window)
 	text.setColor(sf::Color::White);
 	window.draw(text);
 
-	coordinator->RenderCollisionCosts(window);
+	if (Options::showCollisionCosts)
+		coordinator->RenderCollisionCosts(window);
 }
 
 void Simulation::BuildOptions()
@@ -233,12 +234,13 @@ void Simulation::BuildOptions()
 	// Load scenario button
 	if (ImGui::Button("Load scenario")) LoadScenario();
 
-	if (ImGui::Button("Solve")) Step();
+	if (ImGui::Button("Solve")) coordinator->UpdateAgents(environment.agents);
 
 	ImGui::Checkbox("Tick", &Options::tickSimulation);
 	ImGui::Checkbox("Render", &Options::shouldRender);
 	ImGui::Checkbox("Show paths", &Options::shouldShowPaths);
 	ImGui::Checkbox("Show line to goal", &Options::shouldShowLineToGoal);
+	ImGui::Checkbox("Show collision costs", &Options::showCollisionCosts);
 
 	for (Agent* agent : environment.agents)
 	{
