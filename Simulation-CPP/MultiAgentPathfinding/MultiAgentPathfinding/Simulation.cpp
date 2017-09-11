@@ -217,6 +217,8 @@ void Simulation::Render(sf::RenderWindow& window)
 	text.setCharacterSize(10);
 	text.setColor(sf::Color::White);
 	window.draw(text);
+
+	coordinator->RenderCollisionCosts(window);
 }
 
 void Simulation::BuildOptions()

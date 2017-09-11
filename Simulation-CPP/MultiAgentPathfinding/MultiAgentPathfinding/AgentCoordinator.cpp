@@ -13,6 +13,9 @@
 #include <sstream>
 #include <string>
 
+#include <SFML/Graphics.hpp>
+#include "Globals.h"
+
 #define DEBUG_MIP 0
 
 AgentCoordinator::AgentCoordinator(GridMap* inMap)
@@ -58,14 +61,14 @@ bool AgentCoordinator::Step(std::vector<Agent*>& agents)
 		for (auto& it : collisionCosts)
 		{
 			int time = it.first;
-			std::cout << "AT TIME " << time << std::endl;
+			//std::cout << "AT TIME " << time << std::endl;
 
 			for (auto& it2 : it.second)
 			{
 				Tile* tile = it2.first;
 				float cost = it2.second;
 
-				std::cout << "\t" << *tile << " has cost " << cost << std::endl;
+				//std::cout << "\t" << *tile << " has cost " << cost << std::endl;
 			}
 		}
 
@@ -83,7 +86,7 @@ bool AgentCoordinator::Step(std::vector<Agent*>& agents)
 	if (mipConflicts.empty())
 	{
 		std::cout << "MIP told us no conflicts, we are done!" << std::endl;
-		isRunning = false;
+		isRunning = false; // # TODO put this back later!
 		return true;
 	}
 
@@ -102,18 +105,9 @@ bool AgentCoordinator::Step(std::vector<Agent*>& agents)
 	return false;
 }
 
+
 bool AgentCoordinator::Init(std::vector<Agent*>& agents)
 {
-	std::cout << "Initializing AgentCoordinator" << std::endl;
-
-	iteration = 1;
-
-	coordinatorTimer.Begin();
-
-	agentsRequiringPath.clear();
-	agentCollisionMap.clear();
-	collisionCosts.clear();
-
 	bool anyPathsChanged = false;
 
 	for (Agent* agent : agents)
@@ -126,6 +120,21 @@ bool AgentCoordinator::Init(std::vector<Agent*>& agents)
 			agent->potentialPaths.clear();
 			anyPathsChanged = true;
 		}
+	}
+
+	if (anyPathsChanged)
+	{
+		std::cout << "Initializing AgentCoordinator" << std::endl;
+		iteration = 1;
+
+		coordinatorTimer.Begin();
+		agentsRequiringPath.clear();
+		agentCollisionMap.clear();
+		collisionCosts.clear();
+	}
+	else
+	{
+		std::cout << "AgentCoordinator: All agents have paths to their goals" << std::endl;
 	}
 
 	return anyPathsChanged;
@@ -178,22 +187,21 @@ void AgentCoordinator::GeneratePath(
 				int timestep = it.first;
 				std::vector<AgentPathRef*>& paths = it.second;
 
-				//for (AgentPathRef* pathRef : paths)
-				//{
-				//	MAPF::Path& path = pathRef->getPath();
-				//	for (int i = 0; i < path.size(); i++)
-				//		for (Tile* tile : path)
-				//			collisionCosts[i][tile] += .999;
-				//}
-						
-
-
 				for (AgentPathRef* pathRef : paths)
 				{
 					MAPF::Path& path = pathRef->GetPath();
-					Tile* tile = timestep < path.size() ? path[timestep] : path[path.size() - 1];
-					collisionCosts[timestep][tile] += 1;
+					for (int i = 0; i < path.size(); i++)
+						for (Tile* tile : path)
+							collisionCosts[i][tile] += 1;
 				}
+						
+
+				//for (AgentPathRef* pathRef : paths)
+				//{
+				//	MAPF::Path& path = pathRef->GetPath();
+				//	Tile* tile = timestep < path.size() ? path[timestep] : path[path.size() - 1];
+				//	collisionCosts[timestep][tile] += 1;
+				//}
 			}
 		}
 
@@ -219,20 +227,20 @@ void AgentCoordinator::GeneratePath(
 				int timestep = it.first;
 				std::vector<AgentPathRef*>& paths = it.second;
 
-				/*for (AgentPathRef* pathRef : paths)
-				{
-					MAPF::Path& path = pathRef->getPath();
-					for (int i = 0; i < path.size(); i++)
-						for (Tile* tile : path)
-							collisionCosts[i][tile] += .999;
-				}*/
-
 				for (AgentPathRef* pathRef : paths)
 				{
 					MAPF::Path& path = pathRef->GetPath();
-					Tile* tile = timestep < path.size() ? path[timestep] : path[path.size() - 1];
-					collisionCosts[timestep][tile] += 1;
+					for (int i = 0; i < path.size(); i++)
+						for (Tile* tile : path)
+							collisionCosts[i][tile] += .999;
 				}
+
+				//for (AgentPathRef* pathRef : paths)
+				//{
+				//	MAPF::Path& path = pathRef->GetPath();
+				//	Tile* tile = timestep < path.size() ? path[timestep] : path[path.size() - 1];
+				//	collisionCosts[timestep][tile] += 1;
+				//}
 			}
 		}
 
@@ -373,4 +381,30 @@ void AgentCoordinator::PrintPath(Agent* agent, MAPF::Path& path)
 	for (Tile* tile : path)
 		std::cout << *tile << " > ";
 	std::cout << std::endl;
+}
+
+
+void AgentCoordinator::RenderCollisionCosts(sf::RenderWindow& window)
+{
+	for (auto& it : collisionCosts)
+	{
+		int time = it.first;
+		std::string timeStr = std::to_string(time);
+		std::map<Tile*, float>& costMap = it.second;
+
+		for (auto& tileCost : costMap)
+		{
+			Tile* tile = tileCost.first;
+			int cost = ceil(tileCost.second);
+
+			if (cost > 0)
+			{
+				sf::Text text(timeStr + ", " + std::to_string(cost), Globals::FONT_DROID_SANS, 10);
+				text.setColor(sf::Color::Green);
+				text.setPosition(sf::Vector2f(tile->x, tile->y - 0.2f * time) * Globals::renderSize);
+				window.draw(text);
+			}
+		}
+
+	}
 }

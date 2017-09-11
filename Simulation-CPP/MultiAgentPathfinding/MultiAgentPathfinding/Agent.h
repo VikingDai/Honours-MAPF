@@ -45,7 +45,6 @@ public:
 
 	sf::Color color;
 	sf::Text textAgentId;
-	sf::Font textFont;
 	
 	virtual void Step();
 	

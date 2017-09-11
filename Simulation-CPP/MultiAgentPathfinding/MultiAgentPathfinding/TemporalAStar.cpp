@@ -267,8 +267,10 @@ void TemporalAStar::ExpandNeighbor2(OpenQueue2& open, TileTime2* current, Tile* 
 	float cost = current->cost + 1;
 
 	float customCost = GetCustomCosts(current->timestep, neighborTile, customCosts);
+#if DEBUG_VERBOSE
 	if (customCost > 0) 
 		std::cout << "\t\t\t\tUSING CUSTOM COST ON TILE " << *neighborTile << " ON TIME " << current->timestep << " VALUE " << customCost << std::endl;
+#endif
 	cost += customCost;
 
 	if (neighbor->bIsInOpen && !neighbor->bNeedsReset) // relax the node - update the parent

@@ -171,6 +171,7 @@
     <ClCompile Include="Simulation.cpp" />
     <ClCompile Include="TemporalBFS.cpp" />
     <ClCompile Include="Statistics.cpp" />
+    <ClCompile Include="TemporalDijkstra.cpp" />
     <ClCompile Include="Tile.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Window.cpp" />
@@ -200,6 +201,7 @@
     <ClInclude Include="Simulation.h" />
     <ClInclude Include="TemporalBFS.h" />
     <ClInclude Include="Statistics.h" />
+    <ClInclude Include="TemporalDijkstra.h" />
     <ClInclude Include="Tile.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Window.h" />

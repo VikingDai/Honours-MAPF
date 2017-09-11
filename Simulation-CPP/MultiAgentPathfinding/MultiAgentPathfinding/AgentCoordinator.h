@@ -12,6 +12,8 @@
 
 #include "MAPF.h"
 
+#include <SFML/Graphics/RenderWindow.hpp>
+
 class GridMap;
 class Tile;
 
@@ -81,5 +83,7 @@ public:
 
 	/** Generate paths and attempt to resolve conflicts for one iteration */
 	bool Step(std::vector<Agent*>& agents);
+
+	void RenderCollisionCosts(sf::RenderWindow& window);
 };
 
