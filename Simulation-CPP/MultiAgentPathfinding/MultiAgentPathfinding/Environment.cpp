@@ -43,8 +43,8 @@ bool Environment::GenerateGridMapTexture()
 	timerGridMap.Begin();
 
 	if (!gridMapRenderTexture.create(
-		gridMap.getWidth()  * 10.f,
-		gridMap.getHeight() * 10.f))
+		gridMap.GetWidth()  * 10.f,
+		gridMap.GetHeight() * 10.f))
 	{
 		std::cout << "Failed to create grid map texture" << std::endl;
 		return false;
@@ -77,4 +77,80 @@ bool Environment::GenerateGridMapTexture()
 	timerGridMap.PrintTimeElapsed("Rendering grid map onto texture");
 
 	return true;
+}
+
+void Environment::LoadMap(std::string mapName)
+{
+	gridMap.LoadMap(mapName);
+	freeStartTiles = gridMap.walkableTiles;
+	freeGoalTiles = gridMap.walkableTiles;
+	freeTiles = gridMap.walkableTiles;
+}
+
+void Environment::AddAgent(Agent* agent)
+{
+	Tile* start = gridMap.GetTileAt(agent->x, agent->y);
+	freeStartTiles.erase(std::remove(freeStartTiles.begin(), freeStartTiles.end(), start), freeStartTiles.end());
+	freeTiles.erase(std::remove(freeTiles.begin(), freeTiles.end(), start), freeTiles.end());
+
+	if (Tile* goal = agent->goal)
+	{
+		freeGoalTiles.erase(std::remove(freeGoalTiles.begin(), freeGoalTiles.end(), goal), freeGoalTiles.end());
+		freeTiles.erase(std::remove(freeTiles.begin(), freeTiles.end(), goal), freeTiles.end());
+	}
+
+	agents.push_back(agent);
+}
+
+void Environment::GenerateRandomAgents(int numToGenerate)
+{
+	/** load random agents */
+	for (int i = 0; i < numToGenerate; i++)
+	{
+		Tile* start = freeStartTiles[rand() % (freeStartTiles.size() - 1)]; // pick a random free tile
+		
+		Tile* goal = freeGoalTiles[rand() % (freeGoalTiles.size() - 1)];
+		
+		/** make sure the agent's goal is not equal to their start tile! */
+		while (goal == start)
+			goal = freeGoalTiles[rand() % (freeGoalTiles.size() - 1)];
+	
+		assert(start);
+		assert(goal);
+
+		Agent* agent = new Agent(&gridMap, start, goal);
+		AddAgent(agent);
+
+		std::cout << "Randomly spawned " << *agent << " at " << agent->x << ", " << agent->y << std::endl;
+	}
+}
+
+void Environment::FillWithObstacles(float percentage)
+{
+	int numTiles = gridMap.GetNumTiles();
+	int tilesToSpawn = floor(numTiles * percentage);
+
+	for (int i = 0; i < tilesToSpawn; i++)
+	{
+		Tile* tile = freeTiles[rand() % (freeTiles.size() - 1)];
+		gridMap.SetObstacle(tile);
+	}
+}
+
+void Environment::GetFreeTiles(std::vector<Tile*>& freeStartTiles, std::vector<Tile*>& freeGoalTiles)
+{
+	/** These two vectors ensure that no two agents share the same start tile
+	AND no two agents share the same goal tile */
+	freeStartTiles = gridMap.walkableTiles;
+	freeGoalTiles = gridMap.walkableTiles;
+
+	/** remove start and goal locations from free tiles */
+	for (Agent* agent : agents)
+	{
+		Tile* start = gridMap.GetTileAt(agent->x, agent->y);
+		freeStartTiles.erase(std::remove(freeStartTiles.begin(), freeStartTiles.end(), start), freeStartTiles.end());
+
+		if (Tile* goal = agent->goal)
+			freeGoalTiles.erase(std::remove(freeGoalTiles.begin(), freeGoalTiles.end(), goal), freeGoalTiles.end());
+	}
 }

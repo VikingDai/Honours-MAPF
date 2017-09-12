@@ -12,9 +12,9 @@ private:
 	int width, height;
 	int numTiles;
 public:
-	const int getNumTiles() { return numTiles; }
-	const int getWidth() { return width; }
-	const int getHeight() { return height; }
+	const int GetNumTiles() { return numTiles; }
+	const int GetWidth() { return width; }
+	const int GetHeight() { return height; }
 
 public:
 	std::vector<Tile*> walkableTiles;
@@ -24,13 +24,19 @@ public:
 	GridMap();
 	~GridMap();
 
-	void loadMap(const std::string filename);
-	int getTileIndex(int x, int y) const;
-	int getTileX(int index) const;
-	int getTileY(int index) const;
-	Tile* getTileAt(int index) const;
-	Tile* getTileAt(int x, int y) const;
-	Tile* getTileRelativeTo(const Tile* tile, int x, int y);
-	bool isWalkable(int x, int y) const;
-	Tile* randomWalkableTile();
+	int GetTileIndex(int x, int y) const;
+	int GetTileX(int index) const;
+	int GetTileY(int index) const;
+	Tile* GetTileAt(int index) const;
+	Tile* GetTileAt(int x, int y) const;
+	Tile* GetTileRelativeTo(const Tile* tile, int x, int y);
+	bool IsWalkable(int x, int y) const;
+	Tile* RandomWalkableTile();
+
+	void SetObstacle(Tile* tile);
+
+protected:
+	void LoadMap(const std::string filename);
+
+	friend class Environment;
 };

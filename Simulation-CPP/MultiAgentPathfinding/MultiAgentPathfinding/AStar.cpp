@@ -40,10 +40,10 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 		current->hasBeenExpanded = true;
 
 		// add the neighbors of the current tile (up, down, left, right) to the open list
-		AddNeighbor(open, modifiedTiles, current, gridMap->getTileRelativeTo(current, 0, 1), start, goal); // up
-		AddNeighbor(open, modifiedTiles, current, gridMap->getTileRelativeTo(current, 1, 0), start, goal); // right
-		AddNeighbor(open, modifiedTiles, current, gridMap->getTileRelativeTo(current, 0, -1), start, goal); // down
-		AddNeighbor(open, modifiedTiles, current, gridMap->getTileRelativeTo(current, -1, 0), start, goal); // left
+		AddNeighbor(open, modifiedTiles, current, gridMap->GetTileRelativeTo(current, 0, 1), start, goal); // up
+		AddNeighbor(open, modifiedTiles, current, gridMap->GetTileRelativeTo(current, 1, 0), start, goal); // right
+		AddNeighbor(open, modifiedTiles, current, gridMap->GetTileRelativeTo(current, 0, -1), start, goal); // down
+		AddNeighbor(open, modifiedTiles, current, gridMap->GetTileRelativeTo(current, -1, 0), start, goal); // left
 	}
 
 	// build the path
@@ -97,7 +97,7 @@ void AStar::AddNeighbor(OpenQueue& open, std::vector<Tile*>& modifiedTiles, Tile
 
 		open.push_back(neighbor);
 
-		neighbor->color = glm::vec3(0, 1, 0);
+		neighbor->color = sf::Color(0, 1, 0);
 
 		modifiedTiles.push_back(neighbor);
 	}

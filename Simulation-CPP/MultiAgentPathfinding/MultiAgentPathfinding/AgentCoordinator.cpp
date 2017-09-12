@@ -18,12 +18,18 @@
 
 #define DEBUG_MIP 0
 
-AgentCoordinator::AgentCoordinator(GridMap* inMap)
+AgentCoordinator::AgentCoordinator(GridMap* inMap) 
+	: gridMap(inMap), isRunning(false)
 {
-	map = inMap;
 	aStar = new TemporalAStar(inMap);
 	pathAssigner = new PathAssigner(inMap);
-	isRunning = false;
+}
+
+AgentCoordinator::~AgentCoordinator()
+{
+	delete aStar;
+	delete gridMap;
+	delete pathAssigner;
 }
 
 void AgentCoordinator::Reset()
@@ -171,7 +177,7 @@ void AgentCoordinator::GeneratePath(
 	Agent* agent,
 	bool firstRun)
 {
-	Tile* currentTile = map->getTileAt(agent->x, agent->y);
+	Tile* currentTile = gridMap->GetTileAt(agent->x, agent->y);
 
 	std::set<Agent*> otherAgents;
 
@@ -275,7 +281,7 @@ void AgentCoordinator::GeneratePath(
 
 		std::cout << "Temporal A*: Generating path for " << *agent << std::endl;
 
-		MAPF::Path& path = agent->temporalAStar->FindPath2(currentTile, agent->goal, collisionCosts);
+		MAPF::Path& path = agent->temporalAStar->FindPath2(currentTile, agent->goal, agentCollisionCosts[agent]);
 
 		// associate the path to the agent
 		if (!path.empty())
@@ -321,15 +327,16 @@ void AgentCoordinator::GeneratePath(
 	{
 		int time = it.first;
 		for (Tile* tile : it.second)
-			collisionCosts[time][tile] += 1;
+		{
+			agentCollisionCosts[agent][time][tile] += 1;
+		}
+			//collisionCosts[time][tile] += 1;
 	}
 
 	for (Agent* otherAgent : otherAgents)
 	{
 		agentCollisionCount[agent][otherAgent] += 1;
 		agentCollisionCount[otherAgent][agent] += 1;
-
-		std::cout << "arsitenoarstenraosito" << std::endl;
 	}
 }
 
@@ -434,8 +441,8 @@ AgentCoordinator::CollisionAtTime AgentCoordinator::UpdateCollisions(AgentPathRe
 			if (currentTile == nextTileOther && nextTile == currentTileOther)
 			{
 				float v = 1.f / (float) (timestep + 1);
-				currentTile->color = vec3(v, 0, v);
-				nextTile->color = vec3(v, 0, v);
+				currentTile->color = sf::Color(v, 0, v);
+				nextTile->color = sf::Color(v, 0, v);
 
 				agentCollisionMap[pathRef->agent].emplace_back(nextTile, timestep);
 				agentCollisionMap[pathRefOther->agent].emplace_back(nextTileOther, timestep);

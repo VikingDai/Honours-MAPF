@@ -11,7 +11,7 @@ MAPF::Path TemporalBFS::FindNextPath(Tile* start, Tile* goal)
 
 	MAPF::Path path;
 
-	if (!start || !goal)
+	if (!start || !goal || start == goal)
 		return path;
 
 	if (frontier.empty())
@@ -30,11 +30,11 @@ MAPF::Path TemporalBFS::FindNextPath(Tile* start, Tile* goal)
 
 		//std::cout << *current->first << " | " << current->second << std::endl;
 
-		AddNeighbor(current, gridMap->getTileRelativeTo(current->first, 0, 1));
-		AddNeighbor(current, gridMap->getTileRelativeTo(current->first, 1, 0));
-		AddNeighbor(current, gridMap->getTileRelativeTo(current->first, 0, -1));
-		AddNeighbor(current, gridMap->getTileRelativeTo(current->first, -1, 0));
-		AddNeighbor(current, gridMap->getTileRelativeTo(current->first, 0, 0));
+		AddNeighbor(current, gridMap->GetTileRelativeTo(current->first, 0, 1));
+		AddNeighbor(current, gridMap->GetTileRelativeTo(current->first, 1, 0));
+		AddNeighbor(current, gridMap->GetTileRelativeTo(current->first, 0, -1));
+		AddNeighbor(current, gridMap->GetTileRelativeTo(current->first, -1, 0));
+		AddNeighbor(current, gridMap->GetTileRelativeTo(current->first, 0, 0));
 
 		if (current->first == goal)
 			break;
@@ -80,11 +80,11 @@ std::vector<MAPF::Path> TemporalBFS::SearchToDepth(Tile* start, Tile* goal, int 
 
 		if (current->second > depth) break;
 
-		AddNeighbor(current, gridMap->getTileRelativeTo(current->first, 0, 1));
-		AddNeighbor(current, gridMap->getTileRelativeTo(current->first, 1, 0));
-		AddNeighbor(current, gridMap->getTileRelativeTo(current->first, 0, -1));
-		AddNeighbor(current, gridMap->getTileRelativeTo(current->first, -1, 0));
-		AddNeighbor(current, gridMap->getTileRelativeTo(current->first, 0, 0));
+		AddNeighbor(current, gridMap->GetTileRelativeTo(current->first, 0, 1));
+		AddNeighbor(current, gridMap->GetTileRelativeTo(current->first, 1, 0));
+		AddNeighbor(current, gridMap->GetTileRelativeTo(current->first, 0, -1));
+		AddNeighbor(current, gridMap->GetTileRelativeTo(current->first, -1, 0));
+		AddNeighbor(current, gridMap->GetTileRelativeTo(current->first, 0, 0));
 	}
 
 	// rebuild paths

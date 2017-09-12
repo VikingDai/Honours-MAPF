@@ -21,11 +21,12 @@ class AgentCoordinator
 {
 private:
 	TemporalAStar* aStar;
-	GridMap* map;
+	GridMap* gridMap;
 	PathAssigner* pathAssigner;
 
 public:
 	AgentCoordinator(GridMap* map);
+	~AgentCoordinator();
 	
 private:
 	int iteration;
@@ -46,7 +47,9 @@ private:
 	using CollisionAtTime = std::map<int, std::vector<AgentPathRef*>>;
 
 private:
+	std::map<Agent*, TemporalAStar::TileCosts> agentCollisionCosts;
 	std::map<Agent*, std::map<Agent*, int>> agentCollisionCount;
+
 	std::set<Agent*> agentsRequiringPath;
 	std::map<Agent*, TileCollision> agentCollisionMap;
 	TemporalAStar::TileCosts collisionCosts;

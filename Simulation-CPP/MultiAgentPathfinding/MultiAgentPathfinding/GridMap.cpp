@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+#include <algorithm>
 
 
 GridMap::GridMap()
@@ -14,7 +15,7 @@ GridMap::~GridMap()
 {
 }
 
-void GridMap::loadMap(std::string filename)
+void GridMap::LoadMap(std::string filename)
 {
 	walkableTiles.clear();
 	tiles.clear();
@@ -51,8 +52,8 @@ void GridMap::loadMap(std::string filename)
 	{
 		for (char& c : line)
 		{
-			int x = getTileX(index);
-			int y = getTileY(index);
+			int x = GetTileX(index);
+			int y = GetTileY(index);
 
 			bool isWalkable = c == ' ' || c == '.';
 
@@ -69,45 +70,54 @@ void GridMap::loadMap(std::string filename)
 	}
 }
 
-int GridMap::getTileIndex(int x, int y) const
+int GridMap::GetTileIndex(int x, int y) const
 {
 	return x + y * width;
 }
 
-int GridMap::getTileX(int index) const
+int GridMap::GetTileX(int index) const
 {
 	return index % width;
 }
 
-int GridMap::getTileY(int index) const
+int GridMap::GetTileY(int index) const
 {
 	return index == 0 ? 0 : static_cast<int>(floor(static_cast<float>(index) / static_cast<float>(width)));
 }
 
-Tile* GridMap::getTileAt(int index) const
+Tile* GridMap::GetTileAt(int index) const
 {
 	bool inBounds = index >= 0 && index < width * height;
 	return inBounds ? tileGrid[index] : nullptr;
 }
 
-Tile* GridMap::getTileAt(int x, int y) const
+Tile* GridMap::GetTileAt(int x, int y) const
 {
 	bool inBounds = x >= 0 && x < width;
-	return inBounds ? getTileAt(getTileIndex(x, y)) : nullptr;
+	return inBounds ? GetTileAt(GetTileIndex(x, y)) : nullptr;
 }
 
-Tile* GridMap::getTileRelativeTo(const Tile* tile, int x, int y)
+Tile* GridMap::GetTileRelativeTo(const Tile* tile, int x, int y)
 {
-	return getTileAt(tile->x + x, tile->y + y);
+	return GetTileAt(tile->x + x, tile->y + y);
 }
 
-bool GridMap::isWalkable(const int x, const int y) const
+bool GridMap::IsWalkable(const int x, const int y) const
 {
-	Tile* tile = getTileAt(x, y);
+	Tile* tile = GetTileAt(x, y);
 	return tile && tile->isWalkable;
 }
 
-Tile* GridMap::randomWalkableTile()
+Tile* GridMap::RandomWalkableTile()
 {
 	return walkableTiles[rand() % walkableTiles.size()];
+}
+
+void GridMap::SetObstacle(Tile* tile)
+{
+	if (!tile) return;
+
+	std::cout << "Set " << *tile << " as obstacle " << std::endl;
+	tile->isWalkable = false;
+	walkableTiles.erase(std::remove(walkableTiles.begin(), walkableTiles.end(), tile), walkableTiles.end());
 }

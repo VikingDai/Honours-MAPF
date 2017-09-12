@@ -40,4 +40,6 @@ public:
 	void LogInfo();
 	void BuildMenuBar();
 	void SelectTile(int mouseX, int mouseY);
+
+	void ForwardTimestep();
 };

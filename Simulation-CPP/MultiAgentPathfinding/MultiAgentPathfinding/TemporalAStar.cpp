@@ -80,11 +80,11 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 
 		//current->color = vec3(0, 0, 1);
 
-		ExpandNeighbor(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, 0, 1), start, goal, customCosts);
-		ExpandNeighbor(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, 1, 0), start, goal, customCosts);
-		ExpandNeighbor(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, 0, -1), start, goal, customCosts);
-		ExpandNeighbor(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, -1, 0), start, goal, customCosts);
-		ExpandNeighbor(open, current, currentTile, gridMap->getTileRelativeTo(current->tile, 0, 0), start, goal, customCosts);
+		ExpandNeighbor(open, current, currentTile, gridMap->GetTileRelativeTo(current->tile, 0, 1), start, goal, customCosts);
+		ExpandNeighbor(open, current, currentTile, gridMap->GetTileRelativeTo(current->tile, 1, 0), start, goal, customCosts);
+		ExpandNeighbor(open, current, currentTile, gridMap->GetTileRelativeTo(current->tile, 0, -1), start, goal, customCosts);
+		ExpandNeighbor(open, current, currentTile, gridMap->GetTileRelativeTo(current->tile, -1, 0), start, goal, customCosts);
+		ExpandNeighbor(open, current, currentTile, gridMap->GetTileRelativeTo(current->tile, 0, 0), start, goal, customCosts);
 	}
 
 	// build the path
@@ -213,10 +213,10 @@ MAPF::Path TemporalAStar::FindPath2(Tile* start, Tile* goal, TileCosts& customCo
 			break;
 
 		ExpandNeighbor2(open2, current, current->tile, start, goal, customCosts);
-		ExpandNeighbor2(open2, current, gridMap->getTileRelativeTo(current->tile, 0, 1), start, goal, customCosts);
-		ExpandNeighbor2(open2, current, gridMap->getTileRelativeTo(current->tile, 1, 0), start, goal, customCosts);
-		ExpandNeighbor2(open2, current, gridMap->getTileRelativeTo(current->tile, 0, -1), start, goal, customCosts);
-		ExpandNeighbor2(open2, current, gridMap->getTileRelativeTo(current->tile, -1, 0), start, goal, customCosts);
+		ExpandNeighbor2(open2, current, gridMap->GetTileRelativeTo(current->tile, 0, 1), start, goal, customCosts);
+		ExpandNeighbor2(open2, current, gridMap->GetTileRelativeTo(current->tile, 1, 0), start, goal, customCosts);
+		ExpandNeighbor2(open2, current, gridMap->GetTileRelativeTo(current->tile, 0, -1), start, goal, customCosts);
+		ExpandNeighbor2(open2, current, gridMap->GetTileRelativeTo(current->tile, -1, 0), start, goal, customCosts);
 	}
 
 	// build the path

@@ -154,6 +154,7 @@
     <ClCompile Include="..\libs\imgui\imgui_draw.cpp" />
     <ClCompile Include="AgentCoordinator.cpp" />
     <ClCompile Include="AStar.cpp" />
+    <ClCompile Include="Experiment.cpp" />
     <ClCompile Include="Globals.cpp" />
     <ClCompile Include="imgui-SFML.cpp" />
     <ClCompile Include="MAPF.cpp" />
@@ -182,6 +183,7 @@
     <ClInclude Include="..\libs\imgui\imgui_internal.h" />
     <ClInclude Include="AgentCoordinator.h" />
     <ClInclude Include="AStar.h" />
+    <ClInclude Include="Experiment.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="imgui-SFML.h" />

@@ -141,12 +141,13 @@ int main()
 		ImVec2 size = ImGui::GetWindowSize();
 		ImGui::End();
 
-		///** Info window (on the right) */
-		//ImVec2 infoPadding(25.f, 75.f);
-		//ImGui::SetNextWindowPos(ImVec2(Graphics::GetDisplaySize().x - 300 / 2.f - infoPadding.x, infoPadding.y), ImGuiSetCond_FirstUseEver);
-		//ImGui::Begin("Example: Fixed Overlay", &open, ImVec2(0, 0), 0.2f, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
-		//simulation.LogInfo();
-		//ImGui::End();
+		/** Info window (on the right) */
+		
+		ImVec2 infoPadding(25.f, 75.f);
+		ImGui::SetNextWindowPos(ImVec2(window.getSize().x - infoPadding.x, infoPadding.y), ImGuiSetCond_FirstUseEver);
+		ImGui::Begin("Example: Fixed Overlay", &open, ImVec2(0, 0), 0.2f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
+		simulation.LogInfo();
+		ImGui::End();
 
 		window.clear();
 		simulation.Render(window);

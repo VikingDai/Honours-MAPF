@@ -16,6 +16,11 @@ public:
 	GridMap gridMap;
 	sf::RenderTexture gridMapRenderTexture;
 
+	/** These two vectors ensure that no two agents share the same start tile or the same goal tile */
+	std::vector<Tile*> freeStartTiles;
+	std::vector<Tile*> freeGoalTiles;
+	std::vector<Tile*> freeTiles;
+
 public:
 	Environment();
 	~Environment();
@@ -25,5 +30,14 @@ public:
 	void Render(sf::RenderWindow& window);
 
 	bool GenerateGridMapTexture();
+
+public:	
+	void LoadMap(std::string mapName);
+	void AddAgent(Agent* agent);
+
+	void GenerateRandomAgents(int numToGenerate);
+	void FillWithObstacles(float percentage);
+
+	void GetFreeTiles(std::vector<Tile*>& freeStartTiles, std::vector<Tile*>& freeGoalTiles);
 };
 

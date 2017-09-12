@@ -19,7 +19,7 @@ Agent::Agent(GridMap* gridMap, Tile* startTile, Tile* goalTile) : EObject(startT
 	agentId = agentCounter;
 	agentCounter += 1;
 
-	textAgentId.setCharacterSize(30);
+	textAgentId.setCharacterSize(24);
 	textAgentId.setString(std::to_string(agentId));
 	textAgentId.setFont(Globals::FONT_DROID_SANS);
 	textAgentId.setColor(sf::Color(255 - color.r, 255 - color.b, 255 - color.g));

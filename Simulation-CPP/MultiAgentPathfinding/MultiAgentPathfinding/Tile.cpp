@@ -41,3 +41,9 @@ float Tile::CalculateEstimate(float inCost, Tile* goal)
 	estimate = cost + heuristic;
 	return estimate;
 }
+
+void Tile::SetObstacle()
+{
+	isWalkable = false;
+	color = sf::Color::Black;
+}

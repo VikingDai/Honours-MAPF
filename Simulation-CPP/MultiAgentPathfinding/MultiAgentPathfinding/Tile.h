@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 
+#include <SFML/Graphics/Color.hpp>
 
 //struct TileTime
 //{
@@ -49,7 +50,7 @@ public:
 
 	int numberOfTimesVisited;
 
-	vec3 color;
+	sf::Color color;
 
 	Tile(int x, int y, bool inIsWalkable);
 	void Reset();
@@ -57,4 +58,6 @@ public:
 	float CalculateEstimate(float inCost, Tile* goal);
 
 	friend std::ostream& operator<<(std::ostream& os, Tile& tile);
+
+	void SetObstacle();
 };

@@ -1,18 +1,20 @@
 #pragma once
-#include "GridMap.h"
-#include "Agent.h"
+
 #include "Environment.h"
 
+/* Describes the configuration of the environment: grid map, agents and obstacles. 
+Reads .scenario files and load these parameters from them. */
 class Scenario
 {
+private:
+	using Pos = std::pair<int, int>;
+	using AgentInfo = std::pair<Pos, Pos>;
+
+	int numRandomAgents;
+	
+
 public:
-	GridMap* gridMap;
-	std::vector<Agent*> agents;
-
 	Scenario() = default;
-
-	std::vector<int> agentInfo;
-
-	void LoadScenario(std::string filename, Environment& environment);
+	void LoadFromFile(std::string filename, Environment& environment);
 };
 

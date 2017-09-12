@@ -147,13 +147,13 @@ void Simulation::LoadScenario()
 	std::cout << "Set seed to " << seed << std::endl;
 	srand(seed);
 
-	scenario.LoadScenario(scenarioFiles[scenarioIndex], environment);
+	scenario.LoadFromFile(scenarioFiles[scenarioIndex], environment);
 	coordinator = new AgentCoordinator(&environment.gridMap);
 	//environment.Reset();
 
 	TemporalAStar* testAstar = new TemporalAStar(&environment.gridMap);
-	Tile* start = environment.gridMap.getTileAt(0, 0);
-	Tile* goal = environment.gridMap.getTileAt(8, 8);
+	Tile* start = environment.gridMap.GetTileAt(0, 0);
+	Tile* goal = environment.gridMap.GetTileAt(8, 8);
 }
 
 
@@ -162,7 +162,7 @@ void Simulation::Step()
 	for (Tile* tile : environment.gridMap.tiles)
 	{
 		if (tile->isWalkable)
-			tile->color = vec3(1, 1, 1);
+			tile->color = sf::Color(1, 1, 1);
 	}
 
 	// allocate paths to agents which have no collisions
@@ -188,7 +188,8 @@ void Simulation::Render(sf::RenderWindow& window)
 	if (Options::tickSimulation)
 		Step();
 
-	if (!Options::shouldRender) return;
+	if (!Options::shouldRender)
+		return;
 
 	/** Draw the grid map */
 	environment.Render(window);
@@ -206,17 +207,9 @@ void Simulation::Render(sf::RenderWindow& window)
 		if (Options::shouldShowLineToGoal)
 			agent->DrawLineToGoal(window);
 
-		agent->DrawPath(window);
+		if (Options::showPath)
+			agent->DrawPath(window);
 	}
-
-	std::string fontPath = "../extra_fonts/DroidSans.ttf";
-	sf::Font font;
-	font.loadFromFile(fontPath);
-	sf::Text text("Test", font);
-	text.setPosition(sf::Vector2f(0, 0));
-	text.setCharacterSize(10);
-	text.setColor(sf::Color::White);
-	window.draw(text);
 
 	if (Options::showCollisionCosts)
 		coordinator->RenderCollisionCosts(window);
@@ -224,21 +217,25 @@ void Simulation::Render(sf::RenderWindow& window)
 
 void Simulation::BuildOptions()
 {
-	// Make listbox to select a scenario
+	/** Make listbox to select a scenario */
 	ImGui2::Combo("Select Scenario", &scenarioIndex, scenarioFiles);
 	ImGui::InputInt("Seed", &seed);
 	ImGui::Checkbox("RandomSeed", &Options::randomizeSeed);
 
 	ImGui::InputInt("Iterations", &iterations);
 
-	// Load scenario button
-	if (ImGui::Button("Load scenario")) LoadScenario();
+	/** Load scenario button */
+	if (ImGui::Button("Load scenario")) 
+		LoadScenario();
 
-	if (ImGui::Button("Solve")) coordinator->UpdateAgents(environment.agents);
+	/** Add a solve button */
+	if (ImGui::Button("Solve")) 
+		coordinator->UpdateAgents(environment.agents);
 
 	ImGui::Checkbox("Tick", &Options::tickSimulation);
 	ImGui::Checkbox("Render", &Options::shouldRender);
-	ImGui::Checkbox("Show paths", &Options::shouldShowPaths);
+	ImGui::Checkbox("Show main path", &Options::showPath);
+	ImGui::Checkbox("Show generated paths", &Options::shouldShowPaths);
 	ImGui::Checkbox("Show line to goal", &Options::shouldShowLineToGoal);
 	ImGui::Checkbox("Show collision costs", &Options::showCollisionCosts);
 
@@ -258,7 +255,7 @@ void Simulation::LogInfo()
 	ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	ImGui::Text("Timestep: %d", timestep);
 	ImGui::Text("Number of agents: %d", environment.agents.size());
-	ImGui::Text("Grid map dimensions: %d x %d", environment.gridMap.getWidth(), environment.gridMap.getHeight());
+	ImGui::Text("Grid map dimensions: %d x %d", environment.gridMap.GetWidth(), environment.gridMap.GetHeight());
 	ImGui::Text("Avg Search Time: %.9f", Stats::avgSearchTime);
 	ImGui::Text("Avg Coordinator Time: %.9f", Stats::avgCoordinatorTime);
 	ImGui::Text("Avg Mip Time: %.9f", Stats::avgMipTime);
@@ -281,3 +278,4 @@ void Simulation::SelectTile(int mouseX, int mouseY)
 {
 	std::cout << "Selected Tile at " << mouseX << ", " << mouseY << std::endl;
 }
+

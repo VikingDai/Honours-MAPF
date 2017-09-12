@@ -1,3 +1,4 @@
 simpleMaze.map
-agents 1
+obstacles 0
+agents 0
 0 0 4 4

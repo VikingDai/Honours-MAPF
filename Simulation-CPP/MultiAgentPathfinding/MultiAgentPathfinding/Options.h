@@ -9,4 +9,5 @@ namespace Options
 	bool tickSimulation = false;
 	bool shouldFindPathOnReachingGoal = false;
 	bool showCollisionCosts = false;
+	bool showPath = true;
 }
