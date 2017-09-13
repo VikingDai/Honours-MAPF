@@ -18,7 +18,7 @@
 
 #define DEBUG_MIP 0
 
-AgentCoordinator::AgentCoordinator(GridMap* inMap) 
+AgentCoordinator::AgentCoordinator(GridMap* inMap)
 	: gridMap(inMap), isRunning(false)
 {
 	aStar = new TemporalAStar(inMap);
@@ -114,6 +114,8 @@ bool AgentCoordinator::Step(std::vector<Agent*>& agents)
 
 bool AgentCoordinator::Init(std::vector<Agent*>& agents)
 {
+	agentsRequiringPath.clear();
+
 	bool anyPathsChanged = false;
 
 	for (Agent* agent : agents)
@@ -134,7 +136,6 @@ bool AgentCoordinator::Init(std::vector<Agent*>& agents)
 		iteration = 1;
 
 		coordinatorTimer.Begin();
-		agentsRequiringPath.clear();
 		agentCollisionMap.clear();
 		collisionCosts.clear();
 	}
@@ -183,42 +184,14 @@ void AgentCoordinator::GeneratePath(
 
 	std::map<int, std::set<Tile*>> timeCollisionSet;
 
+	MAPF::Path path;
+
+
+	std::cout << "Normal A*: Generating path for " << *agent << std::endl;
+
 	if (firstRun)
 	{
-		std::cout << "Normal A*: Generating path for " << *agent << std::endl;
-		MAPF::Path& path = agent->aStar->FindPath(currentTile, agent->goal);
-		if (!path.empty())
-		{
-			agent->potentialPaths.push_back(path);
-			CollisionAtTime& otherPathCollisions = UpdateCollisions(new AgentPathRef(agent, agent->potentialPaths.size() - 1));
-
-			for (auto& it : otherPathCollisions)
-			{
-				int timestep = it.first;
-				std::vector<AgentPathRef*>& paths = it.second;
-
-				for (AgentPathRef* pathRef : paths)
-				{
-					otherAgents.emplace(pathRef->agent);
-					MAPF::Path& path = pathRef->GetPath();
-					for (int i = 0; i < path.size(); i++)
-						for (Tile* tile : path)
-							timeCollisionSet[i].emplace(tile);
-							//collisionCosts[i][tile] += 1;
-				}
-
-
-				//for (AgentPathRef* pathRef : paths)
-				//{
-				//	otherAgents.emplace(pathRef->agent);
-				//	MAPF::Path& path = pathRef->GetPath();
-				//	Tile* tile = timestep < path.size() ? path[timestep] : path[path.size() - 1];
-				//	collisionCosts[timestep][tile] += 1;
-				//}
-			}
-		}
-
-		PrintPath(agent, path);
+		path = agent->aStar->FindPath(currentTile, agent->goal);
 	}
 	else
 	{
@@ -236,102 +209,85 @@ void AgentCoordinator::GeneratePath(
 
 		if (inDeadlock)
 		{
-			MAPF::Path& path = agent->bfs->FindNextPath(currentTile, agent->goal);
-
-			// associate the path to the agent
-			if (!path.empty())
-			{
-				agent->potentialPaths.push_back(path);
-				int lastIndex = agent->potentialPaths.size() - 1;
-				CollisionAtTime& otherPathCollisions = UpdateCollisions(new AgentPathRef(agent, lastIndex));
-
-				std::cout << "Path " << lastIndex << " for " << *agent << std::endl;
-
-				for (auto& it : otherPathCollisions)
-				{
-					int timestep = it.first;
-					std::vector<AgentPathRef*>& paths = it.second;
-
-					for (AgentPathRef* pathRef : paths)
-					{
-						otherAgents.emplace(pathRef->agent);
-						MAPF::Path& path = pathRef->GetPath();
-						for (int i = 0; i < path.size(); i++)
-							for (Tile* tile : path)
-								timeCollisionSet[i].emplace(tile);
-								//collisionCosts[i][tile] += 1;
-					}
-
-					//for (AgentPathRef* pathRef : paths)
-					//{
-					//	otherAgents.emplace(pathRef->agent);
-					//	MAPF::Path& path = pathRef->GetPath();
-					//	Tile* tile = timestep < path.size() ? path[timestep] : path[path.size() - 1];
-					//	collisionCosts[timestep][tile] += 1;
-					//}
-				}
-			}
-
-			PrintPath(agent, path);
-
-			return;
+			path = agent->bfs->FindNextPath(currentTile, agent->goal);
 		}
-
-
-
-		std::cout << "Temporal A*: Generating path for " << *agent << std::endl;
-
-		MAPF::Path& path = agent->temporalAStar->FindPath2(currentTile, agent->goal, agentCollisionCosts[agent]);
-
-		// associate the path to the agent
-		if (!path.empty())
+		else
 		{
-			agent->potentialPaths.push_back(path);
-			int lastIndex = agent->potentialPaths.size() - 1;
-			CollisionAtTime& otherPathCollisions = UpdateCollisions(new AgentPathRef(agent, lastIndex));
-
-			std::cout << "Path " << lastIndex << " for " << *agent << std::endl;
-
-			
-
-			for (auto& it : otherPathCollisions)
-			{
-				int timestep = it.first;
-				std::vector<AgentPathRef*>& paths = it.second;
-
-				for (AgentPathRef* pathRef : paths)
-				{
-					otherAgents.emplace(pathRef->agent);
-					MAPF::Path& path = pathRef->GetPath();
-					for (int i = 0; i < path.size(); i++)
-						for (Tile* tile : path)
-							timeCollisionSet[i].emplace(tile);
-							//collisionCosts[i][tile] += 1;
-				}
-
-				//for (AgentPathRef* pathRef : paths)
-				//{
-				//	otherAgents.emplace(pathRef->agent);
-				//	MAPF::Path& path = pathRef->GetPath();
-				//	Tile* tile = timestep < path.size() ? path[timestep] : path[path.size() - 1];
-				//	collisionCosts[timestep][tile] += 1;
-				//}
-			}
+			path = agent->temporalAStar->FindPath2(currentTile, agent->goal, collisionCosts);
 		}
-
-
-		PrintPath(agent, path);
 	}
 
-	for (auto& it : timeCollisionSet)
+	if (!path.empty())
 	{
-		int time = it.first;
-		for (Tile* tile : it.second)
+		agent->potentialPaths.push_back(path);
+		CollisionAtTime& otherPathCollisions = UpdateCollisions(new AgentPathRef(agent, agent->potentialPaths.size() - 1));
+
+		AgentPathRef* shortestPath = nullptr;
+		int shortestSize = INT_MAX;
+		int timeOfCollision = 0;
+
+		for (auto& it : otherPathCollisions)
 		{
-			agentCollisionCosts[agent][time][tile] += 1;
+			int timestep = it.first;
+			std::vector<AgentPathRef*>& paths = it.second;
+
+			for (AgentPathRef* pathRef : paths)
+			{
+				otherAgents.emplace(pathRef->agent);
+				MAPF::Path& path = pathRef->GetPath();
+				for (int i = 0; i < path.size(); i++)
+					for (Tile* tile : path)
+						timeCollisionSet[i].emplace(tile);
+				//collisionCosts[i][tile] += 1;
+
+				int pathSize = pathRef->GetPath().size();
+				if (pathSize < shortestSize)
+				{
+					shortestSize = pathSize;
+					shortestPath = pathRef;
+					timeOfCollision = timestep;
+				}
+			}
+
+			//for (AgentPathRef* pathRef : paths)
+			//{
+			//	otherAgents.emplace(pathRef->agent);
+			//	MAPF::Path& path = pathRef->GetPath();
+			//	Tile* tile = timestep < path.size() ? path[timestep] : path[path.size() - 1];
+			//	collisionCosts[timestep][tile] += 1;
+			//}
 		}
-			//collisionCosts[time][tile] += 1;
+
+
+		if (shortestPath)
+		{
+			MAPF::Path& path = shortestPath->GetPath();
+			//collisionCosts[timeOfCollision][path[timeOfCollision]] += 1;
+
+			for (int i = 0; i < path.size(); i++)
+			{
+				//Tile* tile = path[i];
+				for (Tile* tile : path)
+				{
+					//agentCollisionCosts[agent][i][tile] += 1;
+					//collisionCosts[i][tile] += 1;
+					collisionCosts[i][tile] += 1;
+				}
+			}
+		}
 	}
+
+	PrintPath(agent, path);
+
+	//for (auto& it : timeCollisionSet)
+	//{
+	//	int time = it.first;
+	//	for (Tile* tile : it.second)
+	//	{
+	//		agentCollisionCosts[agent][time][tile] += 1;
+	//	}
+	//	//collisionCosts[time][tile] += 1;
+	//}
 
 	for (Agent* otherAgent : otherAgents)
 	{
@@ -477,6 +433,33 @@ void AgentCoordinator::PrintPath(Agent* agent, MAPF::Path& path)
 
 void AgentCoordinator::RenderCollisionCosts(sf::RenderWindow& window)
 {
+	for (auto& it0 : agentCollisionCosts)
+	{
+		Agent* agent = it0.first;
+
+		for (auto& it : it0.second)
+		{
+			int time = it.first;
+			std::string timeStr = std::to_string(time);
+			std::map<Tile*, float>& costMap = it.second;
+
+			for (auto& tileCost : costMap)
+			{
+				Tile* tile = tileCost.first;
+				int cost = ceil(tileCost.second);
+
+				if (cost > 0)
+				{
+					sf::Text text(timeStr + ", " + std::to_string(cost), Globals::FONT_DROID_SANS, 10);
+					text.setColor(sf::Color(255 - agent->color.r, 255 - agent->color.g, 255 - agent->color.b, 255));
+					text.setPosition(sf::Vector2f(tile->x, tile->y - 0.2f * time) * Globals::renderSize);
+					window.draw(text);
+				}
+			}
+		}
+	}
+
+
 	for (auto& it : collisionCosts)
 	{
 		int time = it.first;
@@ -496,6 +479,5 @@ void AgentCoordinator::RenderCollisionCosts(sf::RenderWindow& window)
 				window.draw(text);
 			}
 		}
-
 	}
 }
