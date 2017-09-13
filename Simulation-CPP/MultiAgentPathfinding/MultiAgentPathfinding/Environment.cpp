@@ -7,6 +7,9 @@
 #include <SFML/Graphics.hpp>
 #include "Globals.h"
 
+#define DEBUG_VERBOSE 0
+#define DEBUG_STATS 0
+
 Environment::Environment()
 {
 	std::cout << "Created environment" << std::endl;
@@ -58,7 +61,7 @@ bool Environment::GenerateGridMapTexture()
 		sf::RectangleShape rect(rectSize);
 		rect.setOrigin(rectSize * 0.5f);
 
-		sf::Vector2f& rectPos = 
+		sf::Vector2f& rectPos =
 			sf::Vector2f(tile->x, tile->y) * 10.f + // scaled pos 
 			rectSize * 0.5f; // offset
 
@@ -67,14 +70,16 @@ bool Environment::GenerateGridMapTexture()
 		rect.setOutlineThickness(rectSize.x * -0.1f);
 		sf::Color color = tile->isWalkable ? sf::Color::White : sf::Color::Black;
 		rect.setFillColor(color);
-		
+
 		gridMapRenderTexture.draw(rect);
 	}
 
 	gridMapRenderTexture.display();
 
 	timerGridMap.End();
+#if DEBUG_STATS
 	timerGridMap.PrintTimeElapsed("Rendering grid map onto texture");
+#endif
 
 	return true;
 }
@@ -108,20 +113,22 @@ void Environment::GenerateRandomAgents(int numToGenerate)
 	for (int i = 0; i < numToGenerate; i++)
 	{
 		Tile* start = freeStartTiles[rand() % (freeStartTiles.size() - 1)]; // pick a random free tile
-		
+
 		Tile* goal = freeGoalTiles[rand() % (freeGoalTiles.size() - 1)];
-		
+
 		/** make sure the agent's goal is not equal to their start tile! */
 		while (goal == start)
 			goal = freeGoalTiles[rand() % (freeGoalTiles.size() - 1)];
-	
+
 		assert(start);
 		assert(goal);
 
 		Agent* agent = new Agent(&gridMap, start, goal);
 		AddAgent(agent);
 
+#if DEBUG_VERBOSE
 		std::cout << "Randomly spawned " << *agent << " at " << agent->x << ", " << agent->y << std::endl;
+#endif
 	}
 }
 

@@ -5,6 +5,7 @@
 #include <string>
 
 #define DEBUG_MIP 0
+#define DEBUG_STATS 0
 
 PathAssigner::PathAssigner(GridMap* inGridMap)
 {
@@ -18,7 +19,9 @@ PathAssigner::~PathAssigner()
 
 void PathAssigner::Init()
 {
+#if DEBUG_MIP
 	std::cout << "Initializing Path Assignment Mixed Integer Problem" << std::endl;
+#endif
 
 	SCIP_CALL_EXC(SCIPcreate(&scip));
 	SCIP_CALL_EXC(SCIPincludeDefaultPlugins(scip));
@@ -175,7 +178,7 @@ void PathAssigner::CreateAgentChoiceConstraints(int agentId, std::vector<SCIP_VA
 	sprintf_s(choiceConsName, "agentChoice%d", agentId);
 
 	SCIP_CALL_EXC(SCIPcreateConsBasicLinear(scip, &agentChoiceCons, choiceConsName, 0, nullptr, nullptr, 1, 1));
-	
+
 	for (SCIP_VAR* agentPath : agentVariables)
 		SCIP_CALL_EXC(SCIPaddCoefLinear(scip, agentChoiceCons, agentPath, 1.0));
 
@@ -263,7 +266,9 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 			// has chosen this path
 			if (varSolution != 0)
 			{
+#if DEBUG_MIP
 				std::cout << varNames[var] << " was chosen with value " << varSolution << std::endl;
+#endif
 				Agent* agent = varToAgentMap[var];
 
 				bool isPathVariable = varToPathMap.find(var) != varToPathMap.end();
@@ -302,7 +307,9 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 	Cleanup();
 
 	mipTimer.End();
+#if DEBUG_STATS
 	mipTimer.PrintTimeElapsed("MIP Path assignment");
+#endif
 	Stats::avgMipTime = mipTimer.GetAvgTime();
 
 	return penaltyAgents;

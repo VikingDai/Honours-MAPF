@@ -16,19 +16,17 @@
 #include <SFML/Graphics.hpp>
 #include "Globals.h"
 
-#define DEBUG_MIP 0
+#define DEBUG_VERBOSE 0
 
 AgentCoordinator::AgentCoordinator(GridMap* inMap)
-	: gridMap(inMap), isRunning(false)
+	: gridMap(inMap), aStar(inMap), pathAssigner(inMap), isRunning(false)
 {
-	aStar = new TemporalAStar(inMap);
-	pathAssigner = new PathAssigner(inMap);
+	//aStar = new TemporalAStar(inMap);
+	//pathAssigner = new PathAssigner(inMap);
 }
 
 AgentCoordinator::~AgentCoordinator()
 {
-	delete aStar;
-	delete pathAssigner;
 }
 
 void AgentCoordinator::Reset()
@@ -46,51 +44,38 @@ bool AgentCoordinator::Step(std::vector<Agent*>& agents)
 		isRunning = Init(agents);
 		if (!isRunning)
 		{
+#if DEBUG_VERBOSE
 			std::cout << "All agents already have paths! Found solution" << std::endl;
+#endif
 			return true;
 		}
 	}
 
+#if DEBUG_VERBOSE
 	std::cout << std::endl << "AGENT COORDINATOR ITERATION " << iteration << std::endl;
 	std::cout << "-------------------------------------" << std::endl;
+#endif
 	iteration += 1;
 
 	// Generate additional paths
 	generatePathTimer.Begin();
 	for (Agent* agent : agentsRequiringPath)
-	{
 		GeneratePath(agent, firstRun);
 
-		// print collisionCosts table
-		std::cout << "-----COLLISION TABLE-----" << std::endl;
-		for (auto& it : collisionCosts)
-		{
-			int time = it.first;
-			//std::cout << "AT TIME " << time << std::endl;
-
-			for (auto& it2 : it.second)
-			{
-				Tile* tile = it2.first;
-				float cost = it2.second;
-
-				//std::cout << "\t" << *tile << " has cost " << cost << std::endl;
-			}
-		}
-
-	}
 	generatePathTimer.End();
+#if DEBUG_VERBOSE
 	generatePathTimer.PrintTimeElapsed("Generating paths");
+#endif
 
 	agentsRequiringPath.clear();
 
 	// Assign conflict-free paths to agents using a MIP
 	CollisionSet& collisionSet = DetectTileCollisions();
-	std::vector<Agent*> mipConflicts = pathAssigner->AssignPaths(agents, collisionSet);
+	std::vector<Agent*> mipConflicts = pathAssigner.AssignPaths(agents, collisionSet);
 	collisionSet.clear();
 
 	if (mipConflicts.empty())
 	{
-		std::cout << "MIP told us no conflicts, we are done!" << std::endl;
 		isRunning = false; // # TODO put this back later!
 		return true;
 	}
@@ -122,7 +107,6 @@ bool AgentCoordinator::Init(std::vector<Agent*>& agents)
 		// if the agent has a goal to reach but does not have a path, generate a path
 		if (agent->goal && agent->GetPath().empty())
 		{
-			std::cout << "GENERATING FRESH PATH FOR AGENT" << *agent << std::endl;
 			agentsRequiringPath.emplace(agent);
 			agent->potentialPaths.clear();
 			anyPathsChanged = true;
@@ -131,7 +115,10 @@ bool AgentCoordinator::Init(std::vector<Agent*>& agents)
 
 	if (anyPathsChanged)
 	{
+#if DEBUG_VERBOSE
 		std::cout << "Initializing AgentCoordinator" << std::endl;
+#endif
+
 		iteration = 1;
 
 		coordinatorTimer.Begin();
@@ -155,12 +142,14 @@ void AgentCoordinator::UpdateAgents(std::vector<Agent*>& agents)
 	int i = 0;
 	do
 	{
+#if DEBUG_VERBOSE
 		std::cout << "AgentCoordinator: Run " << i << std::endl;
 		std::cout << "************************" << std::endl;
+#endif
 
 		if (Step(agents))
 		{
-			std::cout << "FOUND A CONFLICT-FREE SOLUTION" << std::endl;
+			std::cout << "AgentCoordinator Finished: Found a conflict-free solution" << std::endl;
 			break;
 		}
 
@@ -185,35 +174,42 @@ void AgentCoordinator::GeneratePath(
 
 	MAPF::Path path;
 
-
-
 	if (firstRun)
 	{
+
+#if DEBUG_VERBOSE
 		std::cout << "Normal A*: Generating path for " << *agent << std::endl;
-		path = agent->aStar->FindPath(currentTile, agent->goal);
+#endif
+		path = aStar.FindPath(currentTile, agent->goal);
 	}
 	else
 	{
-		//bool inDeadlock = false;
-		//for (auto& it : agentCollisionCount[agent])
-		//{
-
-		//	int numCollisions = it.second;
-		//	std::cout << *agent << " has " << numCollisions << " collisions with " << *it.first << std::endl;
-		//	if (numCollisions > 30)
-		//	{
-		//		inDeadlock = true;
-		//	}
-		//}
-
-		//if (inDeadlock)
-		//{
-		//  std::cout << "BFS: Generating path for " << *agent << std::endl;
-		//	path = agent->bfs->FindNextPath(currentTile, agent->goal);
-		//}
-		//else
+		bool inDeadlock = false;
+		for (auto& it : agentCollisionCount[agent])
 		{
+
+			int numCollisions = it.second;
+#if DEBUG_VERBOSE
+			std::cout << *agent << " has " << numCollisions << " collisions with " << *it.first << std::endl;
+#endif
+			if (numCollisions > 30)
+			{
+				inDeadlock = true;
+			}
+		}
+
+		if (inDeadlock)
+		{
+#if DEBUG_VERBOSE
+			std::cout << "BFS: Generating path for " << *agent << std::endl;
+#endif
+			path = agent->bfs->FindNextPath(currentTile, agent->goal);
+		}
+		else
+		{
+#if DEBUG_VERBOSE
 			std::cout << "Temporal A*: Generating path for " << *agent << std::endl;
+#endif
 			path = agent->temporalAStar->FindPath(currentTile, agent->goal, agentCollisionCosts[agent]);
 		}
 	}
@@ -229,7 +225,7 @@ void AgentCoordinator::GeneratePath(
 
 		for (auto& it : otherPathCollisions)
 		{
-			
+
 			int timestep = it.first;
 			std::vector<AgentPathRef*>& paths = it.second;
 
@@ -250,7 +246,7 @@ void AgentCoordinator::GeneratePath(
 						//collisionCosts[i][tile] += 1;
 						//timeCollisionSet[i].emplace(tile);
 				//}
-				
+
 
 				int pathSize = pathRef->GetPath().size();
 				if (pathSize < shortestSize)
@@ -313,7 +309,9 @@ void AgentCoordinator::GeneratePath(
 		}
 	}
 
+#if DEBUG_VERBOSE
 	PrintPath(agent, path);
+#endif
 }
 
 AgentCoordinator::CollisionSet AgentCoordinator::DetectTileCollisions()

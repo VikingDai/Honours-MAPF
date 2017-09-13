@@ -30,7 +30,7 @@ void Experiment::RunExperiment(std::string filename, Environment& environment)
 	int repetitions;
 	infile >> dummyText >> repetitions;
 
-	printf("Running experiment: %s | Map Name: %s | %.2f-%.2f (%.2f) Obstacles | %d-%d-(%d) Agents\n | %d Repeats",
+	printf("Running experiment: %s | Map Name: %s | %.2f-%.2f (%.2f) Obstacles | %d-%d-(%d) Agents | %d Repeats\n",
 		filename.c_str(),
 		mapName.c_str(),
 		percentObstacles, upperPercent, percentDelta,
@@ -41,11 +41,13 @@ void Experiment::RunExperiment(std::string filename, Environment& environment)
 	{
 		for (percentObstacles; percentObstacles <= upperPercent; percentObstacles += percentDelta)
 		{
+			std::cout << "##### Experiment | Agents " << numAgents << " | Obs " << percentObstacles << " #####" << std::endl << std::endl;
+
+			int tilesExpandedCount = 0;
+
 			for (int i = 0; i < repetitions; i++)
 			{
-				std::cout << "***** Experiment " << i << " *****" << std::endl;
-				std::cout << "***** Experiment " << i << " *****" << std::endl;
-				std::cout << "***** Experiment " << i << " *****" << std::endl << std::endl;
+				std::cout << "***** Repetition " << i << " *****" << std::endl << std::endl;
 
 				environment.Reset();
 
@@ -59,6 +61,7 @@ void Experiment::RunExperiment(std::string filename, Environment& environment)
 
 				printf("Solving scenario: %s | Map Name: %s | %.2f Obstacles | %d Agents\n",
 					filename.c_str(),
+					mapName.c_str(),
 					percentObstacles,
 					mapName.c_str(),
 					numAgents);
@@ -67,7 +70,11 @@ void Experiment::RunExperiment(std::string filename, Environment& environment)
 				coordinator.UpdateAgents(environment.agents);
 
 				printf("%d Nodes Expanded\n", TemporalAStar::GLOBAL_TILES_EXPANDED);
+				tilesExpandedCount += TemporalAStar::GLOBAL_TILES_EXPANDED;
+				TemporalAStar::GLOBAL_TILES_EXPANDED = 0;
 			}
+
+			printf("%.5f Avg Expanded\n", tilesExpandedCount / (double) repetitions);
 
 			if (percentDelta == 0) break;
 		}

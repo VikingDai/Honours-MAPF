@@ -7,8 +7,7 @@
 #include "Statistics.h"
 
 #define DEBUG_VERBOSE 0
-#define DEBUG_STATS 1
-#define TEST_GENERATE_DIFFERENT 1
+#define DEBUG_STATS 0
 
 int TemporalAStar::GLOBAL_TILES_EXPANDED = 0;
 
@@ -82,6 +81,8 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 	std::cout << "Search finished, expanded <" << LOCAL_TILES_EXPANDED << "> tiles | Took " << std::endl;
 #endif
 
+	GLOBAL_TILES_EXPANDED += LOCAL_TILES_EXPANDED;
+
 	return path;
 }
 
@@ -90,7 +91,6 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, TileTime* current, Tile* nei
 	if (!neighborTile || !neighborTile->isWalkable) return;
 
 	LOCAL_TILES_EXPANDED += 1;
-	GLOBAL_TILES_EXPANDED += 1;
 
 	// get neighbor tile timestep and new cost
 	int neighborTimestep = current->timestep + 1;

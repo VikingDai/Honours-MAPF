@@ -4,6 +4,7 @@
 #include <iostream>
 #include <algorithm>
 
+#define DEBUG_VERBOSE 0
 
 GridMap::GridMap()
 {
@@ -39,8 +40,10 @@ void GridMap::LoadMap(std::string filename)
 
 	numTiles = width * height;
 
+#if DEBUG_VERBOSE
 	printf("Loaded map: %s | Map Type: %s | Width: %d | Height %d\n",
 		filename.c_str(), mapType.c_str(), width, height);
+#endif
 
 	getline(infile, mapType);
 

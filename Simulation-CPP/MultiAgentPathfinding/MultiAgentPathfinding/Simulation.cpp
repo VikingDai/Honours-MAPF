@@ -233,7 +233,7 @@ void Simulation::BuildOptions()
 	if (ImGui::Button("Run experiment"))
 	{
 		Experiment experiment;
-		experiment.RunExperiment("../experiments/test.experiment", environment);
+		experiment.RunExperiment("../experiments/8x8.experiment", environment);
 	}
 
 	/** Add a solve button */

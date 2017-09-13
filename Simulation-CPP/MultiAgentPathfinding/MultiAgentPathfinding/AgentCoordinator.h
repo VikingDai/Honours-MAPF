@@ -20,9 +20,9 @@ class Tile;
 class AgentCoordinator
 {
 private:
-	TemporalAStar* aStar;
+	TemporalAStar aStar;
 	GridMap* gridMap;
-	PathAssigner* pathAssigner;
+	PathAssigner pathAssigner;
 
 public:
 	AgentCoordinator(GridMap* map);
@@ -66,15 +66,13 @@ private:
 		Agent* agent, 
 		bool firstRun);
 
-	using CollisionSet = std::vector<std::set<AgentPathRef*>>;
 	/** Groups together paths which are in collision with one another */
+	using CollisionSet = std::vector<std::set<AgentPathRef*>>;
 
 	std::set<std::pair<Tile*, int>> tilesInCollision;
+
 	CollisionSet DetectTileCollisions();
 	CollisionSet crossCollisionSet;
-
-	/** */
-	//void BuildCollisionTable(std::vector<Agent*>& agents);
 
 	/** Updates the collision table and stores any path collisions */
 	CollisionAtTime UpdateCollisions(AgentPathRef* agentPathRef);
