@@ -14,6 +14,7 @@
 
 #include <SFML/Graphics.hpp>
 #include "Globals.h"
+#include "Experiment.h"
 
 namespace fs = std::experimental::filesystem;
 
@@ -227,6 +228,13 @@ void Simulation::BuildOptions()
 	/** Load scenario button */
 	if (ImGui::Button("Load scenario")) 
 		LoadScenario();
+
+	/** Run experiment button */
+	if (ImGui::Button("Run experiment"))
+	{
+		Experiment experiment;
+		experiment.RunExperiment("../experiments/test.experiment", environment);
+	}
 
 	/** Add a solve button */
 	if (ImGui::Button("Solve")) 

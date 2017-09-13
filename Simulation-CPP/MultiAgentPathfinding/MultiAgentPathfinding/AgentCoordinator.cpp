@@ -28,7 +28,6 @@ AgentCoordinator::AgentCoordinator(GridMap* inMap)
 AgentCoordinator::~AgentCoordinator()
 {
 	delete aStar;
-	delete gridMap;
 	delete pathAssigner;
 }
 
@@ -187,33 +186,35 @@ void AgentCoordinator::GeneratePath(
 	MAPF::Path path;
 
 
-	std::cout << "Normal A*: Generating path for " << *agent << std::endl;
 
 	if (firstRun)
 	{
+		std::cout << "Normal A*: Generating path for " << *agent << std::endl;
 		path = agent->aStar->FindPath(currentTile, agent->goal);
 	}
 	else
 	{
-		bool inDeadlock = false;
-		for (auto& it : agentCollisionCount[agent])
-		{
+		//bool inDeadlock = false;
+		//for (auto& it : agentCollisionCount[agent])
+		//{
 
-			int numCollisions = it.second;
-			std::cout << *agent << " has " << numCollisions << " collisions with " << *it.first << std::endl;
-			if (numCollisions > 30)
-			{
-				inDeadlock = true;
-			}
-		}
+		//	int numCollisions = it.second;
+		//	std::cout << *agent << " has " << numCollisions << " collisions with " << *it.first << std::endl;
+		//	if (numCollisions > 30)
+		//	{
+		//		inDeadlock = true;
+		//	}
+		//}
 
-		if (inDeadlock)
+		//if (inDeadlock)
+		//{
+		//  std::cout << "BFS: Generating path for " << *agent << std::endl;
+		//	path = agent->bfs->FindNextPath(currentTile, agent->goal);
+		//}
+		//else
 		{
-			path = agent->bfs->FindNextPath(currentTile, agent->goal);
-		}
-		else
-		{
-			path = agent->temporalAStar->FindPath2(currentTile, agent->goal, collisionCosts);
+			std::cout << "Temporal A*: Generating path for " << *agent << std::endl;
+			path = agent->temporalAStar->FindPath(currentTile, agent->goal, agentCollisionCosts[agent]);
 		}
 	}
 
@@ -228,6 +229,7 @@ void AgentCoordinator::GeneratePath(
 
 		for (auto& it : otherPathCollisions)
 		{
+			
 			int timestep = it.first;
 			std::vector<AgentPathRef*>& paths = it.second;
 
@@ -235,10 +237,20 @@ void AgentCoordinator::GeneratePath(
 			{
 				otherAgents.emplace(pathRef->agent);
 				MAPF::Path& path = pathRef->GetPath();
-				for (int i = 0; i < path.size(); i++)
-					for (Tile* tile : path)
-						timeCollisionSet[i].emplace(tile);
-				//collisionCosts[i][tile] += 1;
+
+				/** penalize where the collision occurred */
+				Tile* tile = path.size() > timestep ? path[timestep] : path[path.size() - 1];
+				agentCollisionCosts[agent][timestep][tile] += 1;
+
+				//for (int i = 0; i < path.size(); i++)
+				//{
+					//Tile* tile = path[i];
+					//collisionCosts[i][tile] += 1;
+					//for (Tile* tile : path)
+						//collisionCosts[i][tile] += 1;
+						//timeCollisionSet[i].emplace(tile);
+				//}
+				
 
 				int pathSize = pathRef->GetPath().size();
 				if (pathSize < shortestSize)
@@ -258,42 +270,50 @@ void AgentCoordinator::GeneratePath(
 			//}
 		}
 
+		///** penalize our own path? */
+		//if (!otherPathCollisions.empty())
+		//	for (int i = 0; i < path.size(); i++)
+		//		for (Tile* tile : path)
+		//			agentCollisionCosts[agent][i][tile] += 1;
 
-		if (shortestPath)
+
+		/** Penalize the shortest path (of the other agent) our new path has collided with */
+		//if (shortestPath)
+		//{
+		//	MAPF::Path& path = shortestPath->GetPath();
+		//	//collisionCosts[timeOfCollision][path[timeOfCollision]] += 1;
+
+		//	for (int i = 0; i < path.size(); i++)
+		//	{
+		//		//Tile* tile = path[i];
+		//		for (Tile* tile : path)
+		//		{
+		//			//agentCollisionCosts[agent][i][tile] += 1;
+		//			//collisionCosts[i][tile] += 1;
+		//			collisionCosts[i][tile] += 1;
+		//		}
+		//	}
+		//}
+
+		///** Penalize all tiles we have collided with max 1 penalty */
+		//for (auto& it : timeCollisionSet)
+		//{
+		//	int time = it.first;
+		//	for (Tile* tile : it.second)
+		//	{
+		//		agentCollisionCosts[agent][time][tile] += 1;
+		//	}
+		//	//collisionCosts[time][tile] += 1;
+		//}
+
+		for (Agent* otherAgent : otherAgents)
 		{
-			MAPF::Path& path = shortestPath->GetPath();
-			//collisionCosts[timeOfCollision][path[timeOfCollision]] += 1;
-
-			for (int i = 0; i < path.size(); i++)
-			{
-				//Tile* tile = path[i];
-				for (Tile* tile : path)
-				{
-					//agentCollisionCosts[agent][i][tile] += 1;
-					//collisionCosts[i][tile] += 1;
-					collisionCosts[i][tile] += 1;
-				}
-			}
+			agentCollisionCount[agent][otherAgent] += 1;
+			agentCollisionCount[otherAgent][agent] += 1;
 		}
 	}
 
 	PrintPath(agent, path);
-
-	//for (auto& it : timeCollisionSet)
-	//{
-	//	int time = it.first;
-	//	for (Tile* tile : it.second)
-	//	{
-	//		agentCollisionCosts[agent][time][tile] += 1;
-	//	}
-	//	//collisionCosts[time][tile] += 1;
-	//}
-
-	for (Agent* otherAgent : otherAgents)
-	{
-		agentCollisionCount[agent][otherAgent] += 1;
-		agentCollisionCount[otherAgent][agent] += 1;
-	}
 }
 
 AgentCoordinator::CollisionSet AgentCoordinator::DetectTileCollisions()

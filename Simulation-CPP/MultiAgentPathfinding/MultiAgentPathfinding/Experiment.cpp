@@ -5,57 +5,73 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+#include "AgentCoordinator.h"
+#include "TemporalAStar.h"
 
 void Experiment::RunExperiment(std::string filename, Environment& environment)
 {
-	//std::fstream infile(filename);
+	std::fstream infile(filename);
 
-	//assert(infile); // ensure file is valid!
+	assert(infile); // ensure file is valid!
 
-	//environment.Reset();
+	// line #1: map_name
+	// line #2: agents lower upper delta
+	// line #3: obstacles lower upper delta
+	std::string dummyText;
+	std::string mapName;
+	infile >> mapName;
 
-	//// line #1: type mapType
-	//// line #2: agents n
-	//// line #3 to end: agents in form: startX startY goalX goalY
-	//std::string dummyText;
-	//int numAgents;
-	//std::string mapName;
-	//infile >> mapName;
-	//infile >> dummyText >> numAgents;
+	float percentObstacles, upperPercent, percentDelta;
+	infile >> dummyText >> percentObstacles >> upperPercent >> percentDelta;
 
-	//printf("Loaded scenario: %s | Map Name: %s | %d Agents\n", filename.c_str(), mapName.c_str(), numAgents);
+	int numAgents, upperNumAgents, agentsDelta;
+	infile >> dummyText >> numAgents >> upperNumAgents >> agentsDelta;
 
-	//environment.gridMap.LoadMap("../maps/" + mapName);
-	//environment.GenerateGridMapTexture();
+	int repetitions;
+	infile >> dummyText >> repetitions;
 
-	//assert(environment.gridMap.getNumTiles() > numAgents);
+	printf("Running experiment: %s | Map Name: %s | %.2f-%.2f (%.2f) Obstacles | %d-%d-(%d) Agents\n | %d Repeats",
+		filename.c_str(),
+		mapName.c_str(),
+		percentObstacles, upperPercent, percentDelta,
+		numAgents, upperNumAgents, agentsDelta,
+		repetitions);
 
-	//int numRandomAgents = numAgents;
+	for (numAgents; numAgents <= upperNumAgents; numAgents += agentsDelta)
+	{
+		for (percentObstacles; percentObstacles <= upperPercent; percentObstacles += percentDelta)
+		{
+			for (int i = 0; i < repetitions; i++)
+			{
+				std::cout << "***** Experiment " << i << " *****" << std::endl;
+				std::cout << "***** Experiment " << i << " *****" << std::endl;
+				std::cout << "***** Experiment " << i << " *****" << std::endl << std::endl;
 
-	//std::vector<Tile*> freeStartTiles = environment.gridMap.walkableTiles;
-	//std::vector<Tile*> freeGoalTiles = environment.gridMap.walkableTiles;
+				environment.Reset();
 
-	//// load defined agents
-	//int startX, startY, goalX, goalY;
-	//while (infile >> startX >> startY >> goalX >> goalY)
-	//{
-	//	Tile* start = environment.gridMap.getTileAt(startX, startY);
-	//	freeStartTiles.erase(std::remove(freeStartTiles.begin(), freeStartTiles.end(), start), freeStartTiles.end());
+				environment.LoadMap("../maps/" + mapName);
 
-	//	Tile* goal = environment.gridMap.getTileAt(goalX, goalY);
-	//	freeGoalTiles.erase(std::remove(freeGoalTiles.begin(), freeGoalTiles.end(), goal), freeGoalTiles.end());
+				assert(environment.gridMap.GetNumTiles() * (1 - percentObstacles) > numAgents);
 
-	//	assert(start);
-	//	assert(goal);
+				environment.FillWithObstacles(percentObstacles);
 
-	//	Agent* agent = new Agent(&environment.gridMap, start, goal);
-	//	environment.agents.push_back(agent);
+				environment.GenerateRandomAgents(numAgents);
 
-	//	std::cout << "Spawned " << *agent << std::endl;
+				printf("Solving scenario: %s | Map Name: %s | %.2f Obstacles | %d Agents\n",
+					filename.c_str(),
+					percentObstacles,
+					mapName.c_str(),
+					numAgents);
 
-	//	// remove start from the list of free tiles
+				AgentCoordinator coordinator(&environment.gridMap);
+				coordinator.UpdateAgents(environment.agents);
 
+				printf("%d Nodes Expanded\n", TemporalAStar::GLOBAL_TILES_EXPANDED);
+			}
 
-	//	numRandomAgents -= 1;
-	//}
+			if (percentDelta == 0) break;
+		}
+
+		if (agentsDelta == 0) break;
+	}
 }

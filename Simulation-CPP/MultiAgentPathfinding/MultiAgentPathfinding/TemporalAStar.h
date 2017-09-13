@@ -13,32 +13,15 @@ class GridMap;
 
 struct TileTime
 {
-	int timesUsed;
-	int timestep;
-	Tile* tile;
-	float estimate;
-	float cost;
-
-	void SetInfo(int timestep, Tile* tile, float cost, float estimate)
-	{
-		this->timestep = timestep;
-		this->tile = tile;
-		this->estimate = estimate;
-		this->cost = cost;
-	}
-};
-
-struct TileTime2
-{
 	bool bNeedsReset;
 
 	bool bClosed = false;
 	bool bIsInOpen = false;
 
-	TileTime2* parent;
+	TileTime* parent;
 
 	int timestep;
-	std::map<TileTime2*, int> countFrom;
+	std::map<TileTime*, int> countFrom;
 	Tile* tile;
 	float estimate;
 	float cost;
@@ -51,7 +34,7 @@ struct TileTime2
 		this->cost = cost;
 	}
 
-	void SetParent(TileTime2* parent)
+	void SetParent(TileTime* parent)
 	{
 		this->parent = parent;
 	}
@@ -66,43 +49,23 @@ struct TileTime2
 
 struct BaseHeuristic
 {
-private:
-	int timestep;
-
 public:
 	BaseHeuristic() = default;
 	bool operator()(TileTime* A, TileTime* B);
 };
 
-struct BaseHeuristic2
-{
-private:
-	int timestep;
-
-public:
-	BaseHeuristic2() = default;
-	bool operator()(TileTime2* A, TileTime2* B);
-};
-
 class TemporalAStar
 {
 public:
-	std::list<TileTime*> freeTileInfos;
-	std::list<TileTime*> usedTileInfos;
+	static int GLOBAL_TILES_EXPANDED;
+	int LOCAL_TILES_EXPANDED;
 
 public:
-	std::map<TileTime*, Helper::Action> agentActionMap;
-
-public:
-	using OpenQueue = std::priority_queue<TileTime*, std::vector<TileTime*>, BaseHeuristic>;
 	using TileCosts = std::map<int, std::map<Tile*, float>>;
 
 private:
 	Timer timer;
 	Timer sortTimer;
-
-	BaseHeuristic heuristic;
-	std::map<TileTime*, TileTime*> cameFrom;
 
 	GridMap* gridMap;
 	std::vector<Tile*> modifiedTiles;
@@ -112,25 +75,16 @@ public:
 	void SetGridMap(GridMap* gridMap) { this->gridMap = gridMap; }
 	~TemporalAStar();
 
-	MAPF::Path FindPath(Tile* start, Tile* goal, TileCosts& customCostTable = TileCosts());
-	void ExpandNeighbor(OpenQueue& open, TileTime* currentInfo, Tile* currentTile, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& customCosts);
+public:
+	using OpenQueue = std::priority_queue<TileTime*, std::vector<TileTime*>, BaseHeuristic>;
 
+	std::set<TileTime*> modifiedTileTimes;
 
-	std::map<Tile*, std::map<int, int>> visitedAtTimeCount;
+	std::map<Tile*, std::map<int, TileTime*>> spatialGridMap;
 
+	MAPF::Path FindPath(Tile* start, Tile* goal, TileCosts& customCosts = TileCosts());
 
-public: // TESTING NEW STUFF
-	using OpenQueue2 = std::priority_queue<TileTime2*, std::vector<TileTime2*>, BaseHeuristic2>;
-
-	std::set<TileTime2*> modifiedTileTimes;
-
-	std::map<Tile*, std::map<int, TileTime2*>> spatialGridMap;
-
-	MAPF::Path FindPath2(Tile* start, Tile* goal, TileCosts& customCosts = TileCosts());
-
-	//OpenQueue2 open2;
-
-	void ExpandNeighbor2(OpenQueue2& open, TileTime2* current, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& customCosts);
+	void ExpandNeighbor(OpenQueue& open, TileTime* current, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& customCosts);
 
 	int GetCustomCosts(int timestep, Tile* tile, TileCosts& customCosts);
 };
