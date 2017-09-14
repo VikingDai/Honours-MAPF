@@ -11,17 +11,17 @@
 class Tile;
 class GridMap;
 
-struct TileTime
+struct AStarTileTime
 {
 	bool bNeedsReset;
 
 	bool bClosed = false;
 	bool bIsInOpen = false;
 
-	TileTime* parent;
+	AStarTileTime* parent;
 
 	int timestep;
-	std::map<TileTime*, int> countFrom;
+	std::map<AStarTileTime*, int> countFrom;
 	Tile* tile;
 	float estimate;
 	float cost;
@@ -34,7 +34,7 @@ struct TileTime
 		this->cost = cost;
 	}
 
-	void SetParent(TileTime* parent)
+	void SetParent(AStarTileTime* parent)
 	{
 		this->parent = parent;
 	}
@@ -43,6 +43,7 @@ struct TileTime
 	{
 		bNeedsReset = true;
 		bClosed = false;
+		parent = nullptr;
 		bIsInOpen = false;
 	}
 };
@@ -51,12 +52,20 @@ struct BaseHeuristic
 {
 public:
 	BaseHeuristic() = default;
-	bool operator()(TileTime* A, TileTime* B);
+	bool operator()(AStarTileTime* A, AStarTileTime* B);
 };
 
 class TemporalAStar
 {
+private:
+	static std::vector<AStarTileTime*> TILE_TIME_POOL;
+	static AStarTileTime* GetTileTime(std::vector<AStarTileTime*>& usedTileTimes);
+
+	std::vector<AStarTileTime*> usedTileTimes;
+
 public:
+
+
 	static int GLOBAL_TILES_EXPANDED;
 	int LOCAL_TILES_EXPANDED;
 
@@ -76,15 +85,15 @@ public:
 	~TemporalAStar();
 
 public:
-	using OpenQueue = std::priority_queue<TileTime*, std::vector<TileTime*>, BaseHeuristic>;
+	using OpenQueue = std::priority_queue<AStarTileTime*, std::vector<AStarTileTime*>, BaseHeuristic>;
 
-	std::set<TileTime*> modifiedTileTimes;
+	std::set<AStarTileTime*> modifiedTileTimes;
 
-	std::map<Tile*, std::map<int, TileTime*>> spatialGridMap;
+	std::map<Tile*, std::map<int, AStarTileTime*>> spatialGridMap;
 
 	MAPF::Path FindPath(Tile* start, Tile* goal, TileCosts& customCosts = TileCosts());
 
-	void ExpandNeighbor(OpenQueue& open, TileTime* current, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& customCosts);
+	void ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& customCosts);
 
 	int GetCustomCosts(int timestep, Tile* tile, TileCosts& customCosts);
 };

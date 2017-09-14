@@ -1,8 +1,41 @@
 #include "TemporalBFS.h"
 
+#define DEBUG_VERBOSE 1
+
+using BFSTileTime = std::pair<Tile*, int>;
+
+std::vector<BFSTileTime*> TemporalBFS::TILE_TIME_POOL;
+
+TemporalBFS::BFSTileTime* TemporalBFS::MakeTileTime(std::vector<BFSTileTime*>& usedTileTimes, Tile* tile, int time)
+{
+	BFSTileTime* tileTime = nullptr;
+
+	if (TILE_TIME_POOL.empty())
+	{
+		tileTime = new BFSTileTime(tile, time);
+	}
+	else
+	{
+		tileTime = TILE_TIME_POOL.back();
+		tileTime->first = tile;
+		tileTime->second = time;
+		TILE_TIME_POOL.pop_back();
+	}
+
+	usedTileTimes.push_back(tileTime);
+
+	return tileTime;
+}
+
 TemporalBFS::TemporalBFS(GridMap* inGridMap)
 {
 	gridMap = inGridMap;
+}
+
+void TemporalBFS::Reset()
+{
+	frontier.swap(std::queue<BFSTileTime*>());
+	cameFrom.clear();
 }
 
 MAPF::Path TemporalBFS::FindNextPath(Tile* start, Tile* goal)
@@ -15,11 +48,11 @@ MAPF::Path TemporalBFS::FindNextPath(Tile* start, Tile* goal)
 		return path;
 
 	if (frontier.empty())
-		frontier.push(new TileTime(start, 0));
+		frontier.push(MakeTileTime(usedTileTimes, start, 0));
 
-	std::vector<TileTime*> tilesAtGoal;
+	std::vector<BFSTileTime*> tilesAtGoal;
 
-	TileTime* current = nullptr;
+	BFSTileTime* current = nullptr;
 
 	while (!frontier.empty())
 	{
@@ -28,7 +61,7 @@ MAPF::Path TemporalBFS::FindNextPath(Tile* start, Tile* goal)
 
 		nodesExpanded += 1;
 
-		//std::cout << *current->first << " | " << current->second << std::endl;
+		std::cout << "BFS Expanding: " << *current->first << " | " << current->second << std::endl;
 
 		AddNeighbor(current, gridMap->GetTileRelativeTo(current->first, 0, 1));
 		AddNeighbor(current, gridMap->GetTileRelativeTo(current->first, 1, 0));
@@ -50,7 +83,23 @@ MAPF::Path TemporalBFS::FindNextPath(Tile* start, Tile* goal)
 	// print stats
 	std::cout << "Expanded " << nodesExpanded << " tiles" << std::endl;
 
+	TILE_TIME_POOL.insert(TILE_TIME_POOL.end(), usedTileTimes.begin(), usedTileTimes.end());
+	usedTileTimes.clear();
+
 	return path;
+}
+
+void TemporalBFS::AddNeighbor(BFSTileTime* current, Tile* neighbor)
+{
+	if (!current || !neighbor) return;
+
+	if (neighbor->isWalkable)
+	{
+		//TileTime* neighborTileTime = new TileTime(neighbor, current->second + 1);
+		BFSTileTime* neighborTileTime = MakeTileTime(usedTileTimes, neighbor, current->second + 1);
+		frontier.push(neighborTileTime);
+		cameFrom[neighborTileTime] = current;
+	}
 }
 
 std::vector<MAPF::Path> TemporalBFS::SearchToDepth(Tile* start, Tile* goal, int depth)
@@ -59,21 +108,20 @@ std::vector<MAPF::Path> TemporalBFS::SearchToDepth(Tile* start, Tile* goal, int 
 
 	std::vector<MAPF::Path> paths;
 
-	if (!start || !goal || depth <= 0) 
+	if (!start || !goal || depth <= 0)
 		return paths;
 
-	frontier.push(new TileTime(start, 0));
+	frontier.push(MakeTileTime(usedTileTimes, start, 0));
+	//frontier.push(new TileTime(start, 0));
 
-	std::vector<TileTime*> tilesAtGoal;
+	std::vector<BFSTileTime*> tilesAtGoal;
 
 	while (!frontier.empty())
 	{
-		TileTime* current = frontier.front();
+		BFSTileTime* current = frontier.front();
 		frontier.pop();
 
 		nodesExpanded += 1;
-
-		//std::cout << *current->first << " | " << current->second << std::endl;
 
 		if (current->first == goal && current->second == depth)
 			tilesAtGoal.push_back(current);
@@ -88,10 +136,10 @@ std::vector<MAPF::Path> TemporalBFS::SearchToDepth(Tile* start, Tile* goal, int 
 	}
 
 	// rebuild paths
-	for (TileTime* tileTime : tilesAtGoal)
+	for (BFSTileTime* tileTime : tilesAtGoal)
 	{
 		MAPF::Path path;
-		TileTime* current = tileTime;
+		BFSTileTime* current = tileTime;
 
 		while (cameFrom.find(current) != cameFrom.end())
 		{
@@ -101,22 +149,9 @@ std::vector<MAPF::Path> TemporalBFS::SearchToDepth(Tile* start, Tile* goal, int 
 
 		paths.push_back(path);
 	}
-	
+
 	// print stats
 	std::cout << "Expanded " << nodesExpanded << " tiles" << std::endl;
 
 	return paths;
-}
-
-void TemporalBFS::AddNeighbor(TileTime* current, Tile* neighbor)
-{
-	if (!current || !neighbor) return;
-
-	if (neighbor->isWalkable)
-	{
-		//std::pair<Tile*, int> test;
-		TileTime* neighborTileTime = new TileTime(neighbor, current->second + 1);
-		frontier.push(neighborTileTime);
-		cameFrom[neighborTileTime] = current;
-	}
 }

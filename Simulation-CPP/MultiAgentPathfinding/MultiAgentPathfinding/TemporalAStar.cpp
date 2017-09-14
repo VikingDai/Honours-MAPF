@@ -9,8 +9,29 @@
 #define DEBUG_VERBOSE 0
 #define DEBUG_STATS 0
 
+
+
+std::vector<AStarTileTime*> TemporalAStar::TILE_TIME_POOL;
 int TemporalAStar::GLOBAL_TILES_EXPANDED = 0;
 
+AStarTileTime* TemporalAStar::GetTileTime(std::vector<AStarTileTime*>& usedTileTimes)
+{
+	AStarTileTime* tileTime = nullptr;
+
+	if (TILE_TIME_POOL.empty())
+	{
+		tileTime = new AStarTileTime();
+	}
+	else
+	{
+		tileTime = TILE_TIME_POOL.back();
+		TILE_TIME_POOL.pop_back();
+	}
+
+	usedTileTimes.push_back(tileTime);
+
+	return tileTime;
+}
 
 TemporalAStar::TemporalAStar(GridMap* inGridMap)
 {
@@ -19,6 +40,7 @@ TemporalAStar::TemporalAStar(GridMap* inGridMap)
 
 TemporalAStar::~TemporalAStar()
 {
+
 }
 
 MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
@@ -31,13 +53,13 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 
 	modifiedTileTimes.clear();
 
-	TileTime* initial = new TileTime();
+	AStarTileTime* initial = GetTileTime(usedTileTimes);
 	initial->SetInfo(0, start, 0, start->CalculateEstimate(0, goal));
 	initial->bIsInOpen = true;
 	open2.push(initial);
 	modifiedTileTimes.emplace(initial);
 
-	TileTime* current = nullptr;
+	AStarTileTime* current = nullptr;
 	
 	while (!open2.empty())
 	{
@@ -72,7 +94,7 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 	}
 
 	// reset any modified tiles
-	for (TileTime* modified : modifiedTileTimes)
+	for (AStarTileTime* modified : modifiedTileTimes)
 		modified->Reset();
 
 #if DEBUG_STATS
@@ -83,10 +105,16 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 
 	GLOBAL_TILES_EXPANDED += LOCAL_TILES_EXPANDED;
 
+	for (AStarTileTime* tileTime : usedTileTimes)
+		tileTime->Reset();
+
+	TILE_TIME_POOL.insert(TILE_TIME_POOL.end(), usedTileTimes.begin(), usedTileTimes.end());
+	usedTileTimes.clear();
+
 	return path;
 }
 
-void TemporalAStar::ExpandNeighbor(OpenQueue& open, TileTime* current, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& customCosts)
+void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& customCosts)
 {
 	if (!neighborTile || !neighborTile->isWalkable) return;
 
@@ -96,14 +124,14 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, TileTime* current, Tile* nei
 	int neighborTimestep = current->timestep + 1;
 
 	// try to get the tile info from the spatial grid map
-	TileTime* neighbor;
+	AStarTileTime* neighbor;
 	if (spatialGridMap[neighborTile][neighborTimestep] != nullptr)
 	{
 		neighbor = spatialGridMap[neighborTile][neighborTimestep];
 	}
 	else // otherwise create a new info and add it to the grid map
 	{
-		neighbor = new TileTime();
+		neighbor = GetTileTime(usedTileTimes);
 		spatialGridMap[neighborTile][neighborTimestep] = neighbor;
 	}
 	
@@ -177,7 +205,7 @@ int TemporalAStar::GetCustomCosts(int timestep, Tile* tile, TileCosts& customCos
 	return hasCustomCost ? customCosts[timestep][tile] : 0;
 }
 
-bool BaseHeuristic::operator()(TileTime* A, TileTime* B)
+bool BaseHeuristic::operator()(AStarTileTime* A, AStarTileTime* B)
 {
 	return A->estimate > B->estimate;
 }

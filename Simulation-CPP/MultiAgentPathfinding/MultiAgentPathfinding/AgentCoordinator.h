@@ -28,12 +28,13 @@ public:
 	AgentCoordinator(GridMap* map);
 	~AgentCoordinator();
 	
-private:
-	int iteration;
-	bool isRunning;
 	Timer coordinatorTimer;
 	Timer generatePathTimer;
 
+private:
+	int iteration;
+	bool isRunning;
+	
 private:
 	void PrintPath(Agent* agent, MAPF::Path& path);
 

@@ -10,7 +10,7 @@
 
 void Experiment::RunExperiment(std::string filename, Environment& environment)
 {
-	std::fstream infile(filename);
+	std::fstream infile("../experiments/" + filename + ".experiment");
 
 	assert(infile); // ensure file is valid!
 
@@ -37,6 +37,12 @@ void Experiment::RunExperiment(std::string filename, Environment& environment)
 		numAgents, upperNumAgents, agentsDelta,
 		repetitions);
 
+	std::ofstream experimentFile;
+	std::string experimentFilePath = "../results/" + filename + ".csv";
+	std::cout << "Writing output to " << experimentFilePath << std::endl;
+	experimentFile.open(experimentFilePath);
+	experimentFile << "Num Agents,Obstacles,Tiles Expanded,Time Taken\n";
+
 	for (numAgents; numAgents <= upperNumAgents; numAgents += agentsDelta)
 	{
 		for (percentObstacles; percentObstacles <= upperPercent; percentObstacles += percentDelta)
@@ -44,6 +50,7 @@ void Experiment::RunExperiment(std::string filename, Environment& environment)
 			std::cout << "##### Experiment | Agents " << numAgents << " | Obs " << percentObstacles << " #####" << std::endl << std::endl;
 
 			int tilesExpandedCount = 0;
+			float totalTimeTaken = 0;
 
 			for (int i = 0; i < repetitions; i++)
 			{
@@ -72,13 +79,25 @@ void Experiment::RunExperiment(std::string filename, Environment& environment)
 				printf("%d Nodes Expanded\n", TemporalAStar::GLOBAL_TILES_EXPANDED);
 				tilesExpandedCount += TemporalAStar::GLOBAL_TILES_EXPANDED;
 				TemporalAStar::GLOBAL_TILES_EXPANDED = 0;
+
+				float timeTaken = coordinator.coordinatorTimer.GetTimeElapsed();
+				totalTimeTaken += timeTaken;
 			}
 
-			printf("%.5f Avg Expanded\n", tilesExpandedCount / (double) repetitions);
+			float avgTilesExpanded = tilesExpandedCount / (float) repetitions;
+			float avgTimeTaken = totalTimeTaken / (float) repetitions;
+
+			printf("%.5f Avg Expanded | %.5f Avg Time Taken\n", avgTilesExpanded, avgTimeTaken);
+
+			
+
+			experimentFile << numAgents << "," << percentObstacles << "," << avgTilesExpanded << "," << avgTimeTaken << "\n";
 
 			if (percentDelta == 0) break;
 		}
 
 		if (agentsDelta == 0) break;
 	}
+
+	experimentFile.close();
 }

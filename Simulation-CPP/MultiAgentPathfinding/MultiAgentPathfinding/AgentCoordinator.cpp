@@ -16,7 +16,7 @@
 #include <SFML/Graphics.hpp>
 #include "Globals.h"
 
-#define DEBUG_VERBOSE 0
+#define DEBUG_VERBOSE 1
 
 AgentCoordinator::AgentCoordinator(GridMap* inMap)
 	: gridMap(inMap), aStar(inMap), pathAssigner(inMap), isRunning(false)
@@ -157,6 +157,11 @@ void AgentCoordinator::UpdateAgents(std::vector<Agent*>& agents)
 	}
 	while (!agentsRequiringPath.empty());
 
+	for (Agent* agent : agents)
+	{
+		agent->bfs->Reset();
+	}
+
 	coordinatorTimer.End();
 	coordinatorTimer.PrintTimeElapsed("Agent Coordinator");
 	Stats::avgCoordinatorTime = coordinatorTimer.GetAvgTime();
@@ -235,19 +240,18 @@ void AgentCoordinator::GeneratePath(
 				MAPF::Path& path = pathRef->GetPath();
 
 				/** penalize where the collision occurred */
-				Tile* tile = path.size() > timestep ? path[timestep] : path[path.size() - 1];
-				agentCollisionCosts[agent][timestep][tile] += 1;
+				/*Tile* tile = path.size() > timestep ? path[timestep] : path[path.size() - 1];
+				agentCollisionCosts[agent][timestep][tile] += 1;*/
 
-				//for (int i = 0; i < path.size(); i++)
-				//{
-					//Tile* tile = path[i];
-					//collisionCosts[i][tile] += 1;
-					//for (Tile* tile : path)
-						//collisionCosts[i][tile] += 1;
-						//timeCollisionSet[i].emplace(tile);
-				//}
+				/** add to time collision set */
+				for (int i = 0; i < path.size(); i++)
+				{
+					Tile* tile = path[i];
+					for (Tile* tile : path)
+						timeCollisionSet[i].emplace(tile);
+				}
 
-
+				/** find shortest path */
 				int pathSize = pathRef->GetPath().size();
 				if (pathSize < shortestSize)
 				{
@@ -291,16 +295,20 @@ void AgentCoordinator::GeneratePath(
 		//	}
 		//}
 
-		///** Penalize all tiles we have collided with max 1 penalty */
-		//for (auto& it : timeCollisionSet)
-		//{
-		//	int time = it.first;
-		//	for (Tile* tile : it.second)
-		//	{
-		//		agentCollisionCosts[agent][time][tile] += 1;
-		//	}
-		//	//collisionCosts[time][tile] += 1;
-		//}
+		/** Penalize all tiles we have collided with max 1 penalty */
+		for (auto& it : timeCollisionSet)
+		{
+			int time = it.first;
+			for (Tile* tile : it.second)
+			{
+				for (int i = 0; i < path.size(); i++)
+				{
+					agentCollisionCosts[agent][i][tile] += 1;
+				}
+				//agentCollisionCosts[agent][time][tile] += 1;
+			}
+			//collisionCosts[time][tile] += 1;
+		}
 
 		for (Agent* otherAgent : otherAgents)
 		{
