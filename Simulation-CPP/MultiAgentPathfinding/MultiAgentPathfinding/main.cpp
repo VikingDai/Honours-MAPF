@@ -10,6 +10,8 @@
 #include "Simulation.h"
 #include "Globals.h"
 
+#include "Input.h"
+
 int main()
 {
 	sf::ContextSettings settings;
@@ -33,10 +35,10 @@ int main()
 
 	/** Initial view settings */
 	sf::View view = window.getView();
-	float zoom = 1.f;
-	view.zoom(zoom);
 	view.setCenter(sf::Vector2f(0, 0));
 	window.setView(view);
+
+	Input input(&simulation, &window, &view);
 
 	sf::Clock deltaClock;
 	while (window.isOpen())
@@ -48,6 +50,7 @@ int main()
 		while (window.pollEvent(event))
 		{
 			ImGui::SFML::ProcessEvent(event);
+			input.ProcessInput(event);
 
 			switch (event.type)
 			{
@@ -58,9 +61,6 @@ int main()
 			}
 			case sf::Event::MouseWheelMoved:
 			{
-				float zoomScale = 1.f + event.mouseWheel.delta * -0.1f;
-				view.zoom(zoomScale);
-				zoom *= zoomScale;
 				break;
 			}
 			case sf::Event::KeyPressed:
@@ -86,9 +86,8 @@ int main()
 					{
 						sf::Vector2i currentMousePos(event.mouseMove.x, event.mouseMove.y);
 						sf::Vector2i deltaPos = lastMousePos - currentMousePos;
-						view.move(sf::Vector2f(deltaPos.x, deltaPos.y) * dt * zoom * cameraSpeed);
+						view.move(sf::Vector2f(deltaPos.x, deltaPos.y) * input.zoom);
 						lastMousePos = currentMousePos;
-						std::cout << deltaPos.x << ", " << deltaPos.y << std::endl;
 					}
 				}
 				break;

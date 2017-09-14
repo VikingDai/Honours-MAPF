@@ -177,9 +177,6 @@ void Simulation::Step()
 			agent->Step();
 	}
 
-	for (Tile* tile : environment.gridMap.tiles)
-		environment.DrawGridMapTile(tile);
-
 	environment.gridMapRenderTexture.display();
 
 	std::cout << "Updating timestep: " << timestep << std::endl;
@@ -196,6 +193,11 @@ void Simulation::Render(sf::RenderWindow& window)
 
 	if (!Options::shouldRender)
 		return;
+
+	for (Tile* tile : Tile::dirtyTiles)
+		environment.DrawGridMapTile(tile);
+
+	Tile::dirtyTiles.clear();
 
 	/** Draw the grid map */
 	environment.Render(window);

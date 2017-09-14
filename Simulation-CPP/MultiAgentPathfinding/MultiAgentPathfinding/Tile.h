@@ -27,6 +27,8 @@ class Tile : public EObject
 
 {
 public:
+	static std::vector<Tile*> dirtyTiles;
+
 	// from at time
 	std::map<Tile*, std::map<int, bool>> visitedAtTime;
 
@@ -53,6 +55,7 @@ private:
 public:
 	void SetColor(sf::Color color);
 	const sf::Color GetColor() { return color; }
+	const sf::Color ResetColor() { SetColor(isWalkable ? sf::Color::White : sf::Color(50, 50, 50)); return GetColor(); }
 
 	Tile(int x, int y, bool inIsWalkable);
 	void Reset();

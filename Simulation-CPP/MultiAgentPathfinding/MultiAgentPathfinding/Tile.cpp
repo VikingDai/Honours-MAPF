@@ -2,11 +2,13 @@
 #include <iostream>
 #include <glm/vec3.hpp>
 
+std::vector<Tile*> Tile::dirtyTiles;
+
 Tile::Tile(int x, int y, bool inIsWalkable) 
 	: EObject(x, y), 
-	isDirty(true), isWalkable(inIsWalkable)
+	isDirty(false), isWalkable(inIsWalkable)
 {
-	color = isWalkable ? sf::Color::White : sf::Color(50, 50, 50);
+	ResetColor();
 	Reset();
 }
 
@@ -53,5 +55,9 @@ void Tile::SetObstacle()
 void Tile::SetColor(sf::Color inColor)
 {
 	color = inColor;
-	isDirty = true;
+	if (!isDirty)
+	{
+		isDirty = true;
+		dirtyTiles.push_back(this);
+	}
 }
