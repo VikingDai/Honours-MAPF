@@ -4,6 +4,8 @@
 
 using BFSTileTime = std::pair<Tile*, int>;
 
+int TemporalBFS::GLOBAL_TILES_EXPANDED = 0;
+
 std::vector<BFSTileTime*> TemporalBFS::TILE_TIME_POOL;
 
 TemporalBFS::BFSTileTime* TemporalBFS::MakeTileTime(std::vector<BFSTileTime*>& usedTileTimes, Tile* tile, int time)
@@ -59,10 +61,6 @@ MAPF::Path TemporalBFS::FindNextPath(Tile* start, Tile* goal)
 		current = frontier.front();
 		frontier.pop();
 
-		nodesExpanded += 1;
-
-		std::cout << "BFS Expanding: " << *current->first << " | " << current->second << std::endl;
-
 		AddNeighbor(current, gridMap->GetTileRelativeTo(current->first, 0, 1));
 		AddNeighbor(current, gridMap->GetTileRelativeTo(current->first, 1, 0));
 		AddNeighbor(current, gridMap->GetTileRelativeTo(current->first, 0, -1));
@@ -93,13 +91,13 @@ void TemporalBFS::AddNeighbor(BFSTileTime* current, Tile* neighbor)
 {
 	if (!current || !neighbor) return;
 
-	if (neighbor->isWalkable)
-	{
-		//TileTime* neighborTileTime = new TileTime(neighbor, current->second + 1);
-		BFSTileTime* neighborTileTime = MakeTileTime(usedTileTimes, neighbor, current->second + 1);
-		frontier.push(neighborTileTime);
-		cameFrom[neighborTileTime] = current;
-	}
+	if (!neighbor->isWalkable) return;
+
+	nodesExpanded += 1;
+
+	BFSTileTime* neighborTileTime = MakeTileTime(usedTileTimes, neighbor, current->second + 1);
+	frontier.push(neighborTileTime);
+	cameFrom[neighborTileTime] = current;
 }
 
 std::vector<MAPF::Path> TemporalBFS::SearchToDepth(Tile* start, Tile* goal, int depth)
@@ -112,7 +110,6 @@ std::vector<MAPF::Path> TemporalBFS::SearchToDepth(Tile* start, Tile* goal, int 
 		return paths;
 
 	frontier.push(MakeTileTime(usedTileTimes, start, 0));
-	//frontier.push(new TileTime(start, 0));
 
 	std::vector<BFSTileTime*> tilesAtGoal;
 
@@ -120,8 +117,6 @@ std::vector<MAPF::Path> TemporalBFS::SearchToDepth(Tile* start, Tile* goal, int 
 	{
 		BFSTileTime* current = frontier.front();
 		frontier.pop();
-
-		nodesExpanded += 1;
 
 		if (current->first == goal && current->second == depth)
 			tilesAtGoal.push_back(current);

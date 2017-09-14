@@ -24,6 +24,8 @@ private:
 	GridMap* gridMap;
 	PathAssigner pathAssigner;
 
+	std::vector<AgentPathRef*> usedPathRefs;
+
 public:
 	AgentCoordinator(GridMap* map);
 	~AgentCoordinator();

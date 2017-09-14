@@ -17,6 +17,7 @@ class TemporalBFS
 
 public:
 	int nodesExpanded;
+	static int GLOBAL_TILES_EXPANDED;
 
 public:
 	GridMap* gridMap;

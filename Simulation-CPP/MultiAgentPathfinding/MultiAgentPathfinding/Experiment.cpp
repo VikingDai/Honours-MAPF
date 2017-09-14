@@ -70,15 +70,15 @@ void Experiment::RunExperiment(std::string filename, Environment& environment)
 					filename.c_str(),
 					mapName.c_str(),
 					percentObstacles,
-					mapName.c_str(),
 					numAgents);
 
 				AgentCoordinator coordinator(&environment.gridMap);
 				coordinator.UpdateAgents(environment.agents);
 
-				printf("%d Nodes Expanded\n", TemporalAStar::GLOBAL_TILES_EXPANDED);
-				tilesExpandedCount += TemporalAStar::GLOBAL_TILES_EXPANDED;
+				printf("%d Nodes Expanded\n", TemporalAStar::GLOBAL_TILES_EXPANDED + TemporalBFS::GLOBAL_TILES_EXPANDED);
+				tilesExpandedCount += TemporalAStar::GLOBAL_TILES_EXPANDED + TemporalBFS::GLOBAL_TILES_EXPANDED;
 				TemporalAStar::GLOBAL_TILES_EXPANDED = 0;
+				TemporalBFS::GLOBAL_TILES_EXPANDED = 0;
 
 				float timeTaken = coordinator.coordinatorTimer.GetTimeElapsed();
 				totalTimeTaken += timeTaken;

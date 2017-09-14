@@ -16,7 +16,7 @@
 #include <SFML/Graphics.hpp>
 #include "Globals.h"
 
-#define DEBUG_VERBOSE 1
+#define DEBUG_VERBOSE 0
 
 AgentCoordinator::AgentCoordinator(GridMap* inMap)
 	: gridMap(inMap), aStar(inMap), pathAssigner(inMap), isRunning(false)
@@ -157,10 +157,21 @@ void AgentCoordinator::UpdateAgents(std::vector<Agent*>& agents)
 	}
 	while (!agentsRequiringPath.empty());
 
+	/** Add back to agent path ref pool */
+	AgentPathRef::PATH_REF_POOL.insert(AgentPathRef::PATH_REF_POOL.end(), usedPathRefs.begin(), usedPathRefs.end());
+	usedPathRefs.clear();
+
+	/** Reset used structures etc. */
 	for (Agent* agent : agents)
-	{
-		agent->bfs->Reset();
-	}
+		agent->bfs.Reset();
+
+	tileToPathMapAtTimestep.clear();
+	agentsRequiringPath.clear();
+	agentCollisionMap.clear();
+	collisionCosts.clear();
+	tileToPathMapAtTimestep.clear();
+	collisionTable.clear();
+	agentCollisionCosts.clear();
 
 	coordinatorTimer.End();
 	coordinatorTimer.PrintTimeElapsed("Agent Coordinator");
@@ -182,7 +193,7 @@ void AgentCoordinator::GeneratePath(
 	if (firstRun)
 	{
 
-#if DEBUG_VERBOSE
+#if 1
 		std::cout << "Normal A*: Generating path for " << *agent << std::endl;
 #endif
 		path = aStar.FindPath(currentTile, agent->goal);
@@ -194,10 +205,10 @@ void AgentCoordinator::GeneratePath(
 		{
 
 			int numCollisions = it.second;
-#if DEBUG_VERBOSE
+#if 0
 			std::cout << *agent << " has " << numCollisions << " collisions with " << *it.first << std::endl;
 #endif
-			if (numCollisions > 30)
+			if (numCollisions > 75)
 			{
 				inDeadlock = true;
 			}
@@ -205,24 +216,24 @@ void AgentCoordinator::GeneratePath(
 
 		if (inDeadlock)
 		{
-#if DEBUG_VERBOSE
+#if 1
 			std::cout << "BFS: Generating path for " << *agent << std::endl;
 #endif
-			path = agent->bfs->FindNextPath(currentTile, agent->goal);
+			path = agent->bfs.FindNextPath(currentTile, agent->goal);
 		}
 		else
 		{
-#if DEBUG_VERBOSE
+#if 1
 			std::cout << "Temporal A*: Generating path for " << *agent << std::endl;
 #endif
-			path = agent->temporalAStar->FindPath(currentTile, agent->goal, agentCollisionCosts[agent]);
+			path = agent->temporalAStar.FindPath(currentTile, agent->goal, agentCollisionCosts[agent]);
 		}
 	}
 
 	if (!path.empty())
 	{
 		agent->potentialPaths.push_back(path);
-		CollisionAtTime& otherPathCollisions = UpdateCollisions(new AgentPathRef(agent, agent->potentialPaths.size() - 1));
+		CollisionAtTime& otherPathCollisions = UpdateCollisions(AgentPathRef::Make(usedPathRefs, agent, agent->potentialPaths.size() - 1));
 
 		AgentPathRef* shortestPath = nullptr;
 		int shortestSize = INT_MAX;

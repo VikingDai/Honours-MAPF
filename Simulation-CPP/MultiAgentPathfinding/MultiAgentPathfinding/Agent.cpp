@@ -10,7 +10,12 @@
 
 int Agent::agentCounter = 0;
 
-Agent::Agent(GridMap* gridMap, Tile* startTile, Tile* goalTile) : EObject(startTile->x, startTile->y)
+std::vector<AgentPathRef*> AgentPathRef::PATH_REF_POOL;
+
+Agent::Agent(GridMap* gridMap, Tile* startTile, Tile* goalTile) 
+	: EObject(startTile->x, startTile->y), 
+	bfs(gridMap), temporalAStar(gridMap),
+	goal(goalTile)
 {
 	assert(startTile);
 
@@ -25,14 +30,6 @@ Agent::Agent(GridMap* gridMap, Tile* startTile, Tile* goalTile) : EObject(startT
 	textAgentId.setColor(sf::Color(255 - color.r, 255 - color.b, 255 - color.g));
 
 	renderPos = sf::Vector2f(startTile->x, startTile->y);
-
-	goal = goalTile;
-
-	bfs = new TemporalBFS(gridMap);
-
-	temporalAStar = new TemporalAStar(gridMap);
-
-	aStar = new AStar(gridMap);
 }
 
 void Agent::Step()

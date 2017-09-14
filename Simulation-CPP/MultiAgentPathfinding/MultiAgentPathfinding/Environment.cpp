@@ -17,12 +17,20 @@ Environment::Environment()
 
 void Environment::Reset()
 {
+	Agent::ResetAgentCounter();
+
+	for (Agent* agent : agents)
+		delete agent;
 	agents.clear();
+
+	for (EObject* object : objects)
+		delete object;
 	objects.clear();
 }
 
 Environment::~Environment()
 {
+	Reset();
 }
 
 void Environment::Step()

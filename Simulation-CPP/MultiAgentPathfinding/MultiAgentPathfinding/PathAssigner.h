@@ -26,6 +26,8 @@ public:
 private:
 	using PathCollisions = std::vector<std::set<AgentPathRef*>>;
 
+	std::vector<AgentPathRef*> usedPathRefs;
+
 	GridMap* map;
 
 	/** SCIP helper structures */

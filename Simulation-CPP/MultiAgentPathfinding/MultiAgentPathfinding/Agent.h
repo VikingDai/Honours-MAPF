@@ -26,9 +26,8 @@ public:
 	static void ResetAgentCounter() { agentCounter = 0; }
 
 public:
-	TemporalBFS* bfs;
-	TemporalAStar* temporalAStar;
-	AStar* aStar;
+	TemporalBFS bfs;
+	TemporalAStar temporalAStar;
 
 private:
 	int agentId;
@@ -67,10 +66,35 @@ public:
 
 struct AgentPathRef
 {
+	static std::vector<AgentPathRef*> PATH_REF_POOL;
+
 	Agent* agent;
 	int pathIndex;
 
+private:
 	AgentPathRef(Agent* agent, int pathIndex) : agent(agent), pathIndex(pathIndex) {}
+
+public:
+	static AgentPathRef* Make(std::vector<AgentPathRef*>& usedPathRefs, Agent* agent, int pathIndex)
+	{
+		AgentPathRef* pathRef = nullptr;
+
+		if (PATH_REF_POOL.empty())
+		{
+			pathRef = new AgentPathRef(agent, pathIndex);
+		}
+		else
+		{
+			pathRef = PATH_REF_POOL.back();
+			pathRef->agent = agent;
+			pathRef->pathIndex = pathIndex;
+			PATH_REF_POOL.pop_back();
+		}
+
+		usedPathRefs.push_back(pathRef);
+
+		return pathRef;
+	}
 
 	MAPF::Path& GetPath() { return agent->potentialPaths[pathIndex]; }
 

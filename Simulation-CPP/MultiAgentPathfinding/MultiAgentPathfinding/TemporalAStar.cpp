@@ -9,12 +9,11 @@
 #define DEBUG_VERBOSE 0
 #define DEBUG_STATS 0
 
-
-
-std::vector<AStarTileTime*> TemporalAStar::TILE_TIME_POOL;
 int TemporalAStar::GLOBAL_TILES_EXPANDED = 0;
 
-AStarTileTime* TemporalAStar::GetTileTime(std::vector<AStarTileTime*>& usedTileTimes)
+std::vector<AStarTileTime*> AStarTileTime::TILE_TIME_POOL;
+
+AStarTileTime* AStarTileTime::Make(std::vector<AStarTileTime*>& usedTileTimes)
 {
 	AStarTileTime* tileTime = nullptr;
 
@@ -49,37 +48,35 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 
 	timer.Begin();
 	MAPF::Path path;
-	OpenQueue open2;
+	OpenQueue open;
 
-	modifiedTileTimes.clear();
-
-	AStarTileTime* initial = GetTileTime(usedTileTimes);
+	AStarTileTime* initial = AStarTileTime::Make(usedTileTimes);
 	initial->SetInfo(0, start, 0, start->CalculateEstimate(0, goal));
 	initial->bIsInOpen = true;
-	open2.push(initial);
+	open.push(initial);
 	modifiedTileTimes.emplace(initial);
 
 	AStarTileTime* current = nullptr;
 	
-	while (!open2.empty())
+	while (!open.empty())
 	{
-		current = open2.top();
+		current = open.top();
 		current->bClosed = true;
 		
 #if DEBUG_VERBOSE
 		std::cout << "Expanding " << *current->tile << " at time " << current->timestep << std::endl;
 #endif
 
-		open2.pop();
+		open.pop();
 
 		if (current->tile == goal) // found path to goal!
 			break;
 
-		ExpandNeighbor(open2, current, current->tile, start, goal, customCosts);
-		ExpandNeighbor(open2, current, gridMap->GetTileRelativeTo(current->tile, 0, 1), start, goal, customCosts);
-		ExpandNeighbor(open2, current, gridMap->GetTileRelativeTo(current->tile, 1, 0), start, goal, customCosts);
-		ExpandNeighbor(open2, current, gridMap->GetTileRelativeTo(current->tile, 0, -1), start, goal, customCosts);
-		ExpandNeighbor(open2, current, gridMap->GetTileRelativeTo(current->tile, -1, 0), start, goal, customCosts);
+		ExpandNeighbor(open, current, current->tile, start, goal, customCosts);
+		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 0, 1), start, goal, customCosts);
+		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 1, 0), start, goal, customCosts);
+		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 0, -1), start, goal, customCosts);
+		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, -1, 0), start, goal, customCosts);
 	}
 
 	// build the path
@@ -97,6 +94,8 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 	for (AStarTileTime* modified : modifiedTileTimes)
 		modified->Reset();
 
+	modifiedTileTimes.clear();
+
 #if DEBUG_STATS
 	timer.End();
 	Stats::avgSearchTime = timer.GetAvgTime();
@@ -107,9 +106,10 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 
 	for (AStarTileTime* tileTime : usedTileTimes)
 		tileTime->Reset();
-
-	TILE_TIME_POOL.insert(TILE_TIME_POOL.end(), usedTileTimes.begin(), usedTileTimes.end());
+	AStarTileTime::TILE_TIME_POOL.insert(AStarTileTime::TILE_TIME_POOL.end(), usedTileTimes.begin(), usedTileTimes.end());
 	usedTileTimes.clear();
+
+	spatialGridMap.clear();
 
 	return path;
 }
@@ -131,7 +131,7 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 	}
 	else // otherwise create a new info and add it to the grid map
 	{
-		neighbor = GetTileTime(usedTileTimes);
+		neighbor = AStarTileTime::Make(usedTileTimes);
 		spatialGridMap[neighborTile][neighborTimestep] = neighbor;
 	}
 	

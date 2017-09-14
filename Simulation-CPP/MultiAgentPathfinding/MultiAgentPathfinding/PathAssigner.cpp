@@ -108,7 +108,7 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, PathCollis
 		std::vector<MAPF::Path>& paths = agent->potentialPaths;
 		for (int i = 0; i < paths.size(); i++)
 		{
-			AgentPathRef* path = new AgentPathRef(agent, i);
+			AgentPathRef* path = AgentPathRef::Make(usedPathRefs, agent, i);
 			assert(!path->GetPath().empty());
 
 			// create variable describing path
@@ -327,4 +327,8 @@ void PathAssigner::Cleanup()
 	varNames.clear();
 
 	SCIP_CALL_EXC(SCIPfree(&scip));
+
+	for (AgentPathRef* pathRef : usedPathRefs)
+		AgentPathRef::PATH_REF_POOL.push_back(pathRef);
+	usedPathRefs.clear();
 }

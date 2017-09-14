@@ -14,13 +14,20 @@ GridMap::GridMap()
 
 GridMap::~GridMap()
 {
+	for (Tile* tile : tiles)
+		delete tile;
 }
 
 void GridMap::LoadMap(std::string filename)
 {
 	walkableTiles.clear();
-	tiles.clear();
 	tileGrid.clear();
+
+	for (Tile* tile : tiles)
+		delete tile;
+	tiles.clear();
+	
+
 
 	std::fstream infile(filename);
 

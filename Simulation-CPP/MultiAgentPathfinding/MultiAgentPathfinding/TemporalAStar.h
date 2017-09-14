@@ -13,6 +13,13 @@ class GridMap;
 
 struct AStarTileTime
 {
+private:
+	AStarTileTime() = default;
+
+public:
+	static std::vector<AStarTileTime*> TILE_TIME_POOL;
+	static AStarTileTime* Make(std::vector<AStarTileTime*>& usedTileTimes);
+
 	bool bNeedsReset;
 
 	bool bClosed = false;
@@ -45,6 +52,7 @@ struct AStarTileTime
 		bClosed = false;
 		parent = nullptr;
 		bIsInOpen = false;
+		countFrom.clear();
 	}
 };
 
@@ -58,9 +66,6 @@ public:
 class TemporalAStar
 {
 private:
-	static std::vector<AStarTileTime*> TILE_TIME_POOL;
-	static AStarTileTime* GetTileTime(std::vector<AStarTileTime*>& usedTileTimes);
-
 	std::vector<AStarTileTime*> usedTileTimes;
 
 public:
