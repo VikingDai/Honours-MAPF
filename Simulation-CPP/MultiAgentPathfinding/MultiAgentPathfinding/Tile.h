@@ -7,11 +7,6 @@
 
 #include <SFML/Graphics/Color.hpp>
 
-//struct TileTime
-//{
-//
-//};
-
 struct Estimate
 {
 	int estimate;
@@ -41,6 +36,8 @@ public:
 	bool hasBeenExpanded;
 	bool isInOpen;
 
+	bool isDirty;
+
 	float estimate;
 	float cost;
 	float heuristic;
@@ -50,7 +47,12 @@ public:
 
 	int numberOfTimesVisited;
 
+private:
 	sf::Color color;
+
+public:
+	void SetColor(sf::Color color);
+	const sf::Color GetColor() { return color; }
 
 	Tile(int x, int y, bool inIsWalkable);
 	void Reset();

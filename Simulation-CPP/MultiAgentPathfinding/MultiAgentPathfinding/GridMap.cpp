@@ -26,8 +26,6 @@ void GridMap::LoadMap(std::string filename)
 	for (Tile* tile : tiles)
 		delete tile;
 	tiles.clear();
-	
-
 
 	std::fstream infile(filename);
 

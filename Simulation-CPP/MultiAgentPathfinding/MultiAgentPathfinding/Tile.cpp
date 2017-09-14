@@ -2,9 +2,11 @@
 #include <iostream>
 #include <glm/vec3.hpp>
 
-Tile::Tile(int x, int y, bool inIsWalkable) : EObject(x, y)
+Tile::Tile(int x, int y, bool inIsWalkable) 
+	: EObject(x, y), 
+	isDirty(true), isWalkable(inIsWalkable)
 {
-	isWalkable = inIsWalkable;
+	color = isWalkable ? sf::Color::White : sf::Color(50, 50, 50);
 	Reset();
 }
 
@@ -46,4 +48,10 @@ void Tile::SetObstacle()
 {
 	isWalkable = false;
 	color = sf::Color::Black;
+}
+
+void Tile::SetColor(sf::Color inColor)
+{
+	color = inColor;
+	isDirty = true;
 }

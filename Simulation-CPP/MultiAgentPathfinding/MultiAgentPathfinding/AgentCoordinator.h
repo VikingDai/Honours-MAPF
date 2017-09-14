@@ -20,7 +20,7 @@ class Tile;
 class AgentCoordinator
 {
 private:
-	TemporalAStar aStar;
+	AStar aStar;
 	GridMap* gridMap;
 	PathAssigner pathAssigner;
 

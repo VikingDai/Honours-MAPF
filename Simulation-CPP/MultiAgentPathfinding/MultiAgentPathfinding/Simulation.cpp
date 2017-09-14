@@ -160,22 +160,27 @@ void Simulation::LoadScenario()
 
 void Simulation::Step()
 {
-	for (Tile* tile : environment.gridMap.tiles)
+	/*for (Tile* tile : environment.gridMap.tiles)
 	{
 		if (tile->isWalkable)
 			tile->color = sf::Color(1, 1, 1);
-	}
+	}*/
 
 	// allocate paths to agents which have no collisions
 
 	//coordinator->UpdateAgents(environment.agents);
 
-	if (!coordinator->Step(environment.agents))
-		return;
+	if (coordinator->Step(environment.agents))
+	{
+		// we have resolved all conflicts, now move agents along their paths
+		for (Agent* agent : environment.agents)
+			agent->Step();
+	}
 
-	// we have resolved all conflicts, now move agents along their paths
-	for (Agent* agent : environment.agents)
-		agent->Step();
+	for (Tile* tile : environment.gridMap.tiles)
+		environment.DrawGridMapTile(tile);
+
+	environment.gridMapRenderTexture.display();
 
 	std::cout << "Updating timestep: " << timestep << std::endl;
 

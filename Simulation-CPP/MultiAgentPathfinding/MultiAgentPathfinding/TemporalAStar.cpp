@@ -66,7 +66,7 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 #if DEBUG_VERBOSE
 		std::cout << "Expanding " << *current->tile << " at time " << current->timestep << std::endl;
 #endif
-
+		current->tile->SetColor(sf::Color::Red);
 		open.pop();
 
 		if (current->tile == goal) // found path to goal!
@@ -77,13 +77,15 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 1, 0), start, goal, customCosts);
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 0, -1), start, goal, customCosts);
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, -1, 0), start, goal, customCosts);
+
+		std::cout << "Temporal A* has expanded: " << LOCAL_TILES_EXPANDED << std::endl;
 	}
 
 	// build the path
 	while (current->parent != nullptr)
 	{
-		if (current->countFrom.find(current->parent) == current->countFrom.end())
-			current->countFrom[current->parent] = 0;
+		//if (current->countFrom.find(current->parent) == current->countFrom.end())
+		current->countFrom[current->parent] = 0;
 
 		current->countFrom[current->parent] += 1;
 		path.push_front(current->tile);
@@ -120,11 +122,14 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 
 	LOCAL_TILES_EXPANDED += 1;
 
+	current->tile->SetColor(sf::Color::Green);
+
 	// get neighbor tile timestep and new cost
 	int neighborTimestep = current->timestep + 1;
 
 	// try to get the tile info from the spatial grid map
 	AStarTileTime* neighbor;
+
 	if (spatialGridMap[neighborTile][neighborTimestep] != nullptr)
 	{
 		neighbor = spatialGridMap[neighborTile][neighborTimestep];
@@ -137,17 +142,17 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 	
 	modifiedTileTimes.emplace(neighbor);
 
-	if (neighbor->bClosed) // don't do anything if the node has already been expanded
+	if (neighbor->bClosed) // skip if the node has already been expanded
 		return;
 
-	float cost = current->cost + 1;
-
 	float customCost = GetCustomCosts(current->timestep, neighborTile, customCosts);
+	float cost = current->cost + 1 + customCost;
+
 #if DEBUG_VERBOSE
 	if (customCost > 0) 
 		std::cout << "\t\t\t\tUSING CUSTOM COST ON TILE " << *neighborTile << " ON TIME " << current->timestep << " VALUE " << customCost << std::endl;
 #endif
-	cost += customCost;
+	
 
 	if (neighbor->bIsInOpen && !neighbor->bNeedsReset) // relax the node - update the parent
 	{

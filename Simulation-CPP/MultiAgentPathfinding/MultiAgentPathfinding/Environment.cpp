@@ -65,21 +65,22 @@ bool Environment::GenerateGridMapTexture()
 
 	for (Tile* tile : gridMap.tiles)
 	{
-		sf::Vector2f& rectSize = sf::Vector2f(10.f, 10.f);
-		sf::RectangleShape rect(rectSize);
-		rect.setOrigin(rectSize * 0.5f);
+		DrawGridMapTile(tile->x, tile->y, tile->GetColor());
+		//sf::Vector2f& rectSize = sf::Vector2f(10.f, 10.f);
+		//sf::RectangleShape rect(rectSize);
+		//rect.setOrigin(rectSize * 0.5f);
 
-		sf::Vector2f& rectPos =
-			sf::Vector2f(tile->x, tile->y) * 10.f + // scaled pos 
-			rectSize * 0.5f; // offset
+		//sf::Vector2f& rectPos =
+		//	sf::Vector2f(tile->x, tile->y) * 10.f + // scaled pos 
+		//	rectSize * 0.5f; // offset
 
-		rect.setPosition(rectPos);
-		rect.setOutlineColor(sf::Color::Black);
-		rect.setOutlineThickness(rectSize.x * -0.1f);
-		sf::Color color = tile->isWalkable ? sf::Color::White : sf::Color::Black;
-		rect.setFillColor(color);
+		//rect.setPosition(rectPos);
+		//rect.setOutlineColor(sf::Color::Black);
+		//rect.setOutlineThickness(rectSize.x * -0.1f);
+		//sf::Color color = tile->isWalkable ? sf::Color::White : sf::Color::Black;
+		//rect.setFillColor(color);
 
-		gridMapRenderTexture.draw(rect);
+		//gridMapRenderTexture.draw(rect);
 	}
 
 	gridMapRenderTexture.display();
@@ -90,6 +91,32 @@ bool Environment::GenerateGridMapTexture()
 #endif
 
 	return true;
+}
+
+void Environment::DrawGridMapTile(int x, int y, sf::Color color)
+{
+	sf::Vector2f& rectSize = sf::Vector2f(10.f, 10.f);
+	sf::RectangleShape rect(rectSize);
+	rect.setOrigin(rectSize * 0.5f);
+
+	sf::Vector2f& rectPos = sf::Vector2f(x, y) * 10.f + // scaled pos 
+		rectSize * 0.5f; // offset
+
+	rect.setPosition(rectPos);
+	rect.setOutlineColor(sf::Color::Black);
+	rect.setOutlineThickness(rectSize.x * -0.1f);
+	rect.setFillColor(color);
+
+	gridMapRenderTexture.draw(rect);
+}
+
+void Environment::DrawGridMapTile(Tile* tile)
+{
+	if (tile->isDirty)
+	{
+		tile->isDirty = false;
+		DrawGridMapTile(tile->x, tile->y, tile->GetColor());
+	}
 }
 
 void Environment::LoadMap(std::string mapName)

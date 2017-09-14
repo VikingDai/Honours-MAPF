@@ -32,6 +32,9 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 	{
 		std::sort(open.begin(), open.end(), Heuristic());
 		current = open.front();
+
+		current->SetColor(sf::Color::Red);
+
 		open.erase(open.begin());
 
 		if (current == goal) // found path to the goal
@@ -97,7 +100,7 @@ void AStar::AddNeighbor(OpenQueue& open, std::vector<Tile*>& modifiedTiles, Tile
 
 		open.push_back(neighbor);
 
-		neighbor->color = sf::Color(0, 1, 0);
+		neighbor->SetColor(sf::Color::Green);
 
 		modifiedTiles.push_back(neighbor);
 	}

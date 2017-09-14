@@ -21,8 +21,7 @@
 AgentCoordinator::AgentCoordinator(GridMap* inMap)
 	: gridMap(inMap), aStar(inMap), pathAssigner(inMap), isRunning(false)
 {
-	//aStar = new TemporalAStar(inMap);
-	//pathAssigner = new PathAssigner(inMap);
+
 }
 
 AgentCoordinator::~AgentCoordinator()
@@ -190,7 +189,10 @@ void AgentCoordinator::GeneratePath(
 
 	MAPF::Path path;
 
-	if (firstRun)
+	
+	
+	//if (firstRun)
+	if (0)
 	{
 
 #if 1
@@ -434,8 +436,8 @@ AgentCoordinator::CollisionAtTime AgentCoordinator::UpdateCollisions(AgentPathRe
 			if (currentTile == nextTileOther && nextTile == currentTileOther)
 			{
 				float v = 1.f / (float) (timestep + 1);
-				currentTile->color = sf::Color(v, 0, v);
-				nextTile->color = sf::Color(v, 0, v);
+				currentTile->SetColor(sf::Color(v, 0, v));
+				nextTile->SetColor(sf::Color(v, 0, v));
 
 				agentCollisionMap[pathRef->agent].emplace_back(nextTile, timestep);
 				agentCollisionMap[pathRefOther->agent].emplace_back(nextTileOther, timestep);

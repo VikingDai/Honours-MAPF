@@ -30,6 +30,8 @@ public:
 	void Render(sf::RenderWindow& window);
 
 	bool GenerateGridMapTexture();
+	void DrawGridMapTile(int x, int y, sf::Color color);
+	void DrawGridMapTile(Tile* tile);
 
 public:	
 	void LoadMap(std::string mapName);
