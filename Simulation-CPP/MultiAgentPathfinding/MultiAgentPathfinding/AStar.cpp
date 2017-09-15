@@ -20,7 +20,9 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 		return path;
 	}
 
-	std::vector<Tile*> modifiedTiles;
+	for (Tile* tile : modifiedTiles)
+		tile->ResetColor();
+	modifiedTiles.clear();
 	OpenQueue open;
 
 	start->CalculateEstimate(0, goal);
@@ -43,10 +45,10 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 		current->hasBeenExpanded = true;
 
 		// add the neighbors of the current tile (up, down, left, right) to the open list
-		AddNeighbor(open, modifiedTiles, current, gridMap->GetTileRelativeTo(current, 0, 1), start, goal); // up
-		AddNeighbor(open, modifiedTiles, current, gridMap->GetTileRelativeTo(current, 1, 0), start, goal); // right
-		AddNeighbor(open, modifiedTiles, current, gridMap->GetTileRelativeTo(current, 0, -1), start, goal); // down
-		AddNeighbor(open, modifiedTiles, current, gridMap->GetTileRelativeTo(current, -1, 0), start, goal); // left
+		AddNeighbor(open, current, gridMap->GetTileRelativeTo(current, 0, 1), start, goal); // up
+		AddNeighbor(open, current, gridMap->GetTileRelativeTo(current, 1, 0), start, goal); // right
+		AddNeighbor(open, current, gridMap->GetTileRelativeTo(current, 0, -1), start, goal); // down
+		AddNeighbor(open, current, gridMap->GetTileRelativeTo(current, -1, 0), start, goal); // left
 	}
 
 	// build the path
@@ -63,7 +65,7 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 	return path;
 }
 
-void AStar::AddNeighbor(OpenQueue& open, std::vector<Tile*>& modifiedTiles, Tile* current, Tile* neighbor, Tile* start, Tile* goal)
+void AStar::AddNeighbor(OpenQueue& open, Tile* current, Tile* neighbor, Tile* start, Tile* goal)
 {
 	assert(current && start && goal);
 

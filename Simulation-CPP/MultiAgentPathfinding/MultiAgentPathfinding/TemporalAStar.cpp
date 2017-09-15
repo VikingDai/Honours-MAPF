@@ -46,6 +46,10 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 {
 	LOCAL_TILES_EXPANDED = 0;
 
+	for (Tile* tile : modifiedTiles)
+		tile->ResetColor();
+	modifiedTiles.clear();
+
 	timer.Begin();
 	MAPF::Path path;
 	OpenQueue open;
@@ -123,6 +127,7 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 	LOCAL_TILES_EXPANDED += 1;
 
 	current->tile->SetColor(sf::Color::Green);
+	modifiedTiles.emplace(current->tile);
 
 	// get neighbor tile timestep and new cost
 	int neighborTimestep = current->timestep + 1;

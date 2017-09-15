@@ -82,7 +82,6 @@ private:
 	Timer sortTimer;
 
 	GridMap* gridMap;
-	std::vector<Tile*> modifiedTiles;
 
 public:
 	TemporalAStar(GridMap* gridMap);
@@ -92,6 +91,7 @@ public:
 public:
 	using OpenQueue = std::priority_queue<AStarTileTime*, std::vector<AStarTileTime*>, BaseHeuristic>;
 
+	std::set<Tile*> modifiedTiles;
 	std::set<AStarTileTime*> modifiedTileTimes;
 
 	std::map<Tile*, std::map<int, AStarTileTime*>> spatialGridMap;

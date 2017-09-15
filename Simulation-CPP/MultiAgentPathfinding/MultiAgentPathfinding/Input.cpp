@@ -9,42 +9,53 @@
 
 const int KEY_SPACE_BAR = 32;
 
+sf::Vector2f Input::GetMouseWorld()
+{
+	sf::Vector2i& mousePosi = sf::Mouse::getPosition(*window);
+	sf::Vector2f mousePos(mousePosi.x, mousePosi.y);
+
+	sf::Vector2f windowSize(window->getSize().x, window->getSize().y);
+
+	sf::Vector2f& offset = view->getSize() * 0.5f - view->getCenter();
+	mousePos -= offset * (1 / zoom);
+
+	mousePos.x = round(mousePos.x / (Globals::renderSize * (1 / zoom)));
+	mousePos.y = round(mousePos.y / (Globals::renderSize * (1 / zoom)));
+
+	return mousePos;
+}
+
+Tile* Input::GetTileUnderCursor()
+{
+	sf::Vector2f& mousePos = GetMouseWorld();
+	Tile* tile = simulation->environment.gridMap.GetTileAt(mousePos.x, mousePos.y);
+	return tile;
+}
+
 void Input::ProcessInput(sf::Event& event)
 {
 	switch (event.type)
 	{
 	case sf::Event::MouseMoved:
 	{
-		sf::Vector2i& mousePosi = sf::Mouse::getPosition(*window);
-		sf::Vector2f mousePos(mousePosi.x, mousePosi.y);
+		Tile* newHoveredTile = GetTileUnderCursor();
 
-		sf::Vector2f windowSize(window->getSize().x, window->getSize().y);
-
-		sf::Vector2f& offset = view->getSize() * 0.5f - view->getCenter();
-		mousePos -= offset * (1 / zoom);
-
-		
-		std::cout << window->getSize().x << "," << window->getSize().y << std::endl;
-
-		mousePos.x = round(mousePos.x / (Globals::renderSize * (1 / zoom)));
-		mousePos.y = round(mousePos.y / (Globals::renderSize * (1 / zoom)));
-
-		Tile* newHovered = simulation->environment.gridMap.GetTileAt(mousePos.x, mousePos.y);
-
-		if (hoveredTile != newHovered)
+		if (hoveredTile != newHoveredTile)
 		{
-			if (hoveredTile)
+			if (hoveredTile && hoveredTile != startTile && hoveredTile != goalTile)
 				hoveredTile->ResetColor();
 
-			if (newHovered)
+			if (newHoveredTile)
 			{
-				std::cout << *newHovered << std::endl;
-				newHovered->SetColor(sf::Color::Magenta);
+				std::cout << *newHoveredTile << std::endl;
+				if (newHoveredTile != startTile && newHoveredTile != goalTile)
+				{
+					newHoveredTile->SetColor(sf::Color::Magenta);
+				}
 			}
 		}
 
-		hoveredTile = newHovered;
-
+		hoveredTile = newHoveredTile;
 
 		break;
 	}
@@ -82,17 +93,37 @@ void Input::OnMousePressed(sf::Event& event)
 {
 	//event.mouseButton.button
 
-	sf::Vector2i& mousePosi = sf::Mouse::getPosition(*window);
-	sf::Vector2f mousePos(mousePosi.x, mousePosi.y);
-	mousePos -= view->getSize() * 0.5f - view->getCenter();
+	switch (event.mouseButton.button)
+	{
+	case sf::Mouse::Left:
+	{
+		Tile* tile = GetTileUnderCursor();
+		if (!tile) return;
 
-	mousePos.x = round(mousePos.x / Globals::renderSize);
-	mousePos.y = round(mousePos.y / Globals::renderSize);
-	//mousePos *= (1 / zoom);
+		if (startTile != nullptr)
+			startTile->ResetColor();
 
-	std::cout << mousePos.x << "," << mousePos.y << std::endl;
+		startTile = tile;
+		startTile->SetColor(sf::Color::Blue);
+		break;
+	}
+	case sf::Mouse::Right:
+	{
+		Tile* tile = GetTileUnderCursor();
+		if (!tile) return;
 
-	simulation->environment.gridMap;
+		if (goalTile)
+			goalTile->ResetColor();
+
+		goalTile = tile;
+		goalTile->SetColor(sf::Color::Green);
+
+		if (startTile)
+			simulation->temporalAStar.FindPath(startTile, goalTile);
+
+		break;
+	}
+	}
 }
 
 void Input::OnMouseReleased(sf::Event& event)
@@ -139,4 +170,9 @@ void Input::Update(float deltaTime, Simulation* simulation)
 void Input::StepSimulation(Simulation* simulation)
 {
 	simulation->Step();
+}
+
+void Input::Reset()
+{
+	startTile = goalTile = hoveredTile = nullptr;
 }

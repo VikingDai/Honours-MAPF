@@ -30,7 +30,7 @@ AgentCoordinator::~AgentCoordinator()
 
 void AgentCoordinator::Reset()
 {
-
+	
 }
 
 bool AgentCoordinator::Step(std::vector<Agent*>& agents)

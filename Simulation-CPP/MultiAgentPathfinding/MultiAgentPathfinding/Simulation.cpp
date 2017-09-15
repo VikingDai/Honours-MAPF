@@ -49,6 +49,7 @@ namespace ImGui2
 }
 
 Simulation::Simulation()
+	: aStar(&environment.gridMap), temporalAStar(&environment.gridMap), bfs(&environment.gridMap)//, coordinator(&environment.gridMap)
 {
 	seed = 0;
 	srand(seed);
@@ -60,8 +61,6 @@ Simulation::Simulation()
 	Stats::Reset();
 
 	timestep = 0;
-	aStar = new TemporalAStar(&environment.gridMap);
-	coordinator = new AgentCoordinator(&environment.gridMap);
 
 	// get files in scenario folder
 	scenarioIndex = 0;
@@ -96,7 +95,6 @@ Simulation::Simulation()
 	//////////////////////////////////////////////////////////////////////////
 	// TEST BFS
 
-	bfs = new TemporalBFS(&environment.gridMap);
 
 	//TemporalBFS bfs(&environment.gridMap);
 	//Tile* start = environment.gridMap.getTileAt(2, 2);

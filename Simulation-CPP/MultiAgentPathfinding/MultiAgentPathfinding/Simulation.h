@@ -11,12 +11,15 @@ class Graphics;
 
 class Simulation
 {
+public:
+	TemporalBFS bfs;
+	TemporalAStar temporalAStar;
+	AStar aStar;
+
 private:
 	int seed;
 	int iterations;
 
-	TemporalBFS* bfs;
-	TemporalAStar* aStar;
 	AgentCoordinator* coordinator;
 
 	/** Scenario related */

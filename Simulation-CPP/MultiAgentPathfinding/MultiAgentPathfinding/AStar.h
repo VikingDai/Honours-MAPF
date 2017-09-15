@@ -18,6 +18,7 @@ class AStar
 {
 private:
 	GridMap* gridMap;
+	std::vector<Tile*> modifiedTiles;
 
 public:
 	AStar(GridMap* gridMap);
@@ -27,7 +28,7 @@ public:
 
 private:
 	using OpenQueue = std::vector<Tile*>;
-	void AddNeighbor(OpenQueue& open, std::vector<Tile*>& modifiedTiles, Tile* current, Tile* neighbor, Tile* start, Tile* goal);
+	void AddNeighbor(OpenQueue& open, Tile* current, Tile* neighbor, Tile* start, Tile* goal);
 
 public:
 	Path FindPath(Tile* start, Tile* goal);
