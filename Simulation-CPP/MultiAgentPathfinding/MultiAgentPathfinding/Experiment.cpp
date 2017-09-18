@@ -43,6 +43,12 @@ void Experiment::RunExperiment(std::string filename, Environment& environment)
 	experimentFile.open(experimentFilePath);
 	experimentFile << "Num Agents,Obstacles,Tiles Expanded,Time Taken\n";
 
+	std::ofstream timeFile;
+	std::string timeFilePath = "../results/time_" + filename + ".csv";
+	std::cout << "Writing output to " << timeFilePath << std::endl;
+	timeFile.open(timeFilePath);
+	timeFile << "Collision Detection,Path Assignment,Path Generation\n";
+
 	for (numAgents; numAgents <= upperNumAgents; numAgents += agentsDelta)
 	{
 		for (percentObstacles; percentObstacles <= upperPercent; percentObstacles += percentDelta)
@@ -51,6 +57,10 @@ void Experiment::RunExperiment(std::string filename, Environment& environment)
 
 			int tilesExpandedCount = 0;
 			float totalTimeTaken = 0;
+
+			float timeCollisionDetection = 0;
+			float timePathAssignment = 0;
+			float timePathGeneration = 0;
 
 			for (int i = 0; i < repetitions; i++)
 			{
@@ -75,12 +85,21 @@ void Experiment::RunExperiment(std::string filename, Environment& environment)
 				AgentCoordinator coordinator(&environment.gridMap);
 				coordinator.UpdateAgents(environment.agents);
 
+				timeCollisionDetection += coordinator.timerCollisionDetection.GetAvgTime();
+				timePathAssignment += coordinator.timerPathAssignment.GetAvgTime();
+				timePathGeneration += coordinator.timerPathGeneration.GetAvgTime();
+
+				printf("Detect: %f | Assign: %f | Gen: %f",
+					coordinator.timerCollisionDetection.GetAvgTime(),
+					coordinator.timerPathAssignment.GetAvgTime(),
+					coordinator.timerPathGeneration.GetAvgTime());
+
 				printf("%d Nodes Expanded\n", TemporalAStar::GLOBAL_TILES_EXPANDED + TemporalBFS::GLOBAL_TILES_EXPANDED);
 				tilesExpandedCount += TemporalAStar::GLOBAL_TILES_EXPANDED + TemporalBFS::GLOBAL_TILES_EXPANDED;
 				TemporalAStar::GLOBAL_TILES_EXPANDED = 0;
 				TemporalBFS::GLOBAL_TILES_EXPANDED = 0;
 
-				float timeTaken = coordinator.coordinatorTimer.GetTimeElapsed();
+				float timeTaken = coordinator.timerCoordinator.GetTimeElapsed();
 				totalTimeTaken += timeTaken;
 			}
 
@@ -89,9 +108,13 @@ void Experiment::RunExperiment(std::string filename, Environment& environment)
 
 			printf("%.5f Avg Expanded | %.5f Avg Time Taken\n", avgTilesExpanded, avgTimeTaken);
 
-			
-
 			experimentFile << numAgents << "," << percentObstacles << "," << avgTilesExpanded << "," << avgTimeTaken << "\n";
+
+			float avgCollision = timeCollisionDetection / (float) repetitions;
+			float avgAssignment = timePathAssignment / (float) repetitions;
+			float avgGeneration = timePathGeneration / (float) repetitions;
+
+			timeFile << avgCollision << "," << avgAssignment << "," << avgGeneration << "\n";
 
 			if (percentDelta == 0) break;
 		}

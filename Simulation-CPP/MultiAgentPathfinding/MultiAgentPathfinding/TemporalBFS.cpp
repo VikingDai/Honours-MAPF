@@ -38,6 +38,9 @@ void TemporalBFS::Reset()
 {
 	frontier.swap(std::queue<BFSTileTime*>());
 	cameFrom.clear();
+
+	TILE_TIME_POOL.insert(TILE_TIME_POOL.end(), usedTileTimes.begin(), usedTileTimes.end());
+	usedTileTimes.clear();
 }
 
 MAPF::Path TemporalBFS::FindNextPath(Tile* start, Tile* goal)
@@ -75,14 +78,14 @@ MAPF::Path TemporalBFS::FindNextPath(Tile* start, Tile* goal)
 	while (cameFrom.find(current) != cameFrom.end())
 	{
 		path.push_front(current->first);
+		//std::cout << "Rebuilding Path: " << *current->first << "(" << current->second << ")" << " > ";
+
 		current = cameFrom[current];
+		//std::cout << *current->first << "(" << current->second << ")" << std::endl;
 	}
 
 	// print stats
-	std::cout << "Expanded " << nodesExpanded << " tiles" << std::endl;
-
-	TILE_TIME_POOL.insert(TILE_TIME_POOL.end(), usedTileTimes.begin(), usedTileTimes.end());
-	usedTileTimes.clear();
+	std::cout << "Exp " << nodesExpanded << " tiles" << "| Path " << path.size() << std::endl;
 
 	return path;
 }
@@ -94,10 +97,13 @@ void TemporalBFS::AddNeighbor(BFSTileTime* current, Tile* neighbor)
 	if (!neighbor->isWalkable) return;
 
 	nodesExpanded += 1;
-
+	
 	BFSTileTime* neighborTileTime = MakeTileTime(usedTileTimes, neighbor, current->second + 1);
 	frontier.push(neighborTileTime);
 	cameFrom[neighborTileTime] = current;
+
+	//std::cout << "Setting parent: " << *current->first << "(" << current->second << ")" << " > " <<
+	//	*neighborTileTime->first << "(" << neighborTileTime->second << ")" << std::endl;
 }
 
 std::vector<MAPF::Path> TemporalBFS::SearchToDepth(Tile* start, Tile* goal, int depth)

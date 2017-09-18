@@ -30,8 +30,10 @@ public:
 	AgentCoordinator(GridMap* map);
 	~AgentCoordinator();
 	
-	Timer coordinatorTimer;
-	Timer generatePathTimer;
+	Timer timerCollisionDetection;
+	Timer timerPathAssignment;
+	Timer timerCoordinator;
+	Timer timerPathGeneration;
 
 private:
 	int iteration;

@@ -57,20 +57,26 @@ bool AgentCoordinator::Step(std::vector<Agent*>& agents)
 	iteration += 1;
 
 	// Generate additional paths
-	generatePathTimer.Begin();
+	timerPathGeneration.Begin();
 	for (Agent* agent : agentsRequiringPath)
 		GeneratePath(agent, firstRun);
+	timerPathGeneration.End();
 
-	generatePathTimer.End();
 #if DEBUG_VERBOSE
-	generatePathTimer.PrintTimeElapsed("Generating paths");
+	timerPathGeneration.PrintTimeElapsed("Generating paths");
 #endif
 
 	agentsRequiringPath.clear();
 
 	// Assign conflict-free paths to agents using a MIP
+	timerCollisionDetection.Begin();
 	CollisionSet& collisionSet = DetectTileCollisions();
+	timerCollisionDetection.End();
+
+	timerPathAssignment.Begin();
 	std::vector<Agent*> mipConflicts = pathAssigner.AssignPaths(agents, collisionSet);
+	timerPathAssignment.End();
+
 	collisionSet.clear();
 
 	if (mipConflicts.empty())
@@ -120,7 +126,7 @@ bool AgentCoordinator::Init(std::vector<Agent*>& agents)
 
 		iteration = 1;
 
-		coordinatorTimer.Begin();
+		timerCoordinator.Begin();
 		agentCollisionMap.clear();
 		collisionCosts.clear();
 	}
@@ -135,7 +141,7 @@ bool AgentCoordinator::Init(std::vector<Agent*>& agents)
 
 void AgentCoordinator::UpdateAgents(std::vector<Agent*>& agents)
 {
-	coordinatorTimer.Begin();
+	timerCoordinator.Begin();
 
 	// detect collisions and resolve them using the MIP solver
 	int i = 0;
@@ -172,9 +178,9 @@ void AgentCoordinator::UpdateAgents(std::vector<Agent*>& agents)
 	collisionTable.clear();
 	agentCollisionCosts.clear();
 
-	coordinatorTimer.End();
-	coordinatorTimer.PrintTimeElapsed("Agent Coordinator");
-	Stats::avgCoordinatorTime = coordinatorTimer.GetAvgTime();
+	timerCoordinator.End();
+	timerCoordinator.PrintTimeElapsed("Agent Coordinator");
+	Stats::avgCoordinatorTime = timerCoordinator.GetAvgTime();
 }
 
 void AgentCoordinator::GeneratePath(
@@ -190,9 +196,8 @@ void AgentCoordinator::GeneratePath(
 	MAPF::Path path;
 
 	
-	
-	//if (firstRun)
-	if (0)
+	//if (0)
+	if (firstRun)
 	{
 
 #if 1

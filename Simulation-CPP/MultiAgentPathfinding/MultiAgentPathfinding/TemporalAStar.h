@@ -28,7 +28,6 @@ public:
 	AStarTileTime* parent;
 
 	int timestep;
-	std::map<AStarTileTime*, int> countFrom;
 	Tile* tile;
 	float estimate;
 	float cost;
@@ -52,7 +51,6 @@ public:
 		bClosed = false;
 		parent = nullptr;
 		bIsInOpen = false;
-		countFrom.clear();
 	}
 };
 

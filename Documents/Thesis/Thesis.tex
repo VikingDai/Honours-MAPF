@@ -133,13 +133,27 @@ Hence we have a centralized agent coordinator which aims to resolve path collisi
 	\item Repeat 1. if there is not a valid solution found i.e the optimal solution contains a path collision
 \end{compactenum}
 
-\section{Master problem formulation?}
+\section{Master problem formulation}
 Each agent is given \textit{one or more} paths to their goal. The master problem aims to assign one path to every agent while minimizing the path distance and avoiding path collisions. 
 
 \begin{compactitem}
 	\item \textbf{Potential paths}: A set of paths from an agent's position to their goal. We generate a variable for each path and the cost is set to the path length.
 	\item \textbf{Penalty}: A penalty variable is added for every agent in the case that all the agent's paths are in collision. The cost of the penalty is set to be larger than the expected maximum path length (here it is 1000).
 \end{compactitem}
+
+We specify an agent's path as $p_{ij}$. Penalty $q_i$. Path collision as $c_{nm}$.
+
+\begin{equation}
+\text{min} \sum_{j \in (i \in A)} d_{ij} + p_{ij} + \sum_{i \in A} q_i
+\end{equation}
+
+\begin{equation} % pick one path only
+\text{subject to} \sum_{j \in (i \in A)} p_{ij} + q_i = 1
+\end{equation}
+
+\begin{equation} 
+\sum_{j \in (i \in A)} p_{ij} = 1
+\end{equation}
 
 For example \cite{put example!}, our generated variables are: $5a_0p_0 + 5a_0p_1 + 1000q_0 + 2a_1p_0 + 2a_1p_1 + 1000q_1$.
 

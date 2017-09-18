@@ -82,16 +82,14 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 0, -1), start, goal, customCosts);
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, -1, 0), start, goal, customCosts);
 
+#if DEBUG_VERBOSE
 		std::cout << "Temporal A* has expanded: " << LOCAL_TILES_EXPANDED << std::endl;
+#endif
 	}
 
 	// build the path
 	while (current->parent != nullptr)
 	{
-		//if (current->countFrom.find(current->parent) == current->countFrom.end())
-		current->countFrom[current->parent] = 0;
-
-		current->countFrom[current->parent] += 1;
 		path.push_front(current->tile);
 		current = current->parent;
 	}
@@ -172,14 +170,10 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 				*current->tile << " | " << GetCustomCosts(current->timestep, neighborTile, customCosts) << " Old " << 
 				*neighbor->parent->tile << " | " << GetCustomCosts(current->timestep, neighbor->tile, customCosts) << std::endl;
 #endif
-			
-			if (neighbor->countFrom[current] < neighbor->countFrom[neighbor->parent])
-			{
-#if DEBUG_VERBOSE
-				std::cout << "Changed parent as this path was used previously" << std::endl;
-#endif
+			float currentParentCustom = GetCustomCosts(current->timestep, neighbor->parent->tile, customCosts);
+			bool newIsBetter = currentParentCustom < customCost;
+			if (newIsBetter)
 				neighbor->SetParent(current);
-			}
 		}
 		else if (current->cost < parentCost)
 		{
