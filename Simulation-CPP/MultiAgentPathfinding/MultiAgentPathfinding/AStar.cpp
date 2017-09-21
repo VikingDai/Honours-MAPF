@@ -11,6 +11,7 @@ AStar::AStar(GridMap* inGridMap)
 
 AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 {
+	timer.Begin();
 	Path path;
 
 	if (!start || !goal || start == goal || !start->isWalkable || !goal->isWalkable)
@@ -19,6 +20,8 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 		path.push_front(start);
 		return path;
 	}
+
+	LOCAL_EXPANDED = 0;
 
 	for (Tile* tile : modifiedTiles)
 		tile->ResetColor();
@@ -33,11 +36,10 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 	while (!open.empty())
 	{
 		std::sort(open.begin(), open.end(), Heuristic());
-		current = open.front();
+		current = open.back();
+		open.pop_back();
 
 		current->SetColor(sf::Color::Red);
-
-		open.erase(open.begin());
 
 		if (current == goal) // found path to the goal
 			break;
@@ -62,6 +64,12 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 	for (Tile* tile : modifiedTiles) 
 		tile->Reset();
 
+	timer.End();
+
+	std::cout << "AStar expanded <" << LOCAL_EXPANDED << "> | Took " << timer.GetTimeElapsed() << " | " << timer.GetTimeElapsed() / LOCAL_EXPANDED << " per expansion  | found path size " << path.size() << std::endl;
+
+	
+
 	return path;
 }
 
@@ -73,6 +81,8 @@ void AStar::AddNeighbor(OpenQueue& open, Tile* current, Tile* neighbor, Tile* st
 		neighbor->hasBeenExpanded || // skip neighbors which have already been expanded
 		!neighbor->isWalkable) // don't expand obstacles
 		return;
+
+	LOCAL_EXPANDED += 1;
 
 	float newNeighborCost = current->cost + 1;
 

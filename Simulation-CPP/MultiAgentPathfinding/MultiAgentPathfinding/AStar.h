@@ -2,6 +2,7 @@
 #include "Tile.h"
 #include <queue>
 #include "GridMap.h"
+#include "Timer.h"
 
 struct Heuristic
 {
@@ -9,7 +10,10 @@ public:
 	Heuristic() = default;
 	bool operator()(Tile* A, Tile* B)
 	{
-		return A->estimate < B->estimate;
+		if (A->estimate == B->estimate)
+			return A->cost > B->cost;
+
+		return A->estimate > B->estimate;
 	};
 };
 
@@ -17,8 +21,11 @@ public:
 class AStar
 {
 private:
+	float LOCAL_EXPANDED;
 	GridMap* gridMap;
 	std::vector<Tile*> modifiedTiles;
+
+	Timer timer;
 
 public:
 	AStar(GridMap* gridMap);

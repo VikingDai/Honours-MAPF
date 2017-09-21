@@ -15,6 +15,7 @@
 
 #include <SFML/Graphics.hpp>
 #include "Globals.h"
+#include "CooperativeAStar.h"
 
 #define DEBUG_VERBOSE 0
 
@@ -58,8 +59,13 @@ bool AgentCoordinator::Step(std::vector<Agent*>& agents)
 
 	// Generate additional paths
 	timerPathGeneration.Begin();
-	for (Agent* agent : agentsRequiringPath)
-		GeneratePath(agent, firstRun);
+	
+	CooperativeAStar cAstar(gridMap);
+	cAstar.AssignPaths(agents);
+
+	// #TODO UNCOMMENT THIS TESTING
+	//for (Agent* agent : agentsRequiringPath)
+		//GeneratePath(agent, firstRun);
 	timerPathGeneration.End();
 
 #if DEBUG_VERBOSE

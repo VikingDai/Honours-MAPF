@@ -16,6 +16,8 @@
 #include "Globals.h"
 #include "Experiment.h"
 
+#include <algorithm>
+
 namespace fs = std::experimental::filesystem;
 
 int Simulation::timestep;
@@ -51,6 +53,9 @@ namespace ImGui2
 Simulation::Simulation()
 	: aStar(&environment.gridMap), temporalAStar(&environment.gridMap), bfs(&environment.gridMap)//, coordinator(&environment.gridMap)
 {
+	/** fill pools */
+	AStarTileTime::FillPool(10000);
+
 	seed = 0;
 	srand(seed);
 
