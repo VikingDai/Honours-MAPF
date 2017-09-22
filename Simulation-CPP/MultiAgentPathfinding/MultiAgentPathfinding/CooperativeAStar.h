@@ -47,12 +47,15 @@ class CooperativeAStar
 		}
 	};
 
-	struct Heuristic
+	struct TieBreaker
 	{
 	public:
-		Heuristic() = default;
+		TieBreaker() = default;
 		bool operator()(Node* A, Node* B)
 		{
+			if (A->estimate == B->estimate)
+				return A->cost < B->cost;
+
 			return A->estimate > B->estimate;
 		};
 	};
@@ -63,8 +66,6 @@ class CooperativeAStar
 
 	//OpenQueue open;
 	std::vector<Node*> closed;
-
-	std::pair<Tile*, int> reservationTable;
 
 public:
 	GridMap* gridMap;

@@ -115,8 +115,8 @@ public:
 	~TemporalAStar();
 
 public:
-	//using OpenQueue = std::vector<AStarTileTime*>;
-	using OpenQueue = std::priority_queue<AStarTileTime*, std::vector<AStarTileTime*>, BaseHeuristic>;
+	using OpenQueue = std::vector<AStarTileTime*>;
+	//using OpenQueue = std::priority_queue<AStarTileTime*, std::vector<AStarTileTime*>, BaseHeuristic>;
 
 	std::vector<Tile*> modifiedTiles;
 	std::vector<AStarTileTime*> modifiedTileTimes;

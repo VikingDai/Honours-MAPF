@@ -65,15 +65,23 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 	
 	initial->SetInfo(nullptr, 0, start, Heuristics::Manhattan(start, goal), 0);
 	initial->bIsInOpen = true;
-	open.push(initial);
+
+	//open.push(initial);
+	open.push_back(initial);
+
 	modifiedTileTimes.push_back(initial);
 
 	AStarTileTime* current = nullptr;
 	
 	while (!open.empty())
 	{		
-		current = open.top();
-		open.pop();
+		std::sort(open.begin(), open.end(), BaseHeuristic());
+		current = open.back();
+		open.pop_back();
+		
+		/*current = open.top();
+		open.pop();*/
+
 		current->bClosed = true;
 		
 #if DEBUG_VERBOSE
@@ -213,7 +221,8 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 			" at " << neighborTimestep << std::endl;
 #endif
 
-		open.push(neighbor);
+		//open.push(neighbor);
+		open.push_back(neighbor);
 	}
 }
 
@@ -237,7 +246,7 @@ bool BaseHeuristic::operator()(AStarTileTime* A, AStarTileTime* B)
 		//	return A->customCost > B->customCost;
 		//}
 		//
-		return A->cost > B->cost;
+		return A->cost < B->cost;
 	}
 
 	return A->estimate > B->estimate;

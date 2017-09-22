@@ -26,7 +26,7 @@ void CooperativeAStar::AssignPaths(std::vector<Agent*>& agents)
 
 	while (!open.empty())
 	{
-		std::sort(open.begin(), open.end(), Heuristic());
+		std::sort(open.begin(), open.end(), TieBreaker());
 		Node* currentNode = open.back();
 		open.pop_back();
 
@@ -130,7 +130,7 @@ void CooperativeAStar::ExpandNode(Node* current, std::vector<Node*>& nodes, std:
 			switch (it.second)
 			{
 			case 0: // wait
-				newTile = gridMap->GetTileRelativeTo(currentTile, 0, 0);
+				newTile = currentTile;
 				break;
 			case 1: // left
 				newTile = gridMap->GetTileRelativeTo(currentTile, -1, 0);
@@ -154,15 +154,11 @@ void CooperativeAStar::ExpandNode(Node* current, std::vector<Node*>& nodes, std:
 				break;
 			}
 
+			newTile->SetColor(sf::Color(newTile->GetColor().r + 5, newTile->GetColor().g, newTile->GetColor().b, newTile->GetColor().a));
+
 			/** check for tile collisions */
 			if (std::find(agentTiles.begin(), agentTiles.end(), currentTile) != agentTiles.end())
 			{
-				//std::cout << "Collision between two tiles, skipping!" << std::endl;
-				/*for (auto& it : actions)
-				{
-					std::cout << "\t" << *it.first << " , " << it.second << std::endl;
-				}*/
-
 				anyInvalid = true;
 				break;
 			}
@@ -190,9 +186,7 @@ void CooperativeAStar::ExpandNode(Node* current, std::vector<Node*>& nodes, std:
 			}
 
 			agentTiles.push_back(currentTile);
-
 			node->AddAgent(agent, newTile);
-
 
 			//std::cout << "\t" << *agent << " at " << *newTile << " | Action: " <<it.second << std::endl;
 		}
