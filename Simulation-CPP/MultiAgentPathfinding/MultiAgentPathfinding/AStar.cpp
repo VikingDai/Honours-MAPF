@@ -29,15 +29,21 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 	OpenQueue open;
 
 	start->CalculateEstimate(0, goal);
-	open.push_back(start);
+	//open.push_back(start);
+	open.push(start);
 	modifiedTiles.push_back(start);
 
 	Tile* current = start;
 	while (!open.empty())
 	{
-		std::sort(open.begin(), open.end(), Heuristic());
-		current = open.back();
-		open.pop_back();
+
+
+		//std::sort(open.begin(), open.end(), Heuristic());
+		//current = open.back();
+		//open.pop_back();
+
+		current = open.top();
+		open.pop();
 
 		current->SetColor(sf::Color::Red);
 
@@ -67,6 +73,9 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 	timer.End();
 
 	std::cout << "AStar expanded <" << LOCAL_EXPANDED << "> | Took " << timer.GetTimeElapsed() << " | " << timer.GetTimeElapsed() / LOCAL_EXPANDED << " per expansion  | found path size " << path.size() << std::endl;
+
+	for (Tile* tile : path)
+		tile->SetColor(sf::Color::Blue);
 
 	
 
@@ -110,7 +119,8 @@ void AStar::AddNeighbor(OpenQueue& open, Tile* current, Tile* neighbor, Tile* st
 		neighbor->CalculateEstimate(newNeighborCost, goal);
 		neighbor->parent = current;
 
-		open.push_back(neighbor);
+		//open.push_back(neighbor);
+		open.push(neighbor);
 
 		neighbor->SetColor(sf::Color::Green);
 

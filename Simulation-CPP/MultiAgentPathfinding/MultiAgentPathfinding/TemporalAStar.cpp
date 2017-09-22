@@ -65,18 +65,16 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 	
 	initial->SetInfo(nullptr, 0, start, Heuristics::Manhattan(start, goal), 0);
 	initial->bIsInOpen = true;
-	open.push_back(initial);
-	modifiedTileTimes.emplace(initial);
+	open.push(initial);
+	modifiedTileTimes.push_back(initial);
 
 	AStarTileTime* current = nullptr;
 	
 	while (!open.empty())
-	{
-		if (needsSorting)
-			std::sort(open.begin(), open.end(), BaseHeuristic());
-		current = open.back();
+	{		
+		current = open.top();
+		open.pop();
 		current->bClosed = true;
-		open.pop_back();
 		
 #if DEBUG_VERBOSE
 		std::cout << "Expanding " << *current->tile << " at time " << current->timestep << std::endl;
@@ -86,11 +84,11 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 		if (current->tile == goal) // found path to goal!
 			break;
 
-		//ExpandNeighbor(open, current, current->tile, start, goal, customCosts);
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 0, 1), start, goal, customCosts); // up
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 1, 0), start, goal, customCosts); // right
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 0, -1), start, goal, customCosts); // down
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, -1, 0), start, goal, customCosts); // left
+		ExpandNeighbor(open, current, current->tile, start, goal, customCosts); // wait
 
 #if DEBUG_VERBOSE
 		std::cout << "Temporal A* has expanded: " << LOCAL_TILES_EXPANDED << std::endl;
@@ -113,7 +111,11 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 #if DEBUG_STATS
 	timer.End();
 	Stats::avgSearchTime = timer.GetAvgTime();
-	std::cout << "Temporal AStar expanded <" << LOCAL_TILES_EXPANDED << "> tiles | Took " << timer.GetTimeElapsed() << " | " << timer.GetTimeElapsed() / LOCAL_TILES_EXPANDED << " per expansion | found path size " << path.size() << std::endl;
+	std::cout << "Temporal AStar expanded <" << LOCAL_TILES_EXPANDED << 
+		"> tiles | Took " << timer.GetTimeElapsed() << " | " << 
+		timer.GetTimeElapsed() / LOCAL_TILES_EXPANDED << 
+		" per expansion | found path size " << path.size() << 
+		" | sorting " << sortTimer.GetTimeAccumulated() << std::endl;
 #endif
 
 	GLOBAL_TILES_EXPANDED += LOCAL_TILES_EXPANDED;
@@ -126,6 +128,11 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 	spatialGridMap.clear();
 
 	closed.clear();
+
+	sortTimer.Reset();
+
+	for (Tile* tile : path)
+		tile->SetColor(sf::Color::Blue);
 
 	return path;
 }
@@ -148,24 +155,21 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 	{
 		neighbor = AStarTileTime::Make(usedTileTimes);
 		spatialGridMap[neighborTile][neighborTimestep] = neighbor;
+		modifiedTileTimes.push_back(neighbor);
 	}
-	
-	modifiedTileTimes.emplace(neighbor);
 
-	if (std::find(closed.begin(), closed.end(), neighbor) != closed.end())
-		return;
+	//if (std::find(closed.begin(), closed.end(), neighbor) != closed.end())
+	//if (!spatialGridMap[neighborTile].empty())
+		//return;
 
 	if (neighbor->bClosed) // skip if the node has already been expanded
 		return;
 
-
 	needsSorting = true;
 	LOCAL_TILES_EXPANDED += 1;
-	neighborTile->SetColor(sf::Color(current->tile->GetColor().r, current->tile->GetColor().g + 50, current->tile->GetColor().b, current->tile->GetColor().a));
-	//neighborTile->SetColor(sf::Color::Green);
-	modifiedTiles.emplace(neighborTile);
+	neighborTile->SetColor(sf::Color(current->tile->GetColor().r, current->tile->GetColor().g + 20, current->tile->GetColor().b, current->tile->GetColor().a));
 
-	float customCost = 0;// GetCustomCosts(current->timestep, neighborTile, customCosts);
+	float customCost = GetCustomCosts(current->timestep, neighborTile, customCosts);
 	float cost = current->cost + 1;
 
 #if DEBUG_VERBOSE
@@ -195,6 +199,8 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 	}
 	else // create a new info and add it to the open queue
 	{
+		modifiedTiles.push_back(neighborTile);
+
 		float heuristic = Heuristics::Manhattan(neighborTile, goal);
 		neighbor->bIsInOpen = true;
 		neighbor->SetInfo(current, neighborTimestep, neighborTile, heuristic, customCost);
@@ -207,8 +213,7 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 			" at " << neighborTimestep << std::endl;
 #endif
 
-		open.push_back(neighbor);
-		//closed.push_back(neighbor);
+		open.push(neighbor);
 	}
 }
 
@@ -222,16 +227,16 @@ bool BaseHeuristic::operator()(AStarTileTime* A, AStarTileTime* B)
 {
 	if (A->estimate == B->estimate)
 	{
-		if (A->cost == B->cost)
-		{
-			if (A->timestep == B->timestep)
-			{
-				return A->timestep < B->timestep;
-			}
+		//if (A->cost == B->cost)
+		//{
+		//	if (A->timestep == B->timestep)
+		//	{
+		//		return A->timestep < B->timestep;
+		//	}
 
-			return A->customCost > B->customCost;
-		}
-		
+		//	return A->customCost > B->customCost;
+		//}
+		//
 		return A->cost > B->cost;
 	}
 

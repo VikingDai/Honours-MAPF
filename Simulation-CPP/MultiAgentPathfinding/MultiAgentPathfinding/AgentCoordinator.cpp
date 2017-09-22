@@ -64,9 +64,9 @@ bool AgentCoordinator::Step(std::vector<Agent*>& agents)
 	cAstar.AssignPaths(agents);
 
 	// #TODO UNCOMMENT THIS TESTING
-	//for (Agent* agent : agentsRequiringPath)
-		//GeneratePath(agent, firstRun);
-	timerPathGeneration.End();
+	/*for (Agent* agent : agentsRequiringPath)
+		GeneratePath(agent, firstRun);
+	timerPathGeneration.End();*/
 
 #if DEBUG_VERBOSE
 	timerPathGeneration.PrintTimeElapsed("Generating paths");

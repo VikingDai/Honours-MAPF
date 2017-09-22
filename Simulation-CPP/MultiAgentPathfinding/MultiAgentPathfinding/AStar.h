@@ -34,7 +34,8 @@ public:
 	using Path = std::deque<Tile*>;
 
 private:
-	using OpenQueue = std::vector<Tile*>;
+	//using OpenQueue = std::vector<Tile*>;
+	using OpenQueue = std::priority_queue<Tile*, std::vector<Tile*>, Heuristic>;
 	void AddNeighbor(OpenQueue& open, Tile* current, Tile* neighbor, Tile* start, Tile* goal);
 
 public:

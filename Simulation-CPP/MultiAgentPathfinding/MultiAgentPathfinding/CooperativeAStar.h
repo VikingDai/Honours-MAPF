@@ -58,9 +58,10 @@ class CooperativeAStar
 	};
 
 	using AgentActions = std::map<Agent*, int>;
-	using OpenQueue = std::vector<Node*>;
+	//using OpenQueue = std::vector<Node*>;
+	using OpenQueue = std::priority_queue<Node*, std::vector<Node*>, Heuristic>;
 
-	OpenQueue open;
+	//OpenQueue open;
 	std::vector<Node*> closed;
 
 	std::pair<Tile*, int> reservationTable;

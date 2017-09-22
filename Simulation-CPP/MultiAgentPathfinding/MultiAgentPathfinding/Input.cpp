@@ -82,6 +82,22 @@ void Input::ProcessInput(sf::Event& event)
 void Input::OnKeyPressed(sf::Event& event)
 {
 	// event.key.code
+
+	switch (event.key.code)
+	{
+	case sf::Keyboard::Key::S:
+	{
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+		{
+			simulation->temporalAStar.FindPath(startTile, goalTile);
+		}
+		else
+		{
+			simulation->aStar.FindPath(startTile, goalTile);
+		}
+		break;
+	}
+	}
 }
 
 void Input::OnMousePressed(sf::Event& event)
@@ -112,18 +128,6 @@ void Input::OnMousePressed(sf::Event& event)
 
 		goalTile = tile;
 		goalTile->SetColor(sf::Color::Green);
-		break;
-	}
-	case sf::Mouse::Middle:
-	{
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
-		{
-			simulation->temporalAStar.FindPath(startTile, goalTile);
-		}
-		else
-		{
-			simulation->aStar.FindPath(startTile, goalTile);
-		}
 		break;
 	}
 	}

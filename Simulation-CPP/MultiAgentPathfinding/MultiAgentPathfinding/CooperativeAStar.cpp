@@ -9,7 +9,7 @@ CooperativeAStar::CooperativeAStar(GridMap* gridMap)
 
 void CooperativeAStar::AssignPaths(std::vector<Agent*>& agents)
 {
-	open.clear();
+	OpenQueue open;
 	closed.clear();
 
 	/** add initial node to open */
@@ -21,12 +21,16 @@ void CooperativeAStar::AssignPaths(std::vector<Agent*>& agents)
 		initialNode->CalculateEstimate(nullptr);
 	}
 
-	open.push_back(initialNode);
+	//open.push_back(initialNode);
+	open.push(initialNode);
 
 	while (!open.empty())
 	{
-		std::sort(open.begin(), open.end(), Heuristic());
-		Node* currentNode = open.back();
+		//std::sort(open.begin(), open.end(), Heuristic());
+		//Node* currentNode = open.back();
+		//open.pop_back();
+		Node* currentNode = open.top();
+		open.pop();
 
 		std::cout << "Expanded node with est: " << currentNode->estimate << std::endl;
 		for (auto& it : currentNode->agentTilePos)
@@ -36,8 +40,6 @@ void CooperativeAStar::AssignPaths(std::vector<Agent*>& agents)
 
 			//std::cout << "\t" << *agent << " | " << *tile << std::endl;
 		}
-
-		open.pop_back();
 
 		//for (Node* node : open)
 		//{
@@ -81,7 +83,11 @@ void CooperativeAStar::AssignPaths(std::vector<Agent*>& agents)
 		std::vector<Node*> nodes;
 		ExpandNode(currentNode, nodes, agents, AgentActions());
 		std::cout << "Created " << nodes.size() << " nodes" << std::endl;
-		open.insert(open.begin(), nodes.begin(), nodes.end());
+
+		for (Node* node : nodes)
+			open.push(node);
+
+		//open.insert(open.begin(), nodes.begin(), nodes.end());
 	}
 }
 
@@ -199,7 +205,7 @@ void CooperativeAStar::ExpandNode(Node* current, std::vector<Node*>& nodes, std:
 	}
 }
 
-void CooperativeAStar::Node::CalculateEstimate(Node* node)
+void CooperativeAStar::Node::CalculateEstimate(Node* parent)
 {
 	/* heuristic is calculated per agent and summed up */
 	heuristic = 0;
@@ -211,6 +217,7 @@ void CooperativeAStar::Node::CalculateEstimate(Node* node)
 		heuristic += heur;
 	}
 
-	cost = node ? node->cost + agentTilePos.size() : 0;
+	cost = parent ? parent->cost + agentTilePos.size() : 0;
+
 	estimate = cost + heuristic;
 }
