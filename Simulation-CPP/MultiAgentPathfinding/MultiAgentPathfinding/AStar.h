@@ -11,7 +11,7 @@ public:
 	bool operator()(Tile* A, Tile* B)
 	{
 		if (A->estimate == B->estimate)
-			return A->cost > B->cost;
+			return A->cost < B->cost;
 
 		return A->estimate > B->estimate;
 	};
@@ -21,7 +21,10 @@ public:
 class AStar
 {
 private:
-	float LOCAL_EXPANDED;
+
+	int LOCAL_EXP;
+	int LOCAL_GEN;
+	int LOCAL_TOUCH;
 	GridMap* gridMap;
 	std::vector<Tile*> modifiedTiles;
 
@@ -34,8 +37,8 @@ public:
 	using Path = std::deque<Tile*>;
 
 private:
-	//using OpenQueue = std::vector<Tile*>;
-	using OpenQueue = std::priority_queue<Tile*, std::vector<Tile*>, Heuristic>;
+	using OpenQueue = std::vector<Tile*>;
+	//using OpenQueue = std::priority_queue<Tile*, std::vector<Tile*>, Heuristic>;
 	void AddNeighbor(OpenQueue& open, Tile* current, Tile* neighbor, Tile* start, Tile* goal);
 
 public:

@@ -21,16 +21,17 @@ void CooperativeAStar::AssignPaths(std::vector<Agent*>& agents)
 		initialNode->CalculateEstimate(nullptr);
 	}
 
-	//open.push_back(initialNode);
-	open.push(initialNode);
+	open.push_back(initialNode);
+	//open.push(initialNode);
 
 	while (!open.empty())
 	{
-		//std::sort(open.begin(), open.end(), Heuristic());
-		//Node* currentNode = open.back();
-		//open.pop_back();
-		Node* currentNode = open.top();
-		open.pop();
+		std::sort(open.begin(), open.end(), Heuristic());
+		Node* currentNode = open.back();
+		open.pop_back();
+
+		/*Node* currentNode = open.top();
+		open.pop();*/
 
 		std::cout << "Expanded node with est: " << currentNode->estimate << std::endl;
 		for (auto& it : currentNode->agentTilePos)
@@ -84,10 +85,10 @@ void CooperativeAStar::AssignPaths(std::vector<Agent*>& agents)
 		ExpandNode(currentNode, nodes, agents, AgentActions());
 		std::cout << "Created " << nodes.size() << " nodes" << std::endl;
 
-		for (Node* node : nodes)
+		/*for (Node* node : nodes)
 			open.push(node);
-
-		//open.insert(open.begin(), nodes.begin(), nodes.end());
+*/
+		open.insert(open.begin(), nodes.begin(), nodes.end());
 	}
 }
 

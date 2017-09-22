@@ -97,6 +97,16 @@ void Input::OnKeyPressed(sf::Event& event)
 		}
 		break;
 	}
+	case sf::Keyboard::Key::D:
+	{
+		Tile* start = simulation->environment.gridMap.GetTileAt(113, 164);
+		Tile* goal = simulation->environment.gridMap.GetTileAt(245, 44);
+
+
+		//assert(start && goal);
+		simulation->aStar.FindPath(start, goal);
+		break;
+	}
 	}
 }
 
@@ -116,6 +126,7 @@ void Input::OnMousePressed(sf::Event& event)
 
 		startTile = tile;
 		startTile->SetColor(sf::Color::Blue);
+		std::cout << "Start: " << *startTile << std::endl;
 		break;
 	}
 	case sf::Mouse::Right:
@@ -127,6 +138,7 @@ void Input::OnMousePressed(sf::Event& event)
 			goalTile->ResetColor();
 
 		goalTile = tile;
+		std::cout << "Goal: " << *goalTile << std::endl;
 		goalTile->SetColor(sf::Color::Green);
 		break;
 	}

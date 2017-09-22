@@ -3,6 +3,7 @@
 #include <stack>
 
 #define DEBUG_ASTAR 0
+#define DEBUG_LOG 0
 
 AStar::AStar(GridMap* inGridMap)
 {
@@ -21,7 +22,9 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 		return path;
 	}
 
-	LOCAL_EXPANDED = 0;
+	LOCAL_EXP = 0;
+	LOCAL_GEN = 0;
+	LOCAL_TOUCH = 0;
 
 	for (Tile* tile : modifiedTiles)
 		tile->ResetColor();
@@ -29,21 +32,26 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 	OpenQueue open;
 
 	start->CalculateEstimate(0, goal);
-	//open.push_back(start);
-	open.push(start);
+	open.push_back(start);
+	//open.push(start);
 	modifiedTiles.push_back(start);
 
 	Tile* current = start;
 	while (!open.empty())
 	{
+		std::sort(open.begin(), open.end(), Heuristic());
+		current = open.back();
+		open.pop_back();
+
+#if DEBUG_LOG
+		std::cout << "Expanded: " << *current << std::endl;
+#endif
+
+		LOCAL_EXP += 1;
 
 
-		//std::sort(open.begin(), open.end(), Heuristic());
-		//current = open.back();
-		//open.pop_back();
-
-		current = open.top();
-		open.pop();
+		/*current = open.top();
+		open.pop();*/
 
 		current->SetColor(sf::Color::Red);
 
@@ -72,7 +80,7 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 
 	timer.End();
 
-	std::cout << "AStar expanded <" << LOCAL_EXPANDED << "> | Took " << timer.GetTimeElapsed() << " | " << timer.GetTimeElapsed() / LOCAL_EXPANDED << " per expansion  | found path size " << path.size() << std::endl;
+	std::cout << "AStar exp <" << LOCAL_EXP << " | AStar gen <" << LOCAL_GEN << " | AStar touch <" << LOCAL_TOUCH << "> | Took " << timer.GetTimeElapsed() << " | " << timer.GetTimeElapsed() / LOCAL_GEN << " per expansion  | found path size " << path.size() << std::endl;
 
 	for (Tile* tile : path)
 		tile->SetColor(sf::Color::Blue);
@@ -86,12 +94,19 @@ void AStar::AddNeighbor(OpenQueue& open, Tile* current, Tile* neighbor, Tile* st
 {
 	assert(current && start && goal);
 
-	if (!neighbor || // this will occur when a tile is out of bounds
-		neighbor->hasBeenExpanded || // skip neighbors which have already been expanded
-		!neighbor->isWalkable) // don't expand obstacles
+	if (!neighbor || !neighbor->isWalkable) return; 
+	// don't expand obstacles
+	// this will occur when a tile is out of bounds
+
+	LOCAL_TOUCH += 1;
+
+	// skip neighbors which have already been expanded
+	if (neighbor->hasBeenExpanded) 
 		return;
 
-	LOCAL_EXPANDED += 1;
+#if DEBUG_LOG
+	std::cout << "\tSuccessor: " << *neighbor << std::endl;
+#endif
 
 	float newNeighborCost = current->cost + 1;
 
@@ -101,10 +116,19 @@ void AStar::AddNeighbor(OpenQueue& open, Tile* current, Tile* neighbor, Tile* st
 		std::cout << "UPDATED " << *neighbor << " in open list." << std::endl;
 #endif
 
+		// utils/pqueue
+		// utils/heap.h
+		// ch branch
+		// lazy clearing - use search id - check id and status (search_node)
+
 		// update neighbor in the fringe by checking if this new parent tile is better
+		// 
 		bool newCostIsBetter = newNeighborCost < neighbor->cost;
 		if (newCostIsBetter) // only accept this new path if the cost is less
 		{
+#if DEBUG_LOG
+			std::cout << "\t\tUpdating with new cost for " << *neighbor << std::endl;
+#endif
 			neighbor->CalculateEstimate(newNeighborCost, goal);
 			neighbor->parent = current;
 		}
@@ -115,12 +139,14 @@ void AStar::AddNeighbor(OpenQueue& open, Tile* current, Tile* neighbor, Tile* st
 		std::cout << "ADDED " << *neighbor << " to open list." << std::endl;
 #endif
 
+		LOCAL_GEN += 1;
+
 		neighbor->isInOpen = true;
 		neighbor->CalculateEstimate(newNeighborCost, goal);
 		neighbor->parent = current;
 
-		//open.push_back(neighbor);
-		open.push(neighbor);
+		open.push_back(neighbor);
+		//open.push(neighbor);
 
 		neighbor->SetColor(sf::Color::Green);
 
