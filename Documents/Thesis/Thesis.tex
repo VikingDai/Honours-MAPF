@@ -58,6 +58,18 @@
 
 \usepackage{float}
 
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
+\floatname{algorithm}{Procedure}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+
+\algdef{SE}[DOWHILE]{Do}{DoWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}%
+\let\oldReturn\Return
+\renewcommand{\Return}{\State\oldReturn}
+
 %\hypersetup{
 %	colorlinks,
 %	linkcolor={red!50!black},
@@ -124,6 +136,55 @@
 In our multi-agent pathfinding problem, we have an environment containing a set of $k$ agents on a grid-map. Each agent aims to find a path to their goal without colliding with another agent (a path collision).
 
 Hence we have a centralized agent coordinator which aims to resolve path collisions.
+
+\section{Related Work}
+\textbf{CBS}
+
+\textbf{ICTS}
+
+\textbf{Centralised A*}
+
+\textbf{That Network Flow paper}
+
+\section{Algorithms}
+
+\begin{algorithm}
+	\caption{AgentCoordinator}\label{alg_AgentCoordinator}
+	\begin{algorithmic}[1]
+		\Require $\vec{a}:$ list of agents
+		\Ensure $void$
+		\State{$\textit{collisions} \gets \{\}$}
+		\Do
+			\State{$\vec{ap} \gets GeneratePaths(\vec{a})$}
+			\State{$AssignPaths()$}
+			\State{$\textit{failedAgents} \gets \textit{AssignPaths(paths, }\vec{ap})$}
+		\DoWhile{\textit{collisions is not empty()}}
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+	\caption{GeneratePaths}\label{alg_GeneratePaths}
+	\begin{algorithmic}[1]
+		\Require $\vec{a}:$ list of agents
+		\Ensure $\vec{ap}$: list of paths which are in collision: a tuple of (agent, path)
+		\State{$\vec{ap} \gets \{\}$}
+		\For{$a : \vec{a}$} 
+			\State{$path \gets \textit{GeneratePath(a, firstRun)}$}
+			\State{$a.\vec{p}.append(path)$}	
+			\State{$\vec{ap}.append(a, \textit{CheckCollisions(path))}$}
+		\EndFor
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+	\caption{AssignPaths}\label{alg_AssignPaths}
+	\begin{algorithmic}[1]
+		\Require $\vec{a}:$ list of agents
+		\Ensure $\vec{p}:$ list of agents who were assigned the penalty
+		\State{$\textit{penaltyAgents} \gets RunMasterProblem(a)$}
+		\Return $penaltyAgents$
+	\end{algorithmic}
+\end{algorithm}
 
 \section{Resolving conflicts}
 \begin{compactenum}
