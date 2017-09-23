@@ -7,8 +7,8 @@
 #define DEBUG_VERBOSE 0
 
 GridMap::GridMap()
+	: width(0), height(0)
 {
-	width = height = 0;
 }
 
 

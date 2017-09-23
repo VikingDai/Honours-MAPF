@@ -1,9 +1,52 @@
 #include "AStar.h"
 #include <algorithm>
 #include <stack>
+#include "PriorityQueue.h"
 
 #define DEBUG_ASTAR 0
 #define DEBUG_LOG 0
+
+struct Stupid
+{
+	int priority = INT_MAX;
+
+	Stupid(int value)
+		: value(value)
+	{
+	}
+
+	int value;
+	int GetPriority() { return priority; }
+	void SetPriority(int priority) 
+	{ 
+		this->priority = priority; 
+	}
+
+	bool operator<(const Stupid& other)
+	{
+		return value < other.value;
+	}
+
+	bool operator>(const Stupid& other)
+	{
+		return value > other.value;
+	}
+
+	bool operator>=(const Stupid& other)
+	{
+		return value >= other.value;
+	}
+
+	bool operator<=(const Stupid& other)
+	{
+		return value <= other.value;
+	}
+
+	bool operator==(const Stupid& other)
+	{
+		return value == other.value;
+	}
+};
 
 AStar::AStar(GridMap* inGridMap)
 {
@@ -29,29 +72,43 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 	for (Tile* tile : modifiedTiles)
 		tile->ResetColor();
 	modifiedTiles.clear();
-	OpenQueue open;
+	OpenQueue open(1024, true);
+	//OpenQueue open;
 
 	start->CalculateEstimate(0, goal);
-	open.push_back(start);
+
+	//open.push_back(start);
 	//open.push(start);
+	open.Push(start);
+
 	modifiedTiles.push_back(start);
 
 	Tile* current = start;
-	while (!open.empty())
+	while (!open.Empty())
 	{
-		std::sort(open.begin(), open.end(), Heuristic());
+		/*std::sort(open.begin(), open.end(), Heuristic());
 		current = open.back();
-		open.pop_back();
+		open.pop_back();*/
 
-#if DEBUG_LOG
-		std::cout << "Expanded: " << *current << std::endl;
+		
+		
+
+		current = open.Pop();
+
+		//current = open.top();
+		//open.pop();
+
+#if 0
+		std::cout << "Expanded: " << *current << " with estimate: " << current->estimate << " cost: " << current->cost << std::endl;
 #endif
+
+		//std::cout << open << std::endl;
+		//std::cout << "--------------------------" << std::endl << std::endl;
 
 		LOCAL_EXP += 1;
 
 
-		/*current = open.top();
-		open.pop();*/
+		
 
 		current->SetColor(sf::Color::Red);
 
@@ -62,9 +119,10 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 
 		// add the neighbors of the current tile (up, down, left, right) to the open list
 		AddNeighbor(open, current, gridMap->GetTileRelativeTo(current, 0, 1), start, goal); // up
-		AddNeighbor(open, current, gridMap->GetTileRelativeTo(current, 1, 0), start, goal); // right
-		AddNeighbor(open, current, gridMap->GetTileRelativeTo(current, 0, -1), start, goal); // down
 		AddNeighbor(open, current, gridMap->GetTileRelativeTo(current, -1, 0), start, goal); // left
+		AddNeighbor(open, current, gridMap->GetTileRelativeTo(current, 0, -1), start, goal); // down
+		AddNeighbor(open, current, gridMap->GetTileRelativeTo(current, 1, 0), start, goal); // right
+		
 	}
 
 	// build the path
@@ -131,6 +189,7 @@ void AStar::AddNeighbor(OpenQueue& open, Tile* current, Tile* neighbor, Tile* st
 #endif
 			neighbor->CalculateEstimate(newNeighborCost, goal);
 			neighbor->parent = current;
+			open.HeapifyUp(neighbor->GetPriority());
 		}
 	}
 	else // add neighbor to the fringe
@@ -145,8 +204,9 @@ void AStar::AddNeighbor(OpenQueue& open, Tile* current, Tile* neighbor, Tile* st
 		neighbor->CalculateEstimate(newNeighborCost, goal);
 		neighbor->parent = current;
 
-		open.push_back(neighbor);
+		//open.push_back(neighbor);
 		//open.push(neighbor);
+		open.Push(neighbor);
 
 		neighbor->SetColor(sf::Color::Green);
 

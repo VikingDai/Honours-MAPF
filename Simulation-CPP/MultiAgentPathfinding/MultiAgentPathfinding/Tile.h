@@ -24,7 +24,6 @@ struct Estimate
 };
 
 class Tile : public EObject
-
 {
 public:
 	static std::vector<Tile*> dirtyTiles;
@@ -65,4 +64,29 @@ public:
 	friend std::ostream& operator<<(std::ostream& os, Tile& tile);
 
 	void SetObstacle();
+
+
+public:
+	int priority = INT_MAX;
+	int GetPriority() { return priority; }
+	void SetPriority(int priority)
+	{
+		this->priority = priority;
+	}
+
+	bool operator<(const Tile& other)
+	{
+		if (estimate == other.estimate)
+			return cost > other.cost;
+
+		return estimate < other.estimate;
+	}
+
+	bool operator>(const Tile& other)
+	{
+		if (estimate == other.estimate)
+			return cost < other.cost;
+
+		return estimate > other.estimate;
+	}
 };

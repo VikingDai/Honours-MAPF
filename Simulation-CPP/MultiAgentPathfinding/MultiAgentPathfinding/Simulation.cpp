@@ -73,9 +73,6 @@ Simulation::Simulation()
 	for (fs::directory_entry entry : fs::directory_iterator(path))
 		scenarioFiles.push_back(entry.path().string());
 
-	for (fs::directory_entry entry : fs::directory_iterator("."))
-		std::cout << entry.path().string() << std::endl;
-
 
 	//////////////////////////////////////////////////////////////////////////
 	// TEST SPATIAL A*

@@ -161,6 +161,7 @@
     <ClCompile Include="imgui-SFML.cpp" />
     <ClCompile Include="MAPF.cpp" />
     <ClCompile Include="PathAssigner.cpp" />
+    <ClCompile Include="PriorityQueue.cpp" />
     <ClCompile Include="TemporalAStar.cpp" />
     <ClCompile Include="EObject.cpp" />
     <ClCompile Include="Agent.cpp" />
@@ -193,6 +194,7 @@
     <ClInclude Include="imgui-SFML.h" />
     <ClInclude Include="MAPF.h" />
     <ClInclude Include="PathAssigner.h" />
+    <ClInclude Include="PriorityQueue.h" />
     <ClInclude Include="TemporalAStar.h" />
     <ClInclude Include="EObject.h" />
     <ClInclude Include="Agent.h" />
