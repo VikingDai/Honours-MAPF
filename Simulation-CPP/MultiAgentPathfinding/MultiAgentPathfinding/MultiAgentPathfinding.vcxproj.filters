@@ -102,13 +102,13 @@
     <ClCompile Include="Experiment.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CooperativeAStar.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Heuristics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PriorityQueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CentralizedAStar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -200,13 +200,13 @@
     <ClInclude Include="Experiment.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CooperativeAStar.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Heuristics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PriorityQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CentralizedAStar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

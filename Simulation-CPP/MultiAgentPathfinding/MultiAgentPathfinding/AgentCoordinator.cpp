@@ -15,7 +15,7 @@
 
 #include <SFML/Graphics.hpp>
 #include "Globals.h"
-#include "CooperativeAStar.h"
+#include "CentralizedAStar.h"
 
 #define DEBUG_VERBOSE 0
 
@@ -60,13 +60,13 @@ bool AgentCoordinator::Step(std::vector<Agent*>& agents)
 	// Generate additional paths
 	timerPathGeneration.Begin();
 	
-	CooperativeAStar cAstar(gridMap);
-	cAstar.AssignPaths(agents);
+	//CooperativeAStar cAstar(gridMap);
+	//cAstar.AssignPaths(agents);
 
 	// #TODO UNCOMMENT THIS TESTING
-	/*for (Agent* agent : agentsRequiringPath)
+	for (Agent* agent : agentsRequiringPath)
 		GeneratePath(agent, firstRun);
-	timerPathGeneration.End();*/
+	timerPathGeneration.End();
 
 #if DEBUG_VERBOSE
 	timerPathGeneration.PrintTimeElapsed("Generating paths");
@@ -213,6 +213,8 @@ void AgentCoordinator::GeneratePath(
 	}
 	else
 	{
+		std::vector<Agent*> agentsInDeadlock;
+
 		bool inDeadlock = false;
 		for (auto& it : agentCollisionCount[agent])
 		{
@@ -222,17 +224,20 @@ void AgentCoordinator::GeneratePath(
 			std::cout << *agent << " has " << numCollisions << " collisions with " << *it.first << std::endl;
 #endif
 			if (numCollisions > 75)
-			{
-				inDeadlock = true;
-			}
+				agentsInDeadlock.push_back(agent);
 		}
 
-		if (inDeadlock)
+		if (!agentsInDeadlock.empty())
 		{
 #if 1
-			std::cout << "BFS: Generating path for " << *agent << std::endl;
+			std::cout << "Centralized A*: Generating path for " << *agent << std::endl;
 #endif
-			path = agent->bfs.FindNextPath(currentTile, agent->goal);
+
+			agentsInDeadlock.push_back(agent);
+			CentralizedAStar cAStar(gridMap);
+			cAStar.AssignPaths(agentsInDeadlock);
+
+			//path = agent->bfs.FindNextPath(currentTile, agent->goal);
 		}
 		else
 		{

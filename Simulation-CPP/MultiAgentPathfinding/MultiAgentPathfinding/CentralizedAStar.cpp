@@ -1,13 +1,13 @@
-#include "CooperativeAStar.h"
+#include "CentralizedAStar.h"
 #include "Heuristics.h"
 
-CooperativeAStar::CooperativeAStar(GridMap* gridMap)
+CentralizedAStar::CentralizedAStar(GridMap* gridMap)
 	: gridMap(gridMap)
 {
 
 }
 
-void CooperativeAStar::AssignPaths(std::vector<Agent*>& agents)
+void CentralizedAStar::AssignPaths(std::vector<Agent*>& agents)
 {
 	OpenQueue open;
 	closed.clear();
@@ -92,7 +92,7 @@ void CooperativeAStar::AssignPaths(std::vector<Agent*>& agents)
 	}
 }
 
-void CooperativeAStar::ExpandNode(Node* current, std::vector<Node*>& nodes, std::vector<Agent*> agents, AgentActions actions)
+void CentralizedAStar::ExpandNode(Node* current, std::vector<Node*>& nodes, std::vector<Agent*> agents, AgentActions actions)
 {
 	/*for (auto& it : actions)
 	{
@@ -200,7 +200,7 @@ void CooperativeAStar::ExpandNode(Node* current, std::vector<Node*>& nodes, std:
 	}
 }
 
-void CooperativeAStar::Node::CalculateEstimate(Node* parent)
+void CentralizedAStar::Node::CalculateEstimate(Node* parent)
 {
 	/* heuristic is calculated per agent and summed up */
 	heuristic = 0;

@@ -4,7 +4,7 @@
 
 #include "Agent.h"
 
-class CooperativeAStar
+class CentralizedAStar
 {
 	struct Node
 	{
@@ -70,7 +70,7 @@ class CooperativeAStar
 public:
 	GridMap* gridMap;
 
-	CooperativeAStar(GridMap* gridMap);
+	CentralizedAStar(GridMap* gridMap);
 
 	void AssignPaths(std::vector<Agent*>& agents);
 	void ExpandNode(Node* current, std::vector<Node*>& nodes, std::vector<Agent*> agents, AgentActions actions);

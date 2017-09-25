@@ -154,7 +154,7 @@
     <ClCompile Include="..\libs\imgui\imgui_draw.cpp" />
     <ClCompile Include="AgentCoordinator.cpp" />
     <ClCompile Include="AStar.cpp" />
-    <ClCompile Include="CooperativeAStar.cpp" />
+    <ClCompile Include="CentralizedAStar.cpp" />
     <ClCompile Include="Experiment.cpp" />
     <ClCompile Include="Globals.cpp" />
     <ClCompile Include="Heuristics.cpp" />
@@ -186,7 +186,7 @@
     <ClInclude Include="..\libs\imgui\imgui_internal.h" />
     <ClInclude Include="AgentCoordinator.h" />
     <ClInclude Include="AStar.h" />
-    <ClInclude Include="CooperativeAStar.h" />
+    <ClInclude Include="CentralizedAStar.h" />
     <ClInclude Include="Experiment.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="Graphics.h" />
