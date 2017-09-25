@@ -146,7 +146,12 @@ Hence we have a centralized agent coordinator which aims to resolve path collisi
 
 \textbf{That Network Flow paper}
 
-\section{Algorithms}
+\section{Collision-free Paths}
+This section outlines the slave algorithm which is used to generate paths. These paths are then given to the Mixed Integer Program described in Section~\ref{sec:mip} which handles the assignment of paths to agents.
+
+\subsection{Agent Coordinator}
+
+The agent coordinator is the highest level method where paths are generated and assigned. 
 
 \begin{algorithm}
 	\caption{AgentCoordinator}\label{alg_AgentCoordinator}
@@ -156,19 +161,34 @@ Hence we have a centralized agent coordinator which aims to resolve path collisi
 		\State{$\textit{collisions} \gets \{\}$}
 		\Do
 			\State{$\vec{ap} \gets GeneratePaths(\vec{a})$}
-			\State{$AssignPaths()$}
+			\State{$AssignPaths(\vec{ap})$}
 			\State{$\textit{failedAgents} \gets \textit{AssignPaths(paths, }\vec{ap})$}
 		\DoWhile{\textit{collisions is not empty()}}
 	\end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}
+\subsection{Generating Paths}
+This method aims to generate paths for an agent. The first iteration of the path generation will use A* to quickly find the shortest path to the goal. This path will likely be in conflict. Next we use Temporal A* which aims to avoid collisions by applying penalties to tiles which are in conflict. This method increments the penalties by 1 and iteratively finds paths of the next cost. 
+
+If an agent's new path has an increase in cost from the optimal path $(\Delta)$. We do not generate a path for this agent until other agents in the deadlock have the same $\Delta$. In this way we find an optimal solution as the path increments slowly?
+
+However our implementation of Temporal A* is not complete. There are instances which it is unable to find a solution. If the optimal shortest path requires the agent to move past the goal tile. Then Temporal A* fails and will never expand past the goal. An example of this is <HERE>! Hence in this algorithm we determine that agents are in \textbf{deadlock} when they have $n=100$ number of collisions. If this occurs we start finding paths with Centralized A*. 
+
+\begin{algorithm}[H]
 	\caption{GeneratePaths}\label{alg_GeneratePaths}
 	\begin{algorithmic}[1]
-		\Require $\vec{a}:$ list of agents
+		\Require $\vec{a}:$ list of penalty agents $c$: counts the collisions between agents
 		\Ensure $\vec{ap}$: list of paths which are in collision: a tuple of (agent, path)
 		\State{$\vec{ap} \gets \{\}$}
-		\For{$a : \vec{a}$} 
+		\For{agent $a$ in $\vec{a}$}
+			\State{$path \gets \{\}$}
+			\If{agent.paths is empty}
+				\State{$path \gets AStar$}
+			\ElsIf{$\exists$ agents in deadlock with $a$}
+				\State{$path \gets CentralizedAStar(\textit{agents in deadlock})$}
+			\Else
+				\State{$path \gets TemporalAStar$}
+			\EndIf
 			\State{$path \gets \textit{GeneratePath(a, firstRun)}$}
 			\State{$a.\vec{p}.append(path)$}	
 			\State{$\vec{ap}.append(a, \textit{CheckCollisions(path))}$}
@@ -176,13 +196,20 @@ Hence we have a centralized agent coordinator which aims to resolve path collisi
 	\end{algorithmic}
 \end{algorithm}
 
+\subsection{Path Assignment}
+
+At the core, this method simply calls the Master problem (\ref{sec:mip}). The objective here is to detect if any agents were unable to be assigned paths (meaning there was no combination of paths which resulted in a collision-free solution). These agents are assigned the penalty variable by the mip and are returned as output of this method.
+
 \begin{algorithm}
 	\caption{AssignPaths}\label{alg_AssignPaths}
 	\begin{algorithmic}[1]
-		\Require $\vec{a}:$ list of agents
+		\Require $\vec{a}:$ list of agents $\vec{c}:$ list of collisions
 		\Ensure $\vec{p}:$ list of agents who were assigned the penalty
-		\State{$\textit{penaltyAgents} \gets RunMasterProblem(a)$}
-		\Return $penaltyAgents$
+		\State{$\textit{solution} \gets RunMasterProblem(\vec{a}, \vec{c})$}
+		\For{$a$ in $solution.assignedAgents$}
+		\State{assign collision-free path to $a$ as described by $solution$}
+		\EndFor 
+		\Return $solution.penaltyAgents$
 	\end{algorithmic}
 \end{algorithm}
 
@@ -194,7 +221,7 @@ Hence we have a centralized agent coordinator which aims to resolve path collisi
 	\item Repeat 1. if there is not a valid solution found i.e the optimal solution contains a path collision
 \end{compactenum}
 
-\section{Master problem formulation}
+\section{Master problem formulation} \label{sec:mip}
 Each agent is given \textit{one or more} paths to their goal. The master problem aims to assign one path to every agent while minimizing the path distance and avoiding path collisions. 
 
 \begin{compactitem}
