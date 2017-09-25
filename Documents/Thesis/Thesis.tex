@@ -146,8 +146,15 @@ Hence we have a centralized agent coordinator which aims to resolve path collisi
 
 \textbf{That Network Flow paper}
 
+\section{Algorithm}
+The algorithm is based off branch and bound...<Explain how?>. Overview: Each agent knows of a number of paths to the goal. Using a Mixed Integer Program we are able to quickly find a combination of path assignments such that no assigned path has a collision. 
+
+Separating the algorithm into two sections, we have the Master Problem, which is the MIP. It's sole responsiblity is choosing a combation of paths and assigning them to agents.
+
+Secondly we have the Slave algorithm, which handles path generation.
+
 \section{Collision-free Paths}
-This section outlines the slave algorithm which is used to generate paths. These paths are then given to the Mixed Integer Program described in Section~\ref{sec:mip} which handles the assignment of paths to agents.
+This section outlines the slave algorithm which is used to generate paths. Paths are then given to the Mixed Integer Program described in Section~\ref{sec:mip} which handles the assignment of paths to agents.
 
 \subsection{Agent Coordinator}
 
