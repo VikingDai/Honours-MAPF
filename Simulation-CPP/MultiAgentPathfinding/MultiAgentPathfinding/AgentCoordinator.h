@@ -55,7 +55,7 @@ private:
 	std::map<Agent*, TemporalAStar::TileCosts> agentCollisionCosts;
 	std::map<Agent*, std::map<Agent*, int>> agentCollisionCount;
 
-	std::set<Agent*> agentsRequiringPath;
+	std::set<Agent*> failedAgents;
 	std::map<Agent*, TileCollision> agentCollisionMap;
 	TemporalAStar::TileCosts collisionCosts;
 	std::deque<TileToPathMap> tileToPathMapAtTimestep;

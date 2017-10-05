@@ -50,7 +50,6 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 	if (!start || !goal || start == goal)
 		return path;
 
-	needsSorting = true;
 	LOCAL_TILES_EXPANDED = 0;
 
 	for (Tile* tile : modifiedTiles)
@@ -168,7 +167,6 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 	if (neighbor->bClosed) // skip if the node has already been expanded
 		return;
 
-	needsSorting = true;
 	LOCAL_TILES_EXPANDED += 1;
 	neighborTile->SetColor(sf::Color(current->tile->GetColor().r, current->tile->GetColor().g + 20, current->tile->GetColor().b, current->tile->GetColor().a));
 

@@ -60,19 +60,20 @@ bool AgentCoordinator::Step(std::vector<Agent*>& agents)
 	// Generate additional paths
 	timerPathGeneration.Begin();
 	
-	//CooperativeAStar cAstar(gridMap);
-	//cAstar.AssignPaths(agents);
+	/*CentralizedAStar cAstar(gridMap);
+	cAstar.AssignPaths(agents);*/
 
 	// #TODO UNCOMMENT THIS TESTING
-	for (Agent* agent : agentsRequiringPath)
+	for (Agent* agent : failedAgents)
 		GeneratePath(agent, firstRun);
+
 	timerPathGeneration.End();
 
 #if DEBUG_VERBOSE
 	timerPathGeneration.PrintTimeElapsed("Generating paths");
 #endif
 
-	agentsRequiringPath.clear();
+	failedAgents.clear();
 
 	// Assign conflict-free paths to agents using a MIP
 	timerCollisionDetection.Begin();
@@ -92,14 +93,14 @@ bool AgentCoordinator::Step(std::vector<Agent*>& agents)
 	}
 
 	for (Agent* agent : mipConflicts)
-		agentsRequiringPath.emplace(agent);
+		failedAgents.emplace(agent);
 
-	if (!agentsRequiringPath.empty())
+	if (!failedAgents.empty())
 	{
 		std::map<Agent*, TileCollision>::iterator it;
 		for (it = agentCollisionMap.begin(); it != agentCollisionMap.end(); it++)
 		{
-			agentsRequiringPath.emplace(it->first);
+			failedAgents.emplace(it->first);
 		}
 	}
 
@@ -109,7 +110,7 @@ bool AgentCoordinator::Step(std::vector<Agent*>& agents)
 
 bool AgentCoordinator::Init(std::vector<Agent*>& agents)
 {
-	agentsRequiringPath.clear();
+	failedAgents.clear();
 
 	bool anyPathsChanged = false;
 
@@ -118,7 +119,7 @@ bool AgentCoordinator::Init(std::vector<Agent*>& agents)
 		// if the agent has a goal to reach but does not have a path, generate a path
 		if (agent->goal && agent->GetPath().empty())
 		{
-			agentsRequiringPath.emplace(agent);
+			failedAgents.emplace(agent);
 			agent->potentialPaths.clear();
 			anyPathsChanged = true;
 		}
@@ -166,7 +167,7 @@ void AgentCoordinator::UpdateAgents(std::vector<Agent*>& agents)
 
 		i++;
 	}
-	while (!agentsRequiringPath.empty());
+	while (!failedAgents.empty());
 
 	/** Add back to agent path ref pool */
 	AgentPathRef::PATH_REF_POOL.insert(AgentPathRef::PATH_REF_POOL.end(), usedPathRefs.begin(), usedPathRefs.end());
@@ -177,7 +178,7 @@ void AgentCoordinator::UpdateAgents(std::vector<Agent*>& agents)
 		agent->bfs.Reset();
 
 	tileToPathMapAtTimestep.clear();
-	agentsRequiringPath.clear();
+	failedAgents.clear();
 	agentCollisionMap.clear();
 	collisionCosts.clear();
 	tileToPathMapAtTimestep.clear();
@@ -201,9 +202,7 @@ void AgentCoordinator::GeneratePath(
 
 	MAPF::Path path;
 
-	
-	//if (0)
-	if (firstRun)
+	if (agent->potentialPaths.empty())
 	{
 
 #if 1

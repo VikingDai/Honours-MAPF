@@ -22,7 +22,6 @@ public:
 class AStar
 {
 private:
-
 	int LOCAL_EXP;
 	int LOCAL_GEN;
 	int LOCAL_TOUCH;
