@@ -59,28 +59,23 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 
 	timer.Begin();
 	
-	OpenQueue open;
+	OpenQueue open(1024, true);
 
 	AStarTileTime* initial = AStarTileTime::Make(usedTileTimes);
 	
 	initial->SetInfo(nullptr, 0, start, Heuristics::Manhattan(start, goal), 0);
 	initial->bIsInOpen = true;
 
-	//open.push(initial);
-	open.push_back(initial);
+	open.Push(initial);
 
 	modifiedTileTimes.push_back(initial);
 
 	AStarTileTime* current = nullptr;
 	
-	while (!open.empty())
+	while (!open.Empty())
 	{		
-		std::sort(open.begin(), open.end(), BaseHeuristic());
-		current = open.back();
-		open.pop_back();
+		current = open.Pop();
 		
-		/*current = open.top();
-		open.pop();*/
 
 		current->bClosed = true;
 		
@@ -93,9 +88,9 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 			break;
 
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 0, 1), start, goal, customCosts); // up
-		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 1, 0), start, goal, customCosts); // right
-		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 0, -1), start, goal, customCosts); // down
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, -1, 0), start, goal, customCosts); // left
+		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 0, -1), start, goal, customCosts); // down
+		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 1, 0), start, goal, customCosts); // right
 		ExpandNeighbor(open, current, current->tile, start, goal, customCosts); // wait
 
 #if DEBUG_VERBOSE
@@ -221,8 +216,7 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 			" at " << neighborTimestep << std::endl;
 #endif
 
-		//open.push(neighbor);
-		open.push_back(neighbor);
+		open.Push(neighbor);
 	}
 }
 

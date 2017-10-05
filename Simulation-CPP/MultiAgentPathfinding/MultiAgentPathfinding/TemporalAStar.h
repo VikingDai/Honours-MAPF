@@ -7,6 +7,8 @@
 #include "Helper.h"
 #include <set>
 #include "MAPF.h"
+#include "PriorityQueue.h"
+
 
 class Tile;
 class GridMap;
@@ -74,6 +76,30 @@ public:
 		tile = nullptr;
 		timestep = estimate = cost = customCost = heuristic = 0;
 	}
+
+
+	int priority = INT_MAX;
+	int GetPriority() { return priority; }
+	void SetPriority(int priority)
+	{
+		this->priority = priority;
+	}
+
+	bool operator<(const AStarTileTime& other)
+	{
+		if (estimate == other.estimate)
+			return cost > other.cost;
+
+		return estimate < other.estimate;
+	}
+
+	bool operator>(const AStarTileTime& other)
+	{
+		if (estimate == other.estimate)
+			return cost < other.cost;
+
+		return estimate > other.estimate;
+	}
 };
 
 struct BaseHeuristic
@@ -115,8 +141,7 @@ public:
 	~TemporalAStar();
 
 public:
-	using OpenQueue = std::vector<AStarTileTime*>;
-	//using OpenQueue = std::priority_queue<AStarTileTime*, std::vector<AStarTileTime*>, BaseHeuristic>;
+	using OpenQueue = PriorityQueue<AStarTileTime*>;
 
 	std::vector<Tile*> modifiedTiles;
 	std::vector<AStarTileTime*> modifiedTileTimes;
