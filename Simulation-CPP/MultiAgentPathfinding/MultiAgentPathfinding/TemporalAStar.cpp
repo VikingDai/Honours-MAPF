@@ -86,11 +86,12 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 		if (current->tile == goal) // found path to goal!
 			break;
 
+		ExpandNeighbor(open, current, current->tile, start, goal, customCosts); // wait
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 0, 1), start, goal, customCosts); // up
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, -1, 0), start, goal, customCosts); // left
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 0, -1), start, goal, customCosts); // down
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 1, 0), start, goal, customCosts); // right
-		ExpandNeighbor(open, current, current->tile, start, goal, customCosts); // wait
+		
 
 #if DEBUG_VERBOSE
 		std::cout << "Temporal A* has expanded: " << LOCAL_TILES_EXPANDED << std::endl;
@@ -139,7 +140,7 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 	return path;
 }
 
-void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& customCosts)
+void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& collisionPenalties)
 {
 	if (!neighborTile || !neighborTile->isWalkable) return;
 
@@ -170,7 +171,8 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 	LOCAL_TILES_EXPANDED += 1;
 	neighborTile->SetColor(sf::Color(current->tile->GetColor().r, current->tile->GetColor().g + 20, current->tile->GetColor().b, current->tile->GetColor().a));
 
-	float customCost = GetCustomCosts(current->timestep, neighborTile, customCosts);
+	float customCost = GetCustomCosts(current->timestep, neighborTile, collisionPenalties);
+	float customPrev = GetCustomCosts(current->timestep - 1, neighborTile, collisionPenalties);
 	float cost = current->cost + 1;
 
 #if DEBUG_VERBOSE

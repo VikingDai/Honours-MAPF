@@ -183,16 +183,14 @@ void AgentCoordinator::UpdateAgents(std::vector<Agent*>& agents)
 	collisionCosts.clear();
 	tileToPathMapAtTimestep.clear();
 	collisionTable.clear();
-	agentCollisionCosts.clear();
+	agentCollisionPenalties.clear();
 
 	timerCoordinator.End();
 	timerCoordinator.PrintTimeElapsed("Agent Coordinator");
 	Stats::avgCoordinatorTime = timerCoordinator.GetAvgTime();
 }
 
-void AgentCoordinator::GeneratePath(
-	Agent* agent,
-	bool firstRun)
+void AgentCoordinator::GeneratePath(Agent* agent, bool firstRun)
 {
 	Tile* currentTile = gridMap->GetTileAt(agent->x, agent->y);
 
@@ -202,7 +200,8 @@ void AgentCoordinator::GeneratePath(
 
 	MAPF::Path path;
 
-	if (agent->potentialPaths.empty())
+	//if (agent->potentialPaths.empty())
+	if (0)
 	{
 
 #if 1
@@ -222,7 +221,7 @@ void AgentCoordinator::GeneratePath(
 #if 0
 			std::cout << *agent << " has " << numCollisions << " collisions with " << *it.first << std::endl;
 #endif
-			if (numCollisions > 75)
+			if (numCollisions > 50)
 				agentsInDeadlock.push_back(agent);
 		}
 
@@ -235,16 +234,29 @@ void AgentCoordinator::GeneratePath(
 			agentsInDeadlock.push_back(agent);
 			CentralizedAStar cAStar(gridMap);
 			cAStar.AssignPaths(agentsInDeadlock);
-
-			//path = agent->bfs.FindNextPath(currentTile, agent->goal);
 		}
 		else
 		{
 #if 1
 			std::cout << "Temporal A*: Generating path for " << *agent << std::endl;
 #endif
-			path = agent->temporalAStar.FindPath(currentTile, agent->goal, agentCollisionCosts[agent]);
+
+			for (auto& it : agentCollisionPenalties[agent])
+			{
+				std::cout << "Penalties at time: " << it.first << std::endl;
+				for (auto& it2 : it.second)
+				{
+					std::cout << "\t" << *it2.first << "|" << it2.second << std::endl;
+				}
+			}
+
+			path = agent->temporalAStar.FindPath(currentTile, agent->goal, agentCollisionPenalties[agent]);
 		}
+
+#if 1
+		PrintPath(agent, path);
+		std::cout << std::endl;
+#endif
 	}
 
 	if (!path.empty())
@@ -258,7 +270,6 @@ void AgentCoordinator::GeneratePath(
 
 		for (auto& it : otherPathCollisions)
 		{
-
 			int timestep = it.first;
 			std::vector<AgentPathRef*>& paths = it.second;
 
@@ -269,14 +280,14 @@ void AgentCoordinator::GeneratePath(
 
 				/** penalize where the collision occurred */
 				/*Tile* tile = path.size() > timestep ? path[timestep] : path[path.size() - 1];
-				agentCollisionCosts[agent][timestep][tile] += 1;*/
+				agentCollisionPenalties[agent][timestep][tile] += 1;*/
 
 				/** add to time collision set */
 				for (int i = 0; i < path.size(); i++)
 				{
 					Tile* tile = path[i];
-					for (Tile* tile : path)
-						timeCollisionSet[i].emplace(tile);
+					//for (Tile* tile : path)
+					timeCollisionSet[i].emplace(tile);
 				}
 
 				/** find shortest path */
@@ -296,6 +307,14 @@ void AgentCoordinator::GeneratePath(
 			//	Tile* tile = timestep < path.size() ? path[timestep] : path[path.size() - 1];
 			//	collisionCosts[timestep][tile] += 1;
 			//}
+		}
+
+		for (std::pair<int, Tile*>& it : agentCrossCollisions[agent])
+		{
+			int timestep = it.first;
+			Tile* tile = it.second;
+
+			timeCollisionSet[timestep].emplace(tile);
 		}
 
 		///** penalize our own path? */
@@ -329,11 +348,11 @@ void AgentCoordinator::GeneratePath(
 			int time = it.first;
 			for (Tile* tile : it.second)
 			{
-				for (int i = 0; i < path.size(); i++)
+				/*for (int i = 0; i < path.size(); i++)
 				{
-					agentCollisionCosts[agent][i][tile] += 1;
-				}
-				//agentCollisionCosts[agent][time][tile] += 1;
+					agentCollisionPenalties[agent][i][tile] += 1;
+				}*/
+				agentCollisionPenalties[agent][time][tile] += 1;
 			}
 			//collisionCosts[time][tile] += 1;
 		}
@@ -463,6 +482,10 @@ AgentCoordinator::CollisionAtTime AgentCoordinator::UpdateCollisions(AgentPathRe
 
 				collisionTable[nextTile][timestep].push_back(pathRef);
 				collisionTable[nextTileOther][timestep].push_back(pathRefOther);
+
+
+				agentCrossCollisions[pathRef->agent].emplace_back(timestep, nextTile);
+				agentCrossCollisions[pathRef->agent].emplace_back(timestep, nextTileOther);
 			}
 		}
 
@@ -487,7 +510,7 @@ void AgentCoordinator::PrintPath(Agent* agent, MAPF::Path& path)
 
 void AgentCoordinator::RenderCollisionCosts(sf::RenderWindow& window)
 {
-	for (auto& it0 : agentCollisionCosts)
+	for (auto& it0 : agentCollisionPenalties)
 	{
 		Agent* agent = it0.first;
 

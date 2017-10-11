@@ -52,7 +52,7 @@ private:
 	using CollisionAtTime = std::map<int, std::vector<AgentPathRef*>>;
 
 private:
-	std::map<Agent*, TemporalAStar::TileCosts> agentCollisionCosts;
+	std::map<Agent*, TemporalAStar::TileCosts> agentCollisionPenalties;
 	std::map<Agent*, std::map<Agent*, int>> agentCollisionCount;
 
 	std::set<Agent*> failedAgents;
@@ -60,6 +60,8 @@ private:
 	TemporalAStar::TileCosts collisionCosts;
 	std::deque<TileToPathMap> tileToPathMapAtTimestep;
 	std::map<Tile*, std::map<int, std::vector<AgentPathRef*>>> collisionTable;
+
+	std::map<Agent*, std::vector<std::pair<int, Tile*>>> agentCrossCollisions;
 
 	std::vector<std::pair<Tile*, AgentPathRef*>> bottomLayer;
 
