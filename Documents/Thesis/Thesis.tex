@@ -135,7 +135,7 @@
 
 \section{Introduction} \label{sec:introduction}
 
-In our multi-agent pathfinding problem, we have an environment containing a set of $k$ agents on a grid-map. Each agent aims to find a path to their goal without colliding with another agent (a path collision).
+In our multi-agent pathfinding problem, we have an environment containing a set of $k$ agents on a 4 directional grid-map. Each agent aims to find a path to their goal such that no agent will collide with another agent at any time.
 
 Hence we have a centralized agent coordinator which aims to resolve path collisions.
 
@@ -280,6 +280,13 @@ Here we describe our time-expanded A* implementation. The goal of this algorithm
 \end{compactenum}
 
 \section{Master problem formulation} \label{sec:mip}
+
+\textbf{Branch and bound}
+
+\textbf{Column generation}
+
+\textbf{Branch and price}
+
 Each agent is given \textit{one or more} paths to their goal. The master problem aims to assign one path to every agent while minimizing the path distance and avoiding path collisions. 
 
 \begin{compactitem}
