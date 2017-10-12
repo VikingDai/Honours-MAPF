@@ -89,11 +89,11 @@ public:
 	{
 		if (f == other.f)
 		{
-			if (penalty == other.penalty)
+			//if (penalty == other.penalty)
 			{
-				return g < other.g;
+				return g > other.g;
 			}
-
+			
 			return penalty < other.penalty;
 		}
 
@@ -104,9 +104,9 @@ public:
 	{
 		if (f == other.f)
 		{
-			if (penalty == other.penalty)
+			//if (penalty == other.penalty)
 			{
-				return g > other.g;
+				return g < other.g;
 			}
 
 			return penalty > other.penalty;
@@ -128,15 +128,10 @@ public:
 	}
 };
 
-struct BaseHeuristic
+struct CollisionPenalties
 {
-public:
-	BaseHeuristic() = default;
-	bool operator()(AStarTileTime* A, AStarTileTime* B);
-	friend bool operator==(const AStarTileTime &a, const AStarTileTime &b)
-	{
-		return a.timestep == b.timestep && a.tile == b.tile;
-	}
+	std::map<int, std::map<Tile*, float>> tileCollisions;
+	std::map<int, std::map<std::pair<Tile*, Tile*>, float>> actionCollisions;
 };
 
 class TemporalAStar
@@ -174,10 +169,10 @@ public:
 
 	std::map<Tile*, std::map<int, AStarTileTime*>> spatialGridMap;
 
-	MAPF::Path FindPath(Tile* start, Tile* goal, TileCosts& customCosts = TileCosts());
+	MAPF::Path FindPath(Tile* start, Tile* goal, CollisionPenalties& penalties = CollisionPenalties());
 
-	void ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& customCosts);
+	void ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile* neighborTile, Tile* start, Tile* goal, CollisionPenalties& penalties);
 
-	int GetCustomCosts(int timestep, Tile* tile, TileCosts& customCosts);
+	int GetCustomCosts(int timestep, Tile* fromTile, Tile* toTile, CollisionPenalties& penalties);
 };
 

@@ -7,21 +7,6 @@
 
 #include <SFML/Graphics/Color.hpp>
 
-struct Estimate
-{
-	int estimate;
-	int cost;
-	int heuristic;
-
-	float GetEstimate() { return estimate; }
-	float GetCost() { return estimate; }
-	float GetHeuristic() { return heuristic; }
-
-	float CalculateEstimate(float cost, float heuristic);
-
-	Estimate() { Reset(); }
-	void Reset() { estimate = cost = heuristic = 0; }
-};
 
 class Tile : public EObject
 {
@@ -39,9 +24,9 @@ public:
 
 	bool isDirty;
 
-	float estimate;
-	float cost;
-	float heuristic;
+	float f;
+	float g;
+	float h;
 	Tile* parent;
 
 	std::vector<Tile*> sameCostParents;
@@ -76,17 +61,17 @@ public:
 
 	bool operator<(const Tile& other)
 	{
-		if (estimate == other.estimate)
-			return cost < other.cost;
+		if (f == other.f)
+			return g > other.g;
 
-		return estimate < other.estimate;
+		return f < other.f;
 	}
 
 	bool operator>(const Tile& other)
 	{
-		if (estimate == other.estimate)
-			return cost > other.cost;
+		if (f == other.f)
+			return g < other.g;
 
-		return estimate > other.estimate;
+		return f > other.f;
 	}
 };

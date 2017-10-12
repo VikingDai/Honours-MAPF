@@ -43,7 +43,7 @@ TemporalAStar::~TemporalAStar()
 
 }
 
-MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCosts)
+MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, CollisionPenalties& penalties)
 {
 	MAPF::Path path;
 
@@ -82,7 +82,7 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 		current->bClosed = true;
 		
 //#if DEBUG_VERBOSE
-#if 1
+#if 0
 		std::cout << "EXPAND " << *current << std::endl;
 #endif
 		//current->tile->SetColor(sf::Color::Red);
@@ -90,11 +90,12 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 		if (current->tile == goal) // found path to goal!
 			break;
 
-		ExpandNeighbor(open, current, current->tile, start, goal, customCosts); // wait
-		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 0, 1), start, goal, customCosts); // up
-		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, -1, 0), start, goal, customCosts); // left
-		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 0, -1), start, goal, customCosts); // down
-		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 1, 0), start, goal, customCosts); // right
+		
+		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 0, 1), start, goal, penalties); // up
+		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, -1, 0), start, goal, penalties); // left
+		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 0, -1), start, goal, penalties); // down
+		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 1, 0), start, goal, penalties); // right
+		ExpandNeighbor(open, current, current->tile, start, goal, penalties); // wait
 		
 
 #if DEBUG_VERBOSE
@@ -144,7 +145,7 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 	return path;
 }
 
-void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile* neighborTile, Tile* start, Tile* goal, TileCosts& collisionPenalties)
+void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile* neighborTile, Tile* start, Tile* goal, CollisionPenalties& penalties)
 {
 	if (!neighborTile || !neighborTile->isWalkable) return;
 
@@ -175,8 +176,8 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 	LOCAL_TILES_EXPANDED += 1;
 	neighborTile->SetColor(sf::Color(current->tile->GetColor().r, current->tile->GetColor().g + 20, current->tile->GetColor().b, current->tile->GetColor().a));
 
-	float customCost = GetCustomCosts(current->timestep, neighborTile, collisionPenalties);
-	float customPrev = GetCustomCosts(current->timestep - 1, neighborTile, collisionPenalties);
+	float customCost = GetCustomCosts(current->timestep, current->tile, neighborTile, penalties);
+	float customPrev = GetCustomCosts(current->timestep - 1, current->tile, neighborTile, penalties);
 	float cost = current->g + 1;
 
 #if DEBUG_VERBOSE
@@ -220,28 +221,15 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 	}
 }
 
-int TemporalAStar::GetCustomCosts(int timestep, Tile* tile, TileCosts& customCosts)
+int TemporalAStar::GetCustomCosts(int timestep, Tile* fromTile, Tile* toTile, CollisionPenalties& penalties)
 {
-	bool hasCustomCost = customCosts.count(timestep) && customCosts[timestep].count(tile);
-	return hasCustomCost ? customCosts[timestep][tile] : 0;
-}
+	std::pair<Tile*, Tile*> action(fromTile, toTile);
 
-bool BaseHeuristic::operator()(AStarTileTime* A, AStarTileTime* B)
-{
-	if (A->f == B->f)
-	{
-		if (A->g == B->g)
-		{
-			if (A->timestep == B->timestep)
-			{
-				return A->timestep < B->timestep;
-			}
+	bool hasPenalty = penalties.actionCollisions.count(timestep) && penalties.actionCollisions[timestep].count(action);
 
-			return A->penalty > B->penalty;
-		}
-		
-		return A->g < B->g;
-	}
+	auto& actionMap = penalties.actionCollisions[timestep];
+	return actionMap.count(action) ? actionMap[action] : 0;
 
-	return A->f > B->f;
+	/*bool hasCustomCost = customCosts.count(timestep) && customCosts[timestep].count(tile);
+	return hasCustomCost ? customCosts[timestep][tile] : 0;*/
 }

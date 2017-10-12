@@ -16,9 +16,9 @@ void Tile::Reset()
 {
 	isInOpen = false;
 	hasBeenExpanded = false;
-	estimate = 0;
-	cost = 0;
-	heuristic = 0;
+	f = 0;
+	g = 0;
+	h = 0;
 	parent = nullptr;
 
 	visitedAtTime.clear();
@@ -34,16 +34,16 @@ std::ostream& operator<<(std::ostream& os, Tile& tile)
 
 float Tile::CalculateEstimate(float inCost, Tile* goal)
 {
-	cost = inCost;
+	g = inCost;
 
 	// using manhattan heuristic
 	float dx = goal->x - x;
 	float dy = goal->y - y;
-	heuristic = abs(dx) + abs(dy);
+	h = abs(dx) + abs(dy);
 
 	// update estimate : f = g + h
-	estimate = cost + heuristic;
-	return estimate;
+	f = g + h;
+	return f;
 }
 
 void Tile::SetObstacle()

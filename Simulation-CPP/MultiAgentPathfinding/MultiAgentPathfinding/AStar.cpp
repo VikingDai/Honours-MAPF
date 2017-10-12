@@ -56,8 +56,8 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 		//current = open.top();
 		//open.pop();
 
-#if 1
-		std::cout << "Expanded: " << *current << " with estimate: " << current->estimate << " cost: " << current->cost << std::endl;
+#if 0
+		std::cout << "Expanded: " << *current << " with estimate: " << current->f << " cost: " << current->g << std::endl;
 #endif
 
 		//std::cout << open << std::endl;
@@ -124,7 +124,7 @@ void AStar::AddNeighbor(OpenQueue& open, Tile* current, Tile* neighbor, Tile* st
 	std::cout << "\tSuccessor: " << *neighbor << std::endl;
 #endif
 
-	float newNeighborCost = current->cost + 1;
+	float newNeighborCost = current->g + 1;
 
 	if (neighbor->isInOpen)
 	{
@@ -139,7 +139,7 @@ void AStar::AddNeighbor(OpenQueue& open, Tile* current, Tile* neighbor, Tile* st
 
 		// update neighbor in the fringe by checking if this new parent tile is better
 		// 
-		bool newCostIsBetter = newNeighborCost < neighbor->cost;
+		bool newCostIsBetter = newNeighborCost < neighbor->g;
 		if (newCostIsBetter) // only accept this new path if the cost is less
 		{
 #if DEBUG_LOG
@@ -162,8 +162,8 @@ void AStar::AddNeighbor(OpenQueue& open, Tile* current, Tile* neighbor, Tile* st
 		//open.push(neighbor);
 		open.Push(neighbor);
 
-#if 1
-		std::cout << "\tADDED " << *neighbor << " to open list, f: " << neighbor->estimate << std::endl;
+#if 0
+		std::cout << "\tADDED " << *neighbor << " to open list, f: " << neighbor->f << std::endl;
 #endif
 
 		neighbor->SetColor(sf::Color::Green);

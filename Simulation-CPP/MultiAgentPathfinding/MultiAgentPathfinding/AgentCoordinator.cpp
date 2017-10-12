@@ -250,7 +250,7 @@ void AgentCoordinator::GeneratePath(Agent* agent, bool firstRun)
 				}
 			}
 
-			path = agent->temporalAStar.FindPath(currentTile, agent->goal, agentCollisionPenalties[agent]);
+			path = agent->temporalAStar.FindPath(currentTile, agent->goal, agentPenalties[agent]);
 		}
 
 #if 1

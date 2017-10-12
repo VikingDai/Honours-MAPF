@@ -11,10 +11,10 @@ public:
 	Heuristic() = default;
 	bool operator()(Tile* A, Tile* B)
 	{
-		if (A->estimate == B->estimate)
-			return A->cost < B->cost;
+		if (A->f == B->f)
+			return A->g < B->g;
 
-		return A->estimate > B->estimate;
+		return A->f > B->f;
 	};
 };
 
