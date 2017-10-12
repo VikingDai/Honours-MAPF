@@ -10,6 +10,8 @@
 #define DEBUG_VERBOSE 0
 #define DEBUG_STATS 1
 
+#define DEBUG_SIMPLE 0
+
 int TemporalAStar::GLOBAL_TILES_EXPANDED = 0;
 
 std::vector<AStarTileTime*> AStarTileTime::TILE_TIME_POOL;
@@ -82,7 +84,7 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, CollisionPenalties& 
 		current->bClosed = true;
 		
 //#if DEBUG_VERBOSE
-#if 0
+#if DEBUG_SIMPLE
 		std::cout << "EXPAND " << *current << std::endl;
 #endif
 		//current->tile->SetColor(sf::Color::Red);
@@ -90,7 +92,6 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, CollisionPenalties& 
 		if (current->tile == goal) // found path to goal!
 			break;
 
-		
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 0, 1), start, goal, penalties); // up
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, -1, 0), start, goal, penalties); // left
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 0, -1), start, goal, penalties); // down
@@ -180,7 +181,7 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 	float customPrev = GetCustomCosts(current->timestep - 1, current->tile, neighborTile, penalties);
 	float cost = current->g + 1;
 
-#if DEBUG_VERBOSE
+#if 0
 	if (customCost > 0) 
 		std::cout << "\t\t\t\tUSING CUSTOM COST ON TILE " << *neighborTile << " ON TIME " << current->timestep << " VALUE " << customCost << std::endl;
 #endif
@@ -213,7 +214,7 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 		neighbor->bIsInOpen = true;
 		neighbor->SetInfo(current, neighborTimestep, neighborTile, heuristic, customCost);
 
-#if 0
+#if DEBUG_SIMPLE
 		std::cout << "\tADDED " << *neighbor << std::endl;
 #endif
 
@@ -224,12 +225,11 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 int TemporalAStar::GetCustomCosts(int timestep, Tile* fromTile, Tile* toTile, CollisionPenalties& penalties)
 {
 	std::pair<Tile*, Tile*> action(fromTile, toTile);
-
-	bool hasPenalty = penalties.actionCollisions.count(timestep) && penalties.actionCollisions[timestep].count(action);
-
+	bool hasActionPenalty = penalties.actionCollisions.count(timestep) && penalties.actionCollisions[timestep].count(action);
 	auto& actionMap = penalties.actionCollisions[timestep];
-	return actionMap.count(action) ? actionMap[action] : 0;
+	float actionPenalty = actionMap.count(action) ? actionMap[action] : 0;
 
-	/*bool hasCustomCost = customCosts.count(timestep) && customCosts[timestep].count(tile);
-	return hasCustomCost ? customCosts[timestep][tile] : 0;*/
+	return actionPenalty;
+	//bool hasCustomCost = penalties.tileCollisions.count(timestep) && penalties.tileCollisions[timestep].count(fromTile);
+	//return hasCustomCost ? penalties.tileCollisions[timestep][fromTile] : 0;
 }

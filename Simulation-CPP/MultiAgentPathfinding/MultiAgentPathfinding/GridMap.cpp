@@ -110,6 +110,25 @@ Tile* GridMap::GetTileRelativeTo(const Tile* tile, int x, int y)
 	return GetTileAt(tile->x + x, tile->y + y);
 }
 
+std::vector<Tile*> GridMap::GetNeighbors(const Tile* tile)
+{
+	std::vector<Tile*> neighbors;
+	
+	if (Tile* up = GetTileRelativeTo(tile, 0, 1))
+		neighbors.push_back(up);
+
+	if (Tile* left = GetTileRelativeTo(tile, -1, 0))
+		neighbors.push_back(left);
+
+	if (Tile* down = GetTileRelativeTo(tile, 0, -1))
+		neighbors.push_back(down);
+
+	if (Tile* right = GetTileRelativeTo(tile, 1, 0))
+		neighbors.push_back(right);
+
+	return neighbors;
+}
+
 bool GridMap::IsWalkable(const int x, const int y) const
 {
 	Tile* tile = GetTileAt(x, y);

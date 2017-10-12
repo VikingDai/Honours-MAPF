@@ -30,6 +30,7 @@ public:
 	Tile* GetTileAt(int index) const;
 	Tile* GetTileAt(int x, int y) const;
 	Tile* GetTileRelativeTo(const Tile* tile, int x, int y);
+	std::vector<Tile*> GetNeighbors(const Tile* tile);
 	bool IsWalkable(int x, int y) const;
 	Tile* RandomWalkableTile();
 

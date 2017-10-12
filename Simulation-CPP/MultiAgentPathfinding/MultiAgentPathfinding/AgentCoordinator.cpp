@@ -198,6 +198,8 @@ void AgentCoordinator::GeneratePath(Agent* agent, bool firstRun)
 
 	std::map<int, std::set<Tile*>> timeCollisionSet;
 
+	std::map<int, std::set<std::pair<Tile*, Tile*>>> timeActionSet;
+
 	MAPF::Path path;
 
 	//if (agent->potentialPaths.empty())
@@ -221,7 +223,7 @@ void AgentCoordinator::GeneratePath(Agent* agent, bool firstRun)
 #if 0
 			std::cout << *agent << " has " << numCollisions << " collisions with " << *it.first << std::endl;
 #endif
-			if (numCollisions > 50)
+			if (numCollisions > 1000)
 				agentsInDeadlock.push_back(agent);
 		}
 
@@ -241,12 +243,23 @@ void AgentCoordinator::GeneratePath(Agent* agent, bool firstRun)
 			std::cout << "Temporal A*: Generating path for " << *agent << std::endl;
 #endif
 
-			for (auto& it : agentCollisionPenalties[agent])
+			//for (auto& it : agentCollisionPenalties[agent])
+			//{
+			//	std::cout << "Penalties at time: " << it.first << std::endl;
+			//	for (auto& it2 : it.second)
+			//	{
+			//		std::cout << "\t" << *it2.first << "|" << it2.second << std::endl;
+			//	}
+			//}
+
+			for (auto& it : agentPenalties[agent].actionCollisions)
 			{
 				std::cout << "Penalties at time: " << it.first << std::endl;
 				for (auto& it2 : it.second)
 				{
-					std::cout << "\t" << *it2.first << "|" << it2.second << std::endl;
+					auto& action = it2.first;
+
+					std::cout << "\tAction: " << *action.first << " > " << *action.second << " | " << it2.second << std::endl;
 				}
 			}
 
@@ -288,6 +301,23 @@ void AgentCoordinator::GeneratePath(Agent* agent, bool firstRun)
 					Tile* tile = path[i];
 					//for (Tile* tile : path)
 					timeCollisionSet[i].emplace(tile);
+
+
+					for (Tile* neighbor : gridMap->GetNeighbors(tile)) // penalize tile collisions
+					{
+						std::pair<Tile*, Tile*> action(neighbor, tile);
+						timeActionSet[i - 1].emplace(action);
+					}
+
+					std::pair<Tile*, Tile*> waitAction(tile, tile);
+					timeActionSet[i - 1].emplace(waitAction);
+
+					if (i < path.size() - 1) // penalize cross collision
+					{
+						Tile* nextTile = path[i + 1];
+						std::pair<Tile*, Tile*> action(nextTile, tile);
+						timeActionSet[i].emplace(action);
+					}
 				}
 
 				/** find shortest path */
@@ -353,8 +383,18 @@ void AgentCoordinator::GeneratePath(Agent* agent, bool firstRun)
 					agentCollisionPenalties[agent][i][tile] += 1;
 				}*/
 				agentCollisionPenalties[agent][time][tile] += 1;
+				//agentPenalties[agent].tileCollisions[time][tile] += 1;
 			}
 			//collisionCosts[time][tile] += 1;
+		}
+
+		for (auto& it : timeActionSet)
+		{
+			int time = it.first;
+			for (auto& action : it.second)
+			{
+				agentPenalties[agent].actionCollisions[time][action] += 1;
+			}
 		}
 
 		for (Agent* otherAgent : otherAgents)
@@ -535,7 +575,6 @@ void AgentCoordinator::RenderCollisionCosts(sf::RenderWindow& window)
 			}
 		}
 	}
-
 
 	for (auto& it : collisionCosts)
 	{
