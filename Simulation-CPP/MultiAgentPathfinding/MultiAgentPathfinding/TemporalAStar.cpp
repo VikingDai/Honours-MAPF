@@ -72,14 +72,18 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, TileCosts& customCos
 	AStarTileTime* current = nullptr;
 	
 	while (!open.Empty())
-	{		
+	{	
+		//std::cout << ">>>>> BEGIN OPEN QUEUE"<< std::endl;
+		//std::cout << open << std::endl;
+		//std::cout << "<<<<< END OPEN QUEUE" << std::endl;
+
 		current = open.Pop();
 		
-
 		current->bClosed = true;
 		
-#if DEBUG_VERBOSE
-		std::cout << "Expanding " << *current->tile << " at time " << current->timestep << std::endl;
+//#if DEBUG_VERBOSE
+#if 1
+		std::cout << "EXPAND " << *current << std::endl;
 #endif
 		//current->tile->SetColor(sf::Color::Red);
 
@@ -173,7 +177,7 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 
 	float customCost = GetCustomCosts(current->timestep, neighborTile, collisionPenalties);
 	float customPrev = GetCustomCosts(current->timestep - 1, neighborTile, collisionPenalties);
-	float cost = current->cost + 1;
+	float cost = current->g + 1;
 
 #if DEBUG_VERBOSE
 	if (customCost > 0) 
@@ -182,11 +186,11 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 	
 	if (neighbor->bIsInOpen) // relax the node - update the parent
 	{
-		float parentCost = neighbor->parent->cost;
+		float parentCost = neighbor->parent->g;
 		
-		if (current->cost == parentCost)
+		if (current->g == parentCost)
 		{
-			float currentParentCustom = current->customCost;
+			float currentParentCustom = current->penalty;
 			bool newIsBetter = currentParentCustom < customCost;
 			if (newIsBetter)
 			{
@@ -194,7 +198,7 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 				neighbor->UpdateCosts();
 			}
 		}
-		else if (current->cost < parentCost)
+		else if (current->g < parentCost)
 		{
 			neighbor->SetParent(current);
 			neighbor->UpdateCosts();
@@ -208,12 +212,8 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 		neighbor->bIsInOpen = true;
 		neighbor->SetInfo(current, neighborTimestep, neighborTile, heuristic, customCost);
 
-#if DEBUG_VERBOSE
-		std::cout << "Added " << *neighborTile << 
-			" to open list with cost " <<  cost << 
-			" and heur " << neighborTile->heuristic <<
-			" and est " << estimate << 
-			" at " << neighborTimestep << std::endl;
+#if 0
+		std::cout << "\tADDED " << *neighbor << std::endl;
 #endif
 
 		open.Push(neighbor);
@@ -228,20 +228,20 @@ int TemporalAStar::GetCustomCosts(int timestep, Tile* tile, TileCosts& customCos
 
 bool BaseHeuristic::operator()(AStarTileTime* A, AStarTileTime* B)
 {
-	if (A->estimate == B->estimate)
+	if (A->f == B->f)
 	{
-		//if (A->cost == B->cost)
-		//{
-		//	if (A->timestep == B->timestep)
-		//	{
-		//		return A->timestep < B->timestep;
-		//	}
+		if (A->g == B->g)
+		{
+			if (A->timestep == B->timestep)
+			{
+				return A->timestep < B->timestep;
+			}
 
-		//	return A->customCost > B->customCost;
-		//}
-		//
-		return A->cost < B->cost;
+			return A->penalty > B->penalty;
+		}
+		
+		return A->g < B->g;
 	}
 
-	return A->estimate > B->estimate;
+	return A->f > B->f;
 }

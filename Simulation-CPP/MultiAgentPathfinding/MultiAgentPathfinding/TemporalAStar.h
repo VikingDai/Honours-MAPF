@@ -8,7 +8,7 @@
 #include <set>
 #include "MAPF.h"
 #include "PriorityQueue.h"
-
+#include <iostream>
 
 class Tile;
 class GridMap;
@@ -37,20 +37,20 @@ public:
 
 	int timestep = 0;
 	Tile* tile;
-	float estimate = 0;
-	float cost = 0;
-	float customCost = 0;
-	float heuristic = 0;
+	float f = 0;
+	float g = 0;
+	float penalty = 0;
+	float h = 0;
 
 	void SetParent(AStarTileTime* parent)
 	{
 		this->parent = parent;
-		this->cost = parent ? parent->cost + 1 : 0;
+		this->g = parent ? parent->g + 1 : 0;
 	}
 
 	void UpdateCosts()
 	{
-		this->estimate = cost + customCost + heuristic;
+		this->f = g + h + penalty;
 	}
 
 	void SetInfo(AStarTileTime* parent, int timestep, Tile* tile, float heuristic, float customCost)
@@ -60,8 +60,8 @@ public:
 		this->timestep = timestep;
 		this->tile = tile;
 
-		this->heuristic = heuristic;
-		this->customCost = customCost;
+		this->h = heuristic;
+		this->penalty = customCost;
 
 		UpdateCosts();
 	}
@@ -74,7 +74,7 @@ public:
 
 		parent = nullptr;
 		tile = nullptr;
-		timestep = estimate = cost = customCost = heuristic = 0;
+		timestep = f = g = penalty = h = 0;
 	}
 
 
@@ -87,18 +87,44 @@ public:
 
 	bool operator<(const AStarTileTime& other)
 	{
-		if (estimate == other.estimate)
-			return cost > other.cost;
+		if (f == other.f)
+		{
+			if (penalty == other.penalty)
+			{
+				return g < other.g;
+			}
 
-		return estimate < other.estimate;
+			return penalty < other.penalty;
+		}
+
+		return f < other.f;
 	}
 
 	bool operator>(const AStarTileTime& other)
 	{
-		if (estimate == other.estimate)
-			return cost < other.cost;
+		if (f == other.f)
+		{
+			if (penalty == other.penalty)
+			{
+				return g > other.g;
+			}
 
-		return estimate > other.estimate;
+			return penalty > other.penalty;
+		}
+
+		return f > other.f;
+	}
+
+	friend std::ostream& operator<<(std::ostream& os, AStarTileTime& tileTime)
+	{
+		os << *tileTime.tile <<
+			" | time: " << tileTime.timestep <<
+			" | f: " << tileTime.f <<
+			" | g: " << tileTime.g <<
+			" | h: " << tileTime.h <<
+			" | penalty: " << tileTime.penalty;
+
+		return os;
 	}
 };
 

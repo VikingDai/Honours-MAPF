@@ -56,7 +56,7 @@ public:
 	const sf::Color GetColor() { return color; }
 	const sf::Color ResetColor() { SetColor(isWalkable ? sf::Color::White : sf::Color(50, 50, 50)); return GetColor(); }
 
-	Tile(int x, int y, bool inIsWalkable);
+	Tile(int x, int y, int index, bool inIsWalkable);
 	void Reset();
 
 	float CalculateEstimate(float inCost, Tile* goal);
@@ -77,7 +77,7 @@ public:
 	bool operator<(const Tile& other)
 	{
 		if (estimate == other.estimate)
-			return cost > other.cost;
+			return cost < other.cost;
 
 		return estimate < other.estimate;
 	}
@@ -85,7 +85,7 @@ public:
 	bool operator>(const Tile& other)
 	{
 		if (estimate == other.estimate)
-			return cost < other.cost;
+			return cost > other.cost;
 
 		return estimate > other.estimate;
 	}

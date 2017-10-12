@@ -6,48 +6,6 @@
 #define DEBUG_ASTAR 0
 #define DEBUG_LOG 0
 
-struct Stupid
-{
-	int priority = INT_MAX;
-
-	Stupid(int value)
-		: value(value)
-	{
-	}
-
-	int value;
-	int GetPriority() { return priority; }
-	void SetPriority(int priority) 
-	{ 
-		this->priority = priority; 
-	}
-
-	bool operator<(const Stupid& other)
-	{
-		return value < other.value;
-	}
-
-	bool operator>(const Stupid& other)
-	{
-		return value > other.value;
-	}
-
-	bool operator>=(const Stupid& other)
-	{
-		return value >= other.value;
-	}
-
-	bool operator<=(const Stupid& other)
-	{
-		return value <= other.value;
-	}
-
-	bool operator==(const Stupid& other)
-	{
-		return value == other.value;
-	}
-};
-
 AStar::AStar(GridMap* inGridMap)
 {
 	gridMap = inGridMap;
@@ -98,7 +56,7 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 		//current = open.top();
 		//open.pop();
 
-#if 0
+#if 1
 		std::cout << "Expanded: " << *current << " with estimate: " << current->estimate << " cost: " << current->cost << std::endl;
 #endif
 
@@ -194,10 +152,6 @@ void AStar::AddNeighbor(OpenQueue& open, Tile* current, Tile* neighbor, Tile* st
 	}
 	else // add neighbor to the fringe
 	{
-#if DEBUG_ASTAR
-		std::cout << "ADDED " << *neighbor << " to open list." << std::endl;
-#endif
-
 		LOCAL_GEN += 1;
 
 		neighbor->isInOpen = true;
@@ -207,6 +161,10 @@ void AStar::AddNeighbor(OpenQueue& open, Tile* current, Tile* neighbor, Tile* st
 		//open.push_back(neighbor);
 		//open.push(neighbor);
 		open.Push(neighbor);
+
+#if 1
+		std::cout << "\tADDED " << *neighbor << " to open list, f: " << neighbor->estimate << std::endl;
+#endif
 
 		neighbor->SetColor(sf::Color::Green);
 

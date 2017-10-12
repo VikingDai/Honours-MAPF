@@ -11,9 +11,10 @@ class EObject
 	mat4 worldMatrix;
 public:
 	int x, y;
+	int index;
 
-	EObject(int inX, int inY);
-	EObject() : EObject(0, 0) {};
+	EObject(int inX, int inY, int inIndex = -1);
+	EObject() : EObject(0, 0, 0) {};
 
 	mat4 GetWorldMatrix() { return worldMatrix; }
 };

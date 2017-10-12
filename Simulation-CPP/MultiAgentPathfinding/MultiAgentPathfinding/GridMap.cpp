@@ -67,7 +67,7 @@ void GridMap::LoadMap(std::string filename)
 
 			if (isWalkable)
 			{
-				Tile* tile = new Tile(x, y, isWalkable);
+				Tile* tile = new Tile(x, y, index, isWalkable);
 				tileGrid[index] = tile;
 				tiles.push_back(tile);
 				if (isWalkable) walkableTiles.push_back(tile);

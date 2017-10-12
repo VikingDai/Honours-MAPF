@@ -233,7 +233,7 @@ public:
 	{
 		os << "Priority Queue: " << std::endl;
 		for (int i = 0; i < queue.queueSize; i++)
-			os << "\t" << *queue.arr[i] << ": " <<  queue.arr[i]->estimate << " | " << queue.arr[i]->cost << std::endl;
+			os << "\t" << *queue.arr[i] << std::endl;
 		return os;
 	}
 

@@ -4,8 +4,8 @@
 
 std::vector<Tile*> Tile::dirtyTiles;
 
-Tile::Tile(int x, int y, bool inIsWalkable) 
-	: EObject(x, y), 
+Tile::Tile(int x, int y, int index, bool inIsWalkable) 
+	: EObject(x, y, index), 
 	isDirty(false), isWalkable(inIsWalkable)
 {
 	ResetColor();
@@ -28,7 +28,7 @@ void Tile::Reset()
 
 std::ostream& operator<<(std::ostream& os, Tile& tile)
 {
- 	os << "Tile (" << tile.x << "," << tile.y << ")";
+ 	os << "Tile " << tile.index << " (" << tile.x << "," << tile.y << ")";
 	return os;
 }
 
