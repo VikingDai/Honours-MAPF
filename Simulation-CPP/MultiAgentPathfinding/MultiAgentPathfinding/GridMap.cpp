@@ -126,7 +126,7 @@ std::vector<Tile*> GridMap::GetNeighbors(const Tile* tile)
 	if (Tile* right = GetTileRelativeTo(tile, 1, 0))
 		neighbors.push_back(right);
 
-	return neighbors;
+		return neighbors;
 }
 
 bool GridMap::IsWalkable(const int x, const int y) const
