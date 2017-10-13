@@ -139,6 +139,35 @@ In our multi-agent pathfinding problem, we have an environment containing a set 
 
 Hence we have a centralized agent coordinator which aims to resolve path collisions.
 
+\subsection{Problem Overview}
+\noindent \textbf{Inputs:}
+\begin{itemize}
+	\item Grid map
+	\item Set of agents with
+	\begin{itemize}
+		\item Start location
+		\item Goal location
+	\end{itemize}
+\end{itemize}
+
+\noindent \textbf{Outputs:}
+\begin{itemize}
+	\item Collision free path from the start to goal location for each each agent
+\end{itemize}
+
+\begin{Large}
+	INSERT IMAGE OF EXAMPLE PROBLEM
+\end{Large}
+
+
+
+\subsection{Use of Mixed Integer Programming}
+\noindent \textbf{Branch and bound}
+
+\noindent \textbf{Column generation}
+
+\noindent \textbf{Branch and price}
+
 \section{Related Work}
 \textbf{CBS}
 
@@ -159,7 +188,7 @@ Any specifics about the MIP I should mention here?
 \end{compactenum}
 
 \subsection{High Level} \label{sec:high-level}
-At the high-level we describe the cycle of path generation and assignment. Simply: while the path assignment MIP fails to find a solution, we run the path-generation method.
+At the high-level we describe the cycle of path generation and assignment. Simply put: while the path assignment problem fails to find a solution, we run the path-generation method.
 
 \begin{algorithm}
 	\caption{high-level of the Algorithm} \label{alg:agent-coordinator}
@@ -170,7 +199,9 @@ At the high-level we describe the cycle of path generation and assignment. Simpl
 		\Do
 			\State{$pathCollisions \gets GeneratePaths(\vec{a})$}
 			\State{$\textit{failedAgents} \gets \textit{AssignPaths(paths, }pathCollisions)$}
-			\State{$\textit{collisions} \gets failedAgents$}
+			\For{$agent$ in $failedAgents$}
+				\State{find path collision for $agent$ and push into $\textit{collisions}$ }
+			\EndFor
 		\DoWhile{\textit{collisions is not empty()}}
 	\end{algorithmic}
 \end{algorithm}
@@ -243,33 +274,75 @@ At the core, this method simply calls the Master problem (\ref{sec:mip}). The ob
 Here we describe our time-expanded A* implementation. The goal of this algorithm is to incrementally find paths of increasing cost to ensure optimality. We do this applying a penalty to tiles when collisions occur. Collision detection is described in Section~\ref{sec:generating-paths}.
 
 \begin{algorithm}
-	\caption{Temporal A* with collision penalties} \label{alg:temporalastarheur}
+	\caption{Temporal A* Node} \label{alg:temporalastar-node}
 	\begin{algorithmic}[1]
-		\Require $s:$ start, $g:$ goal, $\vec{c}:$ collisionPenalties, a vector of tile at time to penalty
-		\Ensure $f:$ comparator
-		\State{$f(n) = g(n) + h(n) + c(n)$}
-		\Return $path$
+		\Require $parent$, $tile$, $goal$, $penalty$
+		\Ensure $Node$: a new Temporal A* Node
+		\State{$h \gets Heuristic(tile, goal)$}
+		\If{$parent$ is $null$}
+			\State{$time \gets 0$}
+			\State{$g \gets 0$}
+		\Else
+			\State{$time \gets parent.time + 1$}
+			\State{$g \gets parent.cost + 1$}
+		\EndIf
+		\State{$f \gets g + h + penalty$}
+		\Return $this$
 	\end{algorithmic}
 \end{algorithm}
 
 \begin{algorithm}
+	\caption{Temporal A* comparator} \label{alg:temporalastarheur}
+	\begin{algorithmic}[1]
+		\Require node $a$, node $b$
+		\Ensure $bool$
+		\If{$a.f$ equals $b.f$}
+			\If{$a.penalty$ equals $b.penalty$}
+				\Return $a.g < b.g$
+			\Else
+				\Return $a.penalty < b.penalty$
+			\EndIf
+		\Else
+			\Return $a.f < b.f$
+		\EndIf
+	\end{algorithmic}
+\end{algorithm}
+
+The temporal A* algorithm aims to find a path from start to goal. Additionally our variant takes in a set of collision penalties. A collision penalty describes that the agent should try to avoid moving from tile $a$ to tile $b$ at timestep $t$. The collision penalty is used to calculate the $f$ value for each node and determines the priority for expansion.
+
+\begin{algorithm}
 	\caption{Temporal A* with collision penalties} \label{alg:temporalastar}
 	\begin{algorithmic}[1]
-		\Require $s:$ start, $g:$ goal, $\vec{c}:$ collisionPenalties, a vector of tile at time to penalty
+		\Require $s:$ start, $g:$ goal, $\vec{c}:$ penalties, a vector of collision penalties
 		\Ensure $p:$ path
 		\State{$path \gets \{\}$}
 		\If{$s$ or $g$ is not valid or $s$ equals $g$}
 			\Return $path$
 		\EndIf
-		\State{$open \gets PriorityQueue()$}
-		\State{add $TileTime(start)$ to $open$}
+		\State{$open \gets PriorityQueue<Node>()$}
+		\State{push $Node(null, s, g, 0)$ into $open$}
 		\While{$open$ is not empty}
 			\State{$current \gets open.pop()$}
+			\For{$action$ in $\{up, down, left, right, wait\}$}
+				\State{$nextTile \gets$ perform $action$ on $current$}
+				\If{$\exists node$ at time $current.time + 1$ on tile $nextTile$}
+					\State{update $node$ by comparing $node.parent$ and $current$, taking the lowest $f$}
+				\Else
+					\State{penalty $\gets penalties[current.time + 1][current.tile][nextTile]$}
+					\State{$newNode \gets Node(current, nextTile, g, penalty)$}
+				\EndIf
+			\EndFor
 		\EndWhile
 		
+		\While{$current$ is not $null$}
+			\State{add $current$ to the front of $path$}
+			\State{$current \gets current.parent$}
+		\EndWhile
 		\Return $path$
 	\end{algorithmic}
 \end{algorithm}
+
+struct \{\}
 
 \section{Resolving conflicts}
 \begin{compactenum}
@@ -281,20 +354,14 @@ Here we describe our time-expanded A* implementation. The goal of this algorithm
 
 \section{Master problem formulation} \label{sec:mip}
 
-\textbf{Branch and bound}
-
-\textbf{Column generation}
-
-\textbf{Branch and price}
-
 Each agent is given \textit{one or more} paths to their goal. The master problem aims to assign one path to every agent while minimizing the path distance and avoiding path collisions. 
 
-\begin{compactitem}
+\begin{itemize}
 	\item \textbf{Agents:} The MIP is given a set of agents, $A$
 	\item \textbf{Potential paths}: Every agent has a set of paths, $P$ describing a unique path from an agent's position to their goal.
 	\item \textbf{Penalty}: A penalty variable, $q_i$ is added for every agent in the case that all the agent's paths are in collision. If the MIP chooses this penalty in the solution, then the MIP was unable to find an assignment of paths which resulted in a conflict-free solution. The cost of the penalty is set to be larger than the expected maximum path length (here it is 1000).
 	\item \textbf{Conflicts:} A set of conflicts, $C$ is provided to the MIP. A conflict is a set of paths, describing that these paths are not allowed to be assigned at the same time as they will cause a conflict. 
-\end{compactitem}
+\end{itemize}
 
 We generate a variable for each path and the cost is set to the path length.
 
