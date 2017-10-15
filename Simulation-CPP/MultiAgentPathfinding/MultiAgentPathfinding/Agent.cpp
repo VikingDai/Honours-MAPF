@@ -72,6 +72,11 @@ void Agent::SetPath(MAPF::Path& inPath)
 	chosenPath = inPath;
 }
 
+void Agent::SetPath(int pathIndex)
+{
+	//assignedPath(this, pathIndex);
+}
+
 void Agent::Update(float dt)
 {
 	renderPos.x += (x - renderPos.x) * dt * 10.f;

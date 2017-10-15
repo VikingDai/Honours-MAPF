@@ -597,3 +597,28 @@ void AgentCoordinator::RenderCollisionCosts(sf::RenderWindow& window)
 		}
 	}
 }
+
+void AgentCoordinator::CheckForACollision(std::vector<Agent*>& agents)
+{
+	std::map<MAPF::TileTime, AgentPathRef*> collisionTable;
+
+	for (Agent* agent : agents)
+	{
+		MAPF::Path& path = agent->GetPath();
+
+		for (int i = 0; i < path.size(); i++) // check if any tiles are already in use
+		{
+			Tile* tile = path[i];
+			AgentPathRef* path = collisionTable[MAPF::TileTime(tile, i)];
+
+			if (path) // if there is already a path at this time on this tile, then there is a collision
+			{
+				return;
+			}
+			else
+			{
+				//collisionTable[MAPF::TileTime(tile, i)] = AgentPathRef::Make(usedPathRefs, agent, );
+			}
+		}
+	}
+}

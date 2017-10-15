@@ -15,6 +15,7 @@
 class Tile;
 class GridMap;
 
+
 class Agent : public EObject
 {
 public:
@@ -33,8 +34,11 @@ private:
 	int agentId;
 
 	MAPF::Path chosenPath;
+	//MAPF::AgentPathRef* assignedPath;
 public:
 	std::vector<MAPF::Path> potentialPaths;
+
+	void SetPath(int pathIndex);
 
 	void SetPath(MAPF::Path& path);
 	MAPF::Path& GetPath() { return chosenPath; }

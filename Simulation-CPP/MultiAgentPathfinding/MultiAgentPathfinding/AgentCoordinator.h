@@ -95,5 +95,7 @@ public:
 	bool Step(std::vector<Agent*>& agents);
 
 	void RenderCollisionCosts(sf::RenderWindow& window);
+
+	void CheckForACollision(std::vector<Agent*>& agents);
 };
 
