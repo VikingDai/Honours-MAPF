@@ -15,7 +15,6 @@
 class Tile;
 class GridMap;
 
-
 class Agent : public EObject
 {
 public:
@@ -33,15 +32,20 @@ public:
 private:
 	int agentId;
 
-	MAPF::Path chosenPath;
-	//MAPF::AgentPathRef* assignedPath;
+	MAPF::AgentPathRef* pathRef;
 public:
 	std::vector<MAPF::Path> potentialPaths;
 
-	void SetPath(int pathIndex);
+	MAPF::Path& GetAssignedPath() 
+	{ 
+		if (pathRef)
+			return pathRef->GetPath();
+		else
+			return MAPF::Path();
+	}
 
-	void SetPath(MAPF::Path& path);
-	MAPF::Path& GetPath() { return chosenPath; }
+	void SetPath(MAPF::AgentPathRef* pathRef);
+	MAPF::AgentPathRef* GetPathRef() { return pathRef; }
 
 public:
 	Tile* goal;
@@ -66,45 +70,4 @@ public:
 	void DrawAgent(sf::RenderWindow& window);
 
 	friend std::ostream& operator<<(std::ostream& os, Agent& agent);
-};
-
-struct AgentPathRef
-{
-	static std::vector<AgentPathRef*> PATH_REF_POOL;
-
-	Agent* agent;
-	int pathIndex;
-
-private:
-	AgentPathRef(Agent* agent, int pathIndex) : agent(agent), pathIndex(pathIndex) {}
-
-public:
-	static AgentPathRef* Make(std::vector<AgentPathRef*>& usedPathRefs, Agent* agent, int pathIndex)
-	{
-		AgentPathRef* pathRef = nullptr;
-
-		if (PATH_REF_POOL.empty())
-		{
-			pathRef = new AgentPathRef(agent, pathIndex);
-		}
-		else
-		{
-			pathRef = PATH_REF_POOL.back();
-			pathRef->agent = agent;
-			pathRef->pathIndex = pathIndex;
-			PATH_REF_POOL.pop_back();
-		}
-
-		usedPathRefs.push_back(pathRef);
-
-		return pathRef;
-	}
-
-	MAPF::Path& GetPath() { return agent->potentialPaths[pathIndex]; }
-
-	friend std::ostream& operator<<(std::ostream& os, AgentPathRef& pathRef)
-	{
-		os << "Path " << pathRef.pathIndex << ": Agent(" << pathRef.agent->GetAgentId() << ")";
-		return os;
-	}
 };

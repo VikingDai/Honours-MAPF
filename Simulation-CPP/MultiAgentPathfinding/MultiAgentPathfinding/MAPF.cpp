@@ -25,11 +25,30 @@ MAPF::AgentPathRef* MAPF::AgentPathRef::Make(std::vector<AgentPathRef*>& usedPat
 	return pathRef;
 }
 
-MAPF::Path& MAPF::AgentPathRef::GetPath()
+MAPF::AgentPathRef* MAPF::AgentPathRef::MakeNull(Agent* agent)
 {
-	return agent->potentialPaths[pathIndex];
+	return new AgentPathRef(agent, -1);
 }
 
+MAPF::Path& MAPF::AgentPathRef::GetPath()
+{
+	if (IsValid())
+	{
+		return agent->potentialPaths[pathIndex];
+	}
+	else
+	{
+		MAPF::Path emptyPath;
+		std::cout << "PATH INVALID: SIZE " << emptyPath.size() << std::endl;
+		return emptyPath;
+	}
+}
+
+bool MAPF::AgentPathRef::IsValid()
+{
+	std::cout << "CHECKING " << pathIndex << std::endl;
+	return agent && pathIndex >= 0 && pathIndex < agent->potentialPaths.size();
+}
 
 std::ostream& MAPF::operator<<(std::ostream& os, AgentPathRef& pathRef)
 {

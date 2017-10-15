@@ -24,16 +24,16 @@ public:
 	~PathAssigner();
 
 private:
-	using PathCollisions = std::vector<std::set<AgentPathRef*>>;
+	using PathCollisions = std::vector<std::set<MAPF::AgentPathRef*>>;
 
-	std::vector<AgentPathRef*> usedPathRefs;
+	std::vector<MAPF::AgentPathRef*> usedPathRefs;
 
 	GridMap* map;
 
 	/** SCIP helper structures */
 	std::vector<SCIP_VAR*> allVariables;
 	std::map<SCIP_VAR*, Agent*> varToAgentMap;
-	std::map<SCIP_VAR*, AgentPathRef*> varToPathMap;
+	std::map<SCIP_VAR*, MAPF::AgentPathRef*> varToPathMap;
 	std::map<SCIP_VAR*, std::string> varNames;
 
 	std::vector<SCIP_CONS*> pathCollisionCons;
@@ -59,7 +59,7 @@ private:
 	void CreateCollisionConstraints(PathCollisions& pathCollisions);
 
 	std::map<Agent*, std::map<int, SCIP_VAR*>> pathToVarMap;
-	SCIP_VAR* GetPathVar(AgentPathRef* path) { return pathToVarMap[path->agent][path->pathIndex]; }
+	SCIP_VAR* GetPathVar(MAPF::AgentPathRef* path) { return pathToVarMap[path->agent][path->pathIndex]; }
 
 public:
 	/** Assigns a path to each agent. Returns a vector of agents who were unable to find a conflict-free path. */
@@ -67,7 +67,7 @@ public:
 		std::vector<Agent*>& agents, 
 		PathCollisions& collisions);
 
-	void AddPath(Agent* agent, AgentPathRef* path);
+	void AddPath(Agent* agent, MAPF::AgentPathRef* path);
 
 	void Cleanup();
 

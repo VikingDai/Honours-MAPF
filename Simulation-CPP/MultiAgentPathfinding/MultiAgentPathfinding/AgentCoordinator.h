@@ -24,7 +24,7 @@ private:
 	GridMap* gridMap;
 	PathAssigner pathAssigner;
 
-	std::vector<AgentPathRef*> usedPathRefs;
+	std::vector<MAPF::AgentPathRef*> usedPathRefs;
 
 public:
 	AgentCoordinator(GridMap* map);
@@ -43,13 +43,13 @@ private:
 	void PrintPath(Agent* agent, MAPF::Path& path);
 
 private:
-	using TileToPathMap = std::map<Tile*, std::vector<AgentPathRef*>>;
+	using TileToPathMap = std::map<Tile*, std::vector<MAPF::AgentPathRef*>>;
 	
 	/** (tile => time => num collisions) */
 	using TileCollision = std::vector<std::pair<Tile*, int>>;
 
 	/** This path is in collision with other paths at time*/
-	using CollisionAtTime = std::map<int, std::vector<AgentPathRef*>>;
+	using CollisionAtTime = std::map<int, std::vector<MAPF::AgentPathRef*>>;
 
 private:
 	std::map<Agent*, CollisionPenalties> agentPenalties;
@@ -60,11 +60,11 @@ private:
 	std::map<Agent*, TileCollision> agentCollisionMap;
 	TemporalAStar::TileCosts collisionCosts;
 	std::deque<TileToPathMap> tileToPathMapAtTimestep;
-	std::map<Tile*, std::map<int, std::vector<AgentPathRef*>>> collisionTable;
+	std::map<Tile*, std::map<int, std::vector<MAPF::AgentPathRef*>>> collisionTable;
 
 	std::map<Agent*, std::vector<std::pair<int, Tile*>>> agentCrossCollisions;
 
-	std::vector<std::pair<Tile*, AgentPathRef*>> bottomLayer;
+	std::vector<std::pair<Tile*, MAPF::AgentPathRef*>> bottomLayer;
 
 private:
 	bool Init(std::vector<Agent*>& agents);
@@ -75,7 +75,7 @@ private:
 		bool firstRun);
 
 	/** Groups together paths which are in collision with one another */
-	using CollisionSet = std::vector<std::set<AgentPathRef*>>;
+	using CollisionSet = std::vector<std::set<MAPF::AgentPathRef*>>;
 
 	std::set<std::pair<Tile*, int>> tilesInCollision;
 
@@ -83,7 +83,7 @@ private:
 	CollisionSet crossCollisionSet;
 
 	/** Updates the collision table and stores any path collisions */
-	CollisionAtTime UpdateCollisions(AgentPathRef* agentPathRef);
+	CollisionAtTime UpdateCollisions(MAPF::AgentPathRef* agentPathRef);
 
 public:
 	void Reset();
@@ -97,5 +97,7 @@ public:
 	void RenderCollisionCosts(sf::RenderWindow& window);
 
 	void CheckForACollision(std::vector<Agent*>& agents);
+	int GetLongestPathLength(std::vector<Agent*>& agents);
+	Tile* GetTileAtTimestep(MAPF::Path& path, int timestep);
 };
 

@@ -108,7 +108,7 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, PathCollis
 		std::vector<MAPF::Path>& paths = agent->potentialPaths;
 		for (int i = 0; i < paths.size(); i++)
 		{
-			AgentPathRef* path = AgentPathRef::Make(usedPathRefs, agent, i);
+			MAPF::AgentPathRef* path = MAPF::AgentPathRef::Make(usedPathRefs, agent, i);
 			assert(!path->GetPath().empty());
 
 			// create variable describing path
@@ -143,7 +143,7 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, PathCollis
 	return SCIP_OKAY;
 }
 
-void PathAssigner::AddPath(Agent* agent, AgentPathRef* path)
+void PathAssigner::AddPath(Agent* agent, MAPF::AgentPathRef* path)
 {
 	int pathId = agentPathVars[agent].size();
 	// create variable describing path
@@ -190,7 +190,7 @@ void PathAssigner::CreateCollisionConstraints(PathCollisions& pathCollisions)
 {
 	for (int i = 0; i < pathCollisions.size(); i++)
 	{
-		std::set<AgentPathRef*>& paths = pathCollisions[i];
+		std::set<MAPF::AgentPathRef*>& paths = pathCollisions[i];
 
 		SCIP_CONS* collisionCons;
 		char collisionConsName[50];
@@ -198,7 +198,7 @@ void PathAssigner::CreateCollisionConstraints(PathCollisions& pathCollisions)
 		SCIP_CALL_EXC(SCIPcreateConsBasicLinear(scip, &collisionCons, collisionConsName, 0, nullptr, nullptr, 0, 1));
 
 		// apply collision constraints to path variables
-		for (AgentPathRef* path : paths)
+		for (MAPF::AgentPathRef* path : paths)
 		{
 			SCIP_VAR* var = pathToVarMap[path->agent][path->pathIndex];
 			SCIP_CALL_EXC(SCIPaddCoefLinear(scip, collisionCons, var, 1.0));
@@ -277,8 +277,7 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 #if DEBUG_MIP
 					std::cout << *agent << " FOUND A PATH SUCCESFULLY!" << std::endl;
 #endif
-					MAPF::Path& path = varToPathMap[var]->GetPath();
-					agent->SetPath(path);
+					agent->SetPath(varToPathMap[var]);
 				}
 				else // the variable is a penalty var
 				{
@@ -286,6 +285,7 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 #if DEBUG_MIP
 					std::cout << *agent << " was assigned the penalty var. We failed to find a solution!" << std::endl;
 #endif
+					agent->SetPath(nullptr);
 					penaltyAgents.push_back(agent);
 				}
 			}
@@ -328,7 +328,7 @@ void PathAssigner::Cleanup()
 
 	SCIP_CALL_EXC(SCIPfree(&scip));
 
-	for (AgentPathRef* pathRef : usedPathRefs)
-		AgentPathRef::PATH_REF_POOL.push_back(pathRef);
+	for (MAPF::AgentPathRef* pathRef : usedPathRefs)
+		MAPF::AgentPathRef::PATH_REF_POOL.push_back(pathRef);
 	usedPathRefs.clear();
 }

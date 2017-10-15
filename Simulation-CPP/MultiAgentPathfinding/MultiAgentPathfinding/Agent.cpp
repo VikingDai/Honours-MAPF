@@ -7,15 +7,14 @@
 #include <SFML/Graphics.hpp>
 #include "Globals.h"
 #include "Graphics.h"
+#include "MAPF.h"
 
 int Agent::agentCounter = 0;
-
-std::vector<AgentPathRef*> AgentPathRef::PATH_REF_POOL;
 
 Agent::Agent(GridMap* gridMap, Tile* startTile, Tile* goalTile) 
 	: EObject(startTile->x, startTile->y), 
 	bfs(gridMap), temporalAStar(gridMap),
-	goal(goalTile)
+	goal(goalTile), pathRef(nullptr)
 {
 	assert(startTile);
 
@@ -34,47 +33,45 @@ Agent::Agent(GridMap* gridMap, Tile* startTile, Tile* goalTile)
 
 void Agent::Step()
 {
-	if (!chosenPath.empty())
+	if (GetPathRef() && !GetAssignedPath().empty())
 	{
-		// move along current path assigned to us by the agent coordinator
-		Tile* nextTile = chosenPath.front();
-		chosenPath.pop_front();
+		// move along current path p to us by the agent coordinator
+		Tile* nextTile = GetAssignedPath().front();
+		GetAssignedPath().pop_front();
 
 		x = nextTile->x;
 		y = nextTile->y;
 
-		std::vector<MAPF::Path> pathsToRemove;
-		for (MAPF::Path& allPath : potentialPaths)
-		{
-			allPath.pop_front();
-			if (allPath.empty())
-				pathsToRemove.push_back(allPath);
-		}
+		//std::vector<MAPF::Path> pathsToRemove;
+		//for (MAPF::Path& allPath : potentialPaths)
+		//{
+		//	if (allPath.empty())
+		//		pathsToRemove.push_back(allPath);
+		//	else
+		//		allPath.pop_front();
+		//}
 
-		for (MAPF::Path& pathToRemove : pathsToRemove)
-		{
-			auto it = std::find(potentialPaths.begin(), potentialPaths.end(), pathToRemove);
-			if (it != potentialPaths.end())
-				potentialPaths.erase(it);
-		}
-
-		for (MAPF::Path& allPath : potentialPaths)
-			assert(!allPath.empty());
+		//for (MAPF::Path& pathToRemove : pathsToRemove)
+		//{
+		//	auto it = std::find(potentialPaths.begin(), potentialPaths.end(), pathToRemove);
+		//	if (it != potentialPaths.end())
+		//		potentialPaths.erase(it);
+		//}
 	}
 
 
-	if (chosenPath.empty()) // we have reached our goal
+	if (GetAssignedPath().empty()) // we have reached our goal
 		goal = nullptr;
 }
 
-void Agent::SetPath(MAPF::Path& inPath)
-{
-	chosenPath = inPath;
-}
+//void Agent::SetPath(MAPF::Path& inPath)
+//{
+//	chosenPath = inPath;
+//}
 
-void Agent::SetPath(int pathIndex)
+void Agent::SetPath(MAPF::AgentPathRef* pathRef)
 {
-	//assignedPath(this, pathIndex);
+	this->pathRef = pathRef;
 }
 
 void Agent::Update(float dt)
@@ -85,17 +82,22 @@ void Agent::Update(float dt)
 
 void Agent::DrawPath(sf::RenderWindow& window)
 {
-	if (chosenPath.empty())
+	if (!pathRef)
 		return;
 
-	sf::VertexArray points(sf::LineStrip, chosenPath.size());
-	for (int tileIndex = 0; tileIndex < chosenPath.size(); tileIndex++)
+	MAPF::Path& path = GetPathRef()->GetPath();
+
+	if (path.empty())
+		return;
+
+	sf::VertexArray points(sf::LineStrip, path.size());
+	for (int tileIndex = 0; tileIndex < path.size(); tileIndex++)
 	{
-		Tile* tile = chosenPath[tileIndex];
+		Tile* tile = path[tileIndex];
 		points[tileIndex] = sf::Vertex(sf::Vector2f(tile->x, tile->y) * Globals::renderSize, color);
 	}
 
-	window.draw(&points[0], chosenPath.size(), sf::LineStrip);
+	window.draw(&points[0], path.size(), sf::LineStrip);
 }
 
 void Agent::DrawPotentialPaths(sf::RenderWindow& window)
@@ -119,7 +121,6 @@ void Agent::DrawPotentialPaths(sf::RenderWindow& window)
 		window.draw(&points[0], path.size(), sf::LineStrip);
  	}
 }
-
 
 void Agent::DrawLineToGoal(sf::RenderWindow& window)
 {

@@ -22,9 +22,13 @@ namespace MAPF
 
 	public:
 		static AgentPathRef* Make(std::vector<AgentPathRef*>& usedPathRefs, Agent* agent, int pathIndex);
+		static AgentPathRef* MakeNull(Agent* agent);
 
 		Path& GetPath();
+		bool IsValid();
 
 		friend std::ostream& operator<<(std::ostream& os, AgentPathRef& pathRef);
 	};
+
+	using PathCollision = std::vector<AgentPathRef*>;
 }
