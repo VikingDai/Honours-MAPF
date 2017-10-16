@@ -60,13 +60,18 @@
 
 \usepackage{amsmath}
 \usepackage{algorithm}
+\usepackage{algorithmicx}
 \usepackage[noend]{algpseudocode}
 
 \floatname{algorithm}{Procedure}
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
 \renewcommand{\algorithmicensure}{\textbf{Output:}}
 
-\algdef{SE}[DOWHILE]{Do}{DoWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}%
+\algdef{SE}[DOWHILE]{DoWhile}{EndDoWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}%
+\algdef{SE}[DOWHILE]{Do}{EndDo}{\algorithmicdo}[1]{#1}
+
+\newcommand{\Break}{\State\textbf{break}}
+
 \let\oldReturn\Return
 \renewcommand{\Return}{\State\oldReturn}
 
@@ -188,23 +193,197 @@ Any specifics about the MIP I should mention here?
 \end{compactenum}
 
 \subsection{High Level} \label{sec:high-level}
-At the high-level we describe the cycle of path generation and assignment. Simply put: while the path assignment problem fails to find a solution, we run the path-generation method.
+At the high-level we describe the cycle of path generation and assignment. 
 
-\begin{algorithm}
-	\caption{high-level of the Algorithm} \label{alg:agent-coordinator}
+\noindent \textbf{Initializing:} Starting on line \ref{pathbank}, we find the shortest path to each agent's goal and add it to their path bank. A path bank is simply a pool of valid paths to each agent's goal, these paths can be non-optimal.
+
+\noindent \textbf{Calling the MIP:} Starting the loop, we call AssignPathsMIP. Here we create and run the Mixed Integer Program. This method will choose suitable paths from each agent's path pool. Importantly we have not yet described the second parameter, pathCollisions. Hence we do not know if the assignment is collision-free. 
+
+\noindent \textbf{Checking collisions:} So we must check if the solution the MIP gave us is valid.
+
+\noindent \textbf{No collision?:} If there was no collision, then the solution the MIP assigned us was valid and we can terminate the algorithm.
+
+\noindent \textbf{Collision occured:} If there was a collision, we must perform extra steps. The goal here is to penalize this collision and generate new alternative paths. Hence we add this collision to the pathCollisions (used in the AssignPathMIP method), this later creates a hard constraint saying path $i$ for agent $n$ and path $j$ for agent $m$ cannot exist at the same time. Hence the MIP will not be able to choose these two in combination.
+
+\noindent \textbf{Choosing an agent:} This method deals with choosing the next agent who we generate a path for. Here we choose the agent with the smallest $\Delta$. This value describes the length between the shortest path and the current path. By choosing the agent with the smallest $\Delta$ we can ensure optimality as the makespan of the solution grows incrementally \textit{IMPORTANT: describe this better}.
+
+\noindent \textbf{Penalties:} Now we penalize the collision. We do this by looking at the perspective of the chosen agent. So for a collision between $a_np_i$ and $a_mp_j$, say we have chosen $a_n$. Hence we are interested in penalizing against $p_j$. The penalty applies a negative value to any action that could lead to a collision against $p_j$ \textbf{EXAMPLE HERE OR LINK TO EXAMPLE?}.
+
+\noindent \textbf{Looping:} Now we repeat this iteration of assignment and applying penalties. By ensuring that the makespan of the solution space grows incrementally by 1. We can generate an optimal solution, as the MIP will find a possible combination of paths from each agent's path bank.
+
+\begin{algorithm}[H]
 	\begin{algorithmic}[1]
-		\Require $\vec{a}:$ list of agents
+		\Require $agents:$ list of agents
 		\Ensure $void$
-		\State{$\textit{collisions} \gets \{\}$}
-		\Do
-			\State{$pathCollisions \gets GeneratePaths(\vec{a})$}
-			\State{$\textit{failedAgents} \gets \textit{AssignPaths(paths, }pathCollisions)$}
-			\For{$agent$ in $failedAgents$}
-				\State{find path collision for $agent$ and push into $\textit{collisions}$ }
-			\EndFor
-		\DoWhile{\textit{collisions is not empty()}}
+		\State{$pathCollisions \gets \{\}$}
+		\State{$penalties \gets Map<Agent, Penalties>()$}
+		\State{}
+		\For{$agent : agents$}
+			\State{$agent.pathBank.add(ShortestPath(agent))$}
+		\EndFor
+		\State{}
+		\Loop
+			\State{$assignedPaths \gets AssignPathsMIP(agents, pathCollisions)$}
+			\State{$collision \gets CheckForACollision(assignedPaths)$}
+			\If{\textit{collision is not none}}
+				\State{$pathCollisions.add(collision)$}
+				\State{$chosenAgent \gets ChooseAgent(collision)$}
+				\State{$UpdatePenalties(chosenAgent)$}
+				\State{$chosenAgent.pathBank.add(GenerateNextBestPath(agent, penalties))$}
+			\Else
+				\Break
+			\EndIf
+		\EndLoop
 	\end{algorithmic}
+	
+	\caption{high-level of the Algorithm} \label{alg:agent-coordinator}
 \end{algorithm}
+
+\noindent \textbf{Simple example} To get a better intuition of the algorithm, here we step through a simple example.
+
+\begin{table}[h]
+	\centering
+	\footnotesize
+	\begin{tabular}{|c|c|c|}
+		\hline
+		\cellcolor{black} & 0 & \cellcolor{black} \\ \hline
+		1 & 2 & 3 \\ \hline
+		4 & 5 & 6 \\ \hline
+	\end{tabular}
+	
+	\caption{A simple MAPF problem. $a_1: (1, 6), a_2: (0, 3)$}
+	\label{fig:simple-step-through-example}
+\end{table}
+
+\begin{enumerate}
+	\item \textbf{Generate next best path:} Generate and store the next best path in each agent's bank. Since this is first iteration, we will be finding the shortest path for \textbf{all} agents. In later iterations, we only generate a path for \textbf{one} agent at a time.
+	\begin{itemize}
+		\item $a_1p_1: \{1, 2, 3, 6\}$
+		\item $a_2p_1: \{0, 2, 3\}$
+	\end{itemize}
+	\item \textbf{Assign paths MIP:} Create a MIP from the agent's path bank and path constraints (currently none) and use the solution to assign paths to agents
+	\begin{itemize}
+		\item $a_1assigned: \{1, 2, 3, 6\}$
+		\item $a_2assigned: \{0, 2, 3\}$
+	\end{itemize}
+	\item \textbf{Check for a collision:} Here we check the MIP path assignment by finding the first collision (if one exists). There is a path collision at timestep 2 where $a_1$ and $a_2$ are both on tile 2.
+	\item \textbf{Column generation? and constraints:} Since a collision exists, we now apply a constraint to the MIP describing that $a_1p_1$ and $a_2p_1$ cannot exists at the same time.
+	\item \textbf{Penalties:} In order to generate the next best path, we apply penalties incrementally when a collision occurs. The collision occurs between $a_1p_1$ and $a_1p_2$. Here we decide to generate a path for agent 1 so we penalize all of $a_1p_2$, that is the tile of the path at timestep as so:
+	\begin{itemize}
+		\item time 0, tile 0, penalty 1
+		\item time 1, tile 2, penalty 1
+		\item time 2, tile 3, penalty 1
+	\end{itemize}
+	\item \textbf{Generate next best path:} Here we generate and store the next best path. Unlike step 1, we now have penalties applied to certain tiles which lead our pathfinder to avoid collisions. Additionally unlike step 1, we choose one agent to generate a path for (here we have chosen agent 1).
+	\begin{itemize}
+		\item $a_1p_1: \{1, 2, 3, 6\}$
+		\item $a_1p_2: \{1, 4, 5, 6\}$
+		\item $a_2p_1: \{0, 2, 3\}$
+	\end{itemize}
+	\item \textbf{Assign Paths MIP:} Create a MIP from the agent's path bank and use the solution to assign paths to agents. Here the MIP has now assigned $a_1p_2$.
+	\begin{itemize}
+		\item $a_1assigned: \{1, 4, 5, 6\}$
+		\item $a_2assigned: \{0, 2, 3\}$
+	\end{itemize}
+	\item \textbf{Check for a collision:} Here we check the MIP path assignment by finding the first collision (if one exists). There is no collision so the loop terminates and we are satisfied that this path assignment has no collisions.
+\end{enumerate}
+
+\begin{table}[h]
+	\centering
+	\footnotesize
+	\begin{tabular}{|c|c|c|}
+		\hline
+		\cellcolor{black} & 0 & \cellcolor{black} \\ \hline
+		1 & 2 & 3 \\ \hline
+	\end{tabular}
+	
+	\caption{A medium complexity MAPF problem. $a_1: (1, 3), a_2: (3, 1)$}
+	\label{fig:complex-step-through-example}
+\end{table}
+
+\begin{enumerate}
+	\item \textbf{Generate next best path:}
+	\begin{itemize}
+		\item $a_1p_1: \{1, 2, 3\}$
+		\item $a_2p_1: \{3, 2, 1\}$
+	\end{itemize}
+	\item \textbf{Assign paths MIP:} Create a MIP from the agent's path bank and path constraints (currently none) and use the solution to assign paths to agents
+	\begin{itemize}
+		\item $a_1assigned: \{1, 2, 3\}$
+		\item $a_2assigned: \{3, 2, 1\}$
+	\end{itemize}
+	\item \textbf{Check for a collision:} Here we check the MIP path assignment by finding the first collision (if one exists). 
+	\begin{itemize}
+		\item collision at time 2 : $a_1p_1, a_2p_2$
+	\end{itemize}
+	\item \textbf{Path Collision:} Since a collision exists, we now apply a constraint to the MIP describing that $a_1p_1$ and $a_2p_1$ cannot exists at the same time.
+	\item \textbf{Penalties:} In order to generate the next best path, we apply penalties incrementally when a collision occurs. The collision occurs between $a_1p_1$ and $a_1p_2$. Here we decide to generate a path for agent 1 so we penalize all of $a_1p_2$, that is the tile of the path at timestep as so:
+	\begin{itemize}
+		\item time 0, (any to tile 3), penalty 1
+		\item time 1, (any to tile 2), penalty 1
+		\item time 2, (any to tile 1), penalty 1
+	\end{itemize}
+	\item \textbf{Generate next best path:} Here we generate and store the next best path. Unlike step 1, we now have penalties applied to certain tiles which lead our pathfinder to avoid collisions. Additionally unlike step 1, we choose one agent to generate a path for (here we have chosen agent 1).
+	\begin{itemize}
+		\item $a_1p_1: \{1, 2, 3\}$
+		\item $a_1p_2: \{1, 1, 2, 3\}$
+		\item $a_2p_1: \{3, 2, 1\}$
+	\end{itemize}
+	\item \textbf{Assign Paths MIP:} Create a MIP from the agent's path bank and use the solution to assign paths to agents. Here the MIP has now assigned $a_1p_2$.
+	\begin{itemize}
+		\item $a_1assigned: \{1, 1, 2, 3\}$
+		\item $a_2assigned: \{3, 2, 1\}$
+	\end{itemize}
+	\item \textbf{Check for a collision:} Here we check the MIP path assignment by finding the first collision (if one exists). 
+	\begin{itemize}
+		\item collision at time 2 : $a_1p_2, a_2p_1$
+	\end{itemize}
+	\item \textbf{Path Collision:} Since a collision exists, we now apply a constraint to the MIP describing that $a_1p_2$ and $a_2p_1$ cannot exists at the same time.
+	\item \textbf{Penalties:} $a_1p_2$ and $a_2p_1$. Here we decide to generate a path for agent 2 so we penalize all of $a_1p_2$.
+	\begin{itemize}
+		\item time 0, (any to tile 1), penalty 1
+		\item time 1, (any to tile 1), penalty 1
+		\item time 2, (any to tile 2), penalty 1
+		\item time 3, (any to tile 3), penalty 1
+		\item time 2, (tile 2 to tile 1), penalty 1
+	\end{itemize}
+	\item \textbf{Generate next best path:} Here we generate and store the next best path for agent 2.
+	\begin{itemize}
+		\item $a_1p_1: \{1, 2, 3\}$
+		\item $a_1p_2: \{1, 1, 2, 3\}$
+		\item $a_2p_1: \{3, 2, 1\}$
+		\item $a_2p_2: \{3, 3, 2, 1\}$
+	\end{itemize}
+		\item \textbf{Assign Paths MIP:} Create a MIP from the agent's path bank and use the solution to assign paths to agents.
+	\begin{itemize}
+		\item $a_1assigned: \{1, 2, 3\}$
+		\item $a_2assigned: \{3, 3, 2, 1\}$
+	\end{itemize}
+	\item \textbf{Check for a collision:} Here we check the MIP path assignment by finding the first collision (if one exists). 
+	\begin{itemize}
+		\item collision at time 2 : $a_1p_1, a_2p_2$
+	\end{itemize}
+	\item \textbf{Path Collision:} Since a collision exists, we now apply a constraint to the MIP describing that $a_1p_1$ and $a_2p_2$ cannot exists at the same time.
+	\item \textbf{Penalties:} $a_1p_1$ and $a_2p_2$. Here we decide to generate a path for agent 1 so we penalize all of $a_1p_2$.
+	\begin{itemize}
+		\item time 0, (any to tile 3), penalty 2$^*$
+		\item time 1, (any to tile 2), penalty 1$^*$
+		\item time 1, (any to tile 3), penalty 1
+		\item time 2, (any to tile 1), penalty 1$^*$
+		\item time 2, (tile 2 to tile 3), penalty 1
+		\item time 2, (any to tile 2), penalty 1
+		\item time 3, (any to tile 1), penalty 1
+	\end{itemize}
+	\item \textbf{Generate next best path:} Here we generate and store the next best path for agent 2.
+	\begin{itemize}
+		\item $a_1p_1: \{1, 2, 3\}$
+		\item $a_1p_2: \{1, 1, 2, 3\}$
+		\item $a_1p_2: \{1, 1, 2, 2, 3\}$
+		\item $a_2p_1: \{3, 2, 1\}$
+		\item $a_2p_2: \{3, 3, 2, 1\}$
+	\end{itemize}
+\end{enumerate}
+
 
 \subsection{Path Generation} \label{sec:generating-paths}
 This method aims to generate paths for an agent. The first iteration of the path generation will use A* to quickly find the shortest path to the goal. This path will likely be in conflict. Next we use Temporal A* which aims to avoid collisions by applying penalties to tiles which are in conflict. We increments the penalties by 1 and iteratively finds paths of the next cost. 
@@ -214,7 +393,7 @@ A generated path may have a longer length than the optimal single-agent solution
 However our implementation of Temporal A* is not complete. There are instances which it is unable to find a solution. If the optimal shortest path requires the agent to move past the goal tile. Then Temporal A* fails and will never expand past the goal. An example of this is can be seen in Figure~\ref{fig:deadlock}. Hence in this algorithm we determine that agents are in \textbf{deadlock} when they have $n=100$ number of collisions. If this occurs we start finding paths with Centralized A*. 
 
 
-\begin{table}
+\begin{table}[h]
 	\centering
 	\footnotesize
 	\begin{tabular}{|c|c|c|}
@@ -227,37 +406,35 @@ However our implementation of Temporal A* is not complete. There are instances w
 	\caption{A deadlock occurs here. The optimal solution is 
 		\\ a1: $d,r,r,u,d,w$
 		\\ a2: $w,w,w,u,l,l$
-		\\ This deadlock occurs as the solution for a1 requires the algorithm to seach past the goal.}
+		\\ This deadlock occurs as the solution for a1 requires the algorithm to search past the goal.}
 	\label{fig:deadlock}
 \end{table}
 
 
 \begin{algorithm}[H]
-	\caption{GeneratePaths}\label{alg:generate-paths}
+	\caption{GenerateNextBestPath}\label{alg:generate-paths}
 	\begin{algorithmic}[1]
-		\Require $\vec{a}:$ list of penalty agents
-		\Ensure $pathCollisions$: list of paths which are in collision: a tuple of (agent, path)
+		\Require $agent$, $penalties:$ tile penalties to be used for the TemporalAStar pathfinder.
+		\Ensure $path:$ the generated path
 		\State{$pathCollisions \gets \{\}$}
 		\For{agent $a$ in $\vec{a}$}
 			\State{$path \gets \{\}$}
-			\If{agent.paths is empty}
+			\If{agent.pathBank is empty}
 				\State{$path \gets AStar$}
 			\ElsIf{$\exists$ agents in deadlock with $a$}
 				\State{$path \gets CentralizedAStar(\textit{agents in deadlock})$}
 			\Else
-				\State{$path \gets TemporalAStar$}
+				\State{$path \gets TemporalAStar(agent, penalties)$}
 			\EndIf
-			\State{$path \gets \textit{GeneratePath(a, firstRun)}$}
-			\State{$a.\vec{p}.append(path)$}	
-			\State{$pathCollisions.append(a, \textit{CheckCollisions(path))}$}
+			\Return $path$
 		\EndFor
 	\end{algorithmic}
 \end{algorithm}
 
 \subsection{Path Assignment}
-At the core, this method simply calls the Master problem (\ref{sec:mip}). The objective here is to detect if any agents were unable to be assigned paths (meaning there was no combination of paths which resulted in a collision-free solution). These agents are assigned the penalty variable by the mip and are returned as output of this method.
+At the core, this method simply calls the Master problem (\ref{sec:mip}). The objective here is to assign paths to agents which look suitable. This solution may be invalid but will be checked later. These agents are assigned the penalty variable by the mip and are returned as output of this method.
 
-\begin{algorithm}
+\begin{algorithm}[H]
 	\caption{AssignPaths}\label{alg:assignPaths}
 	\begin{algorithmic}[1]
 		\Require $\vec{a}:$ list of agents $\vec{c}:$ list of collisions
