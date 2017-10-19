@@ -256,30 +256,31 @@ At the high-level we describe the cycle of path generation and assignment.
 \end{table}
 
 \begin{enumerate}
-	\item \textbf{Generate next best path:} Generate and store the next best path in each agent's bank. Since this is first iteration, we will be finding the shortest path for \textbf{all} agents. In later iterations, we only generate a path for \textbf{one} agent at a time.
-	\begin{itemize}
+	\item \textbf{Initializing:} Generate and store the shortest path in each agent's path bank. Since this is first iteration, we will be finding the shortest path for \textbf{all} agents. In later iterations, we only generate a path for \textbf{one} agent at a time.
+	\begin{compactitem}
 		\item $a_1p_1: \{1, 2, 3, 6\}$
 		\item $a_2p_1: \{0, 2, 3\}$
-	\end{itemize}
+	\end{compactitem}
 	\item \textbf{Assign paths MIP:} Create a MIP from the agent's path bank and path constraints (currently none) and use the solution to assign paths to agents
-	\begin{itemize}
+	\begin{compactitem}
 		\item $a_1assigned: \{1, 2, 3, 6\}$
 		\item $a_2assigned: \{0, 2, 3\}$
-	\end{itemize}
+	\end{compactitem}
 	\item \textbf{Check for a collision:} Here we check the MIP path assignment by finding the first collision (if one exists). There is a path collision at timestep 2 where $a_1$ and $a_2$ are both on tile 2.
+	\item \textbf{Choosing an agent:} We choose one agent in the collision for which we will generate a new path for.
 	\item \textbf{Column generation? and constraints:} Since a collision exists, we now apply a constraint to the MIP describing that $a_1p_1$ and $a_2p_1$ cannot exists at the same time.
 	\item \textbf{Penalties:} In order to generate the next best path, we apply penalties incrementally when a collision occurs. The collision occurs between $a_1p_1$ and $a_1p_2$. Here we decide to generate a path for agent 1 so we penalize all of $a_1p_2$, that is the tile of the path at timestep as so:
-	\begin{itemize}
+	\begin{compactitem}
 		\item time 0, tile 0, penalty 1
 		\item time 1, tile 2, penalty 1
 		\item time 2, tile 3, penalty 1
-	\end{itemize}
+	\end{compactitem}
 	\item \textbf{Generate next best path:} Here we generate and store the next best path. Unlike step 1, we now have penalties applied to certain tiles which lead our pathfinder to avoid collisions. Additionally unlike step 1, we choose one agent to generate a path for (here we have chosen agent 1).
-	\begin{itemize}
+	\begin{compactitem}
 		\item $a_1p_1: \{1, 2, 3, 6\}$
 		\item $a_1p_2: \{1, 4, 5, 6\}$
 		\item $a_2p_1: \{0, 2, 3\}$
-	\end{itemize}
+	\end{compactitem}
 	\item \textbf{Assign Paths MIP:} Create a MIP from the agent's path bank and use the solution to assign paths to agents. Here the MIP has now assigned $a_1p_2$.
 	\begin{itemize}
 		\item $a_1assigned: \{1, 4, 5, 6\}$
