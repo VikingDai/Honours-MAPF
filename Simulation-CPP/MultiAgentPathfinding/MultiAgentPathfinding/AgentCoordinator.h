@@ -4,6 +4,7 @@
 #include <queue>
 #include <deque>
 #include <set>
+#include <unordered_set>
 #include "Agent.h";
 #include "TemporalAStar.h"
 
@@ -75,12 +76,12 @@ private:
 		bool firstRun);
 
 	/** Groups together paths which are in collision with one another */
-	using CollisionSet = std::vector<std::set<MAPF::AgentPathRef*>>;
+	//using CollisionSet = std::vector<std::unordered_set<MAPF::AgentPathRef*, MAPF::AgentPathRefHash>>;
 
 	std::set<std::pair<Tile*, int>> tilesInCollision;
 
-	CollisionSet DetectTileCollisions();
-	CollisionSet crossCollisionSet;
+	MAPF::PathCollisions DetectTileCollisions();
+	MAPF::PathCollisions crossCollisionSet;
 
 	/** Updates the collision table and stores any path collisions */
 	CollisionAtTime UpdateCollisions(MAPF::AgentPathRef* agentPathRef);
@@ -96,8 +97,12 @@ public:
 
 	void RenderCollisionCosts(sf::RenderWindow& window);
 
-	void CheckForACollision(std::vector<Agent*>& agents);
+	
 	int GetLongestPathLength(std::vector<Agent*>& agents);
 	Tile* GetTileAtTimestep(MAPF::Path& path, int timestep);
-};
 
+	void UpdateAgents2(std::vector<Agent*>& agents);
+	std::vector<MAPF::PathCollision> CheckForCollisions(std::vector<Agent*>& agents);
+
+	CollisionPenalties& CreatePenalties(std::vector<Agent*>& agents);
+};

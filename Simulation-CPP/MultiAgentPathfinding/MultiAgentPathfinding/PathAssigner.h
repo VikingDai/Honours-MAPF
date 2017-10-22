@@ -24,8 +24,6 @@ public:
 	~PathAssigner();
 
 private:
-	using PathCollisions = std::vector<std::set<MAPF::AgentPathRef*>>;
-
 	std::vector<MAPF::AgentPathRef*> usedPathRefs;
 
 	GridMap* map;
@@ -50,13 +48,13 @@ private:
 
 	SCIP_RETCODE CreateProblem(
 		std::vector<Agent*>& agents,
-		PathCollisions& pathCollisions);
+		MAPF::PathCollisions& pathCollisions);
 
 	/** Create a constraint describing that an agent can pick only one path or a penalty */
 	void CreateAgentChoiceConstraints(int agentId, std::vector<SCIP_VAR*> agentVariables);
 
 	/** Create constraints describing path collisions */
-	void CreateCollisionConstraints(PathCollisions& pathCollisions);
+	void CreateCollisionConstraints(MAPF::PathCollisions& pathCollisions);
 
 	std::map<Agent*, std::map<int, SCIP_VAR*>> pathToVarMap;
 	SCIP_VAR* GetPathVar(MAPF::AgentPathRef* path) { return pathToVarMap[path->agent][path->pathIndex]; }
@@ -65,7 +63,7 @@ public:
 	/** Assigns a path to each agent. Returns a vector of agents who were unable to find a conflict-free path. */
 	std::vector<Agent*> AssignPaths(
 		std::vector<Agent*>& agents, 
-		PathCollisions& collisions);
+		MAPF::PathCollisions& collisions);
 
 	void AddPath(Agent* agent, MAPF::AgentPathRef* path);
 

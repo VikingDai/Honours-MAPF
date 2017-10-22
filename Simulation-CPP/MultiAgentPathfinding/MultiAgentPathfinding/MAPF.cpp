@@ -46,7 +46,6 @@ MAPF::Path& MAPF::AgentPathRef::GetPath()
 
 bool MAPF::AgentPathRef::IsValid()
 {
-	std::cout << "CHECKING " << pathIndex << std::endl;
 	return agent && pathIndex >= 0 && pathIndex < agent->potentialPaths.size();
 }
 

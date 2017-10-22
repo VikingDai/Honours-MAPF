@@ -245,7 +245,8 @@ void Simulation::BuildOptions()
 
 	/** Add a solve button */
 	if (ImGui::Button("Solve")) 
-		coordinator->UpdateAgents(environment.agents);
+		coordinator->UpdateAgents2(environment.agents);
+		//coordinator->UpdateAgents(environment.agents);
 
 	ImGui::Checkbox("Tick", &Options::tickSimulation);
 	ImGui::Checkbox("Render", &Options::shouldRender);

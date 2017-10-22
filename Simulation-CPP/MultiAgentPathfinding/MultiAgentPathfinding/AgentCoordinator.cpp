@@ -12,6 +12,7 @@
 #include "Statistics.h"
 #include <sstream>
 #include <string>
+#include <unordered_set>
 
 #include <SFML/Graphics.hpp>
 #include "Globals.h"
@@ -31,7 +32,7 @@ AgentCoordinator::~AgentCoordinator()
 
 void AgentCoordinator::Reset()
 {
-	
+
 }
 
 bool AgentCoordinator::Step(std::vector<Agent*>& agents)
@@ -59,7 +60,7 @@ bool AgentCoordinator::Step(std::vector<Agent*>& agents)
 
 	// Generate additional paths
 	timerPathGeneration.Begin();
-	
+
 	/*CentralizedAStar cAstar(gridMap);
 	cAstar.AssignPaths(agents);*/
 
@@ -77,7 +78,7 @@ bool AgentCoordinator::Step(std::vector<Agent*>& agents)
 
 	// Assign conflict-free paths to agents using a MIP
 	timerCollisionDetection.Begin();
-	CollisionSet& collisionSet = DetectTileCollisions();
+	MAPF::PathCollisions& collisionSet = DetectTileCollisions();
 	timerCollisionDetection.End();
 
 	timerPathAssignment.Begin();
@@ -114,7 +115,7 @@ bool AgentCoordinator::Init(std::vector<Agent*>& agents)
 
 	bool anyPathsChanged = false;
 
-	
+
 
 	for (Agent* agent : agents)
 	{
@@ -411,23 +412,23 @@ void AgentCoordinator::GeneratePath(Agent* agent, bool firstRun)
 #endif
 }
 
-AgentCoordinator::CollisionSet AgentCoordinator::DetectTileCollisions()
+MAPF::PathCollisions AgentCoordinator::DetectTileCollisions()
 {
-	CollisionSet collisionSet;
-	for (auto& it : tilesInCollision)
-	{
-		Tile* tile = it.first;
-		int timestep = it.second;
+	MAPF::PathCollisions collisionSet;
+	//for (auto& it : tilesInCollision)
+	//{
+	//	Tile* tile = it.first;
+	//	int timestep = it.second;
 
-		std::set<MAPF::AgentPathRef*> paths;
+	//	std::set<MAPF::AgentPathRef*> paths;
 
-		for (MAPF::AgentPathRef* ref : collisionTable[tile][timestep])
-			paths.emplace(ref);
+	//	for (MAPF::AgentPathRef* ref : collisionTable[tile][timestep])
+	//		paths.emplace(ref);
 
-		collisionSet.push_back(paths);
-	}
+	//	collisionSet.push_back(paths);
+	//}
 
-	collisionSet.insert(collisionSet.end(), crossCollisionSet.begin(), crossCollisionSet.end());
+	//collisionSet.insert(collisionSet.end(), crossCollisionSet.begin(), crossCollisionSet.end());
 
 	return collisionSet;
 }
@@ -600,34 +601,6 @@ void AgentCoordinator::RenderCollisionCosts(sf::RenderWindow& window)
 	}
 }
 
-void AgentCoordinator::CheckForACollision(std::vector<Agent*>& agents)
-{
-	std::map<MAPF::TileTime, MAPF::AgentPathRef*> collisionTable;
-
-	int longestPathLength = GetLongestPathLength(agents);
-
-	for (Agent* agent : agents)
-	{
-		MAPF::AgentPathRef* path = agent->GetPathRef();
-
-		for (int i = 0; i < longestPathLength; i++) // check if any tiles are already in use
-		{
-			Tile* tile = GetTileAtTimestep(path->GetPath(), i);
-
-			MAPF::AgentPathRef* path = collisionTable[MAPF::TileTime(tile, i)];
-
-			if (path) // if there is already a path at this time on this tile, then there is a collision
-			{
-				return;
-			}
-			else
-			{
-				collisionTable[MAPF::TileTime(tile, i)] = path;
-			}
-		}
-	}
-}
-
 int AgentCoordinator::GetLongestPathLength(std::vector<Agent*>& agents)
 {
 	int longest = -1;
@@ -643,6 +616,91 @@ int AgentCoordinator::GetLongestPathLength(std::vector<Agent*>& agents)
 
 Tile* AgentCoordinator::GetTileAtTimestep(MAPF::Path& path, int timestep)
 {
-	return path.size() < timestep ? path[timestep] : path[path.size() - 1];
+	if (path.empty()) return nullptr;
+
+	return timestep < path.size() ? path[timestep] : path[path.size() - 1];
 }
 
+void AgentCoordinator::UpdateAgents2(std::vector<Agent*>& agents)
+{
+	MAPF::PathCollisions pathConstraints;
+
+	// find and store the shortest path for each agent
+	std::cout << "Initializing agents with shortest path" << std::endl;
+	for (Agent* agent : agents)
+	{
+		agent->potentialPaths.push_back(aStar.FindPath(gridMap->GetTileAt(agent->x, agent->y), agent->goal));
+		MAPF::AgentPathRef* pathRef = MAPF::AgentPathRef::Make(usedPathRefs, agent, agent->potentialPaths.size());
+		agent->SetPath(pathRef);
+	}
+
+	while (true)
+	{
+		// run the MIP and apply the path assignment solution
+		std::cout << "Running MIP and assigning paths" << std::endl;
+		pathAssigner.AssignPaths(agents, pathConstraints);
+
+		// check the path assignment for collisions
+		std::cout << "Checking for collisions" << std::endl;
+		std::vector<MAPF::PathCollision>& collisions = CheckForCollisions(agents);
+
+		if (collisions.empty()) // if there are no collisions, we have assigned collision-free paths to all agents
+		{
+			std::cout << "No collisions exists: we have successfully assigned collision-free paths" << std::endl;
+			break;
+		}
+		else
+		{
+			std::cout << "Collision exists" << std::endl;
+
+			// get the path collision with the lowest delta
+			std::sort(collisions.begin(), collisions.end(), MAPF::DeltaComparator());
+			MAPF::PathCollision lowestDelta = collisions[0];
+
+			// for the two agents in the collision: find and store and alternative path
+			GeneratePath(lowestDelta.a->agent, false);
+			GeneratePath(lowestDelta.b->agent, false);
+
+			// create path constraints from this path collision and use them in the next run of the MIP
+			std::set<MAPF::AgentPathRef*> constraint;
+			constraint.emplace(lowestDelta.a);
+			constraint.emplace(lowestDelta.b);
+			pathConstraints.push_back(constraint);
+		}
+	}
+}
+
+std::vector<MAPF::PathCollision> AgentCoordinator::CheckForCollisions(std::vector<Agent*>& agents)
+{
+	std::unordered_set<MAPF::PathCollision, MAPF::PathCollisionHash> uniqueCollisions;
+
+	std::map<MAPF::TileTime, std::vector<MAPF::AgentPathRef*>> collisionTable;
+
+	int longestPathLength = GetLongestPathLength(agents);
+
+	for (Agent* agent : agents)
+	{
+		MAPF::AgentPathRef* pathRefA = agent->GetPathRef();
+
+		for (int i = 0; i < longestPathLength; i++) // check if any tiles are already in use
+		{
+			Tile* tile = GetTileAtTimestep(pathRefA->GetPath(), i);
+			if (!tile) continue;
+
+			std::vector<MAPF::AgentPathRef*> pathRefs = collisionTable[MAPF::TileTime(tile, i)];
+
+			if (!pathRefs.empty()) // if there is already a path at this time on this tile, then there is a collision
+			{
+				for (MAPF::AgentPathRef* pathRefB : pathRefs)
+				{
+					uniqueCollisions.emplace(pathRefA, pathRefB);
+				}
+			}
+			
+			collisionTable[MAPF::TileTime(tile, i)].push_back(pathRefA);
+		}
+	}
+
+	std::vector<MAPF::PathCollision> collisions(uniqueCollisions.begin(), uniqueCollisions.end());
+	return collisions;
+}

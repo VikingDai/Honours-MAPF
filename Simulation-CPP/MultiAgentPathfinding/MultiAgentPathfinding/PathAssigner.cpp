@@ -70,7 +70,7 @@ void PathAssigner::InitAgent(std::vector<Agent*> agents)
 	}
 }
 
-SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, PathCollisions& pathCollisions)
+SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, MAPF::PathCollisions& pathCollisions)
 {
 	// create empty problem
 	const SCIP_Real NEG_INFINITY = -SCIPinfinity(scip);
@@ -186,7 +186,7 @@ void PathAssigner::CreateAgentChoiceConstraints(int agentId, std::vector<SCIP_VA
 	SCIP_CALL_EXC(SCIPreleaseCons(scip, &agentChoiceCons)); // release it
 }
 
-void PathAssigner::CreateCollisionConstraints(PathCollisions& pathCollisions)
+void PathAssigner::CreateCollisionConstraints(MAPF::PathCollisions& pathCollisions)
 {
 	for (int i = 0; i < pathCollisions.size(); i++)
 	{
@@ -212,7 +212,7 @@ void PathAssigner::CreateCollisionConstraints(PathCollisions& pathCollisions)
 
 std::vector<Agent*> PathAssigner::AssignPaths(
 	std::vector<Agent*>& agents,
-	PathCollisions& collisions)
+	MAPF::PathCollisions& collisions)
 {
 	mipTimer.Begin();
 

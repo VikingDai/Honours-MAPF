@@ -130,7 +130,6 @@ public:
 
 struct CollisionPenalties
 {
-	std::map<int, std::map<Tile*, float>> tileCollisions;
 	std::map<int, std::map<std::pair<Tile*, Tile*>, float>> actionCollisions;
 };
 
