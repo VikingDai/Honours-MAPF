@@ -35,53 +35,6 @@ void AgentCoordinator::Reset()
 
 }
 
-bool AgentCoordinator::Init(std::vector<Agent*>& agents)
-{
-	failedAgents.clear();
-
-	bool anyPathsChanged = false;
-
-
-
-	for (Agent* agent : agents)
-	{
-		// if the agent has a goal to reach but does not have a path, generate a path
-		if (agent->goal && !agent->GetPathRef())
-		{
-			failedAgents.emplace(agent);
-			agent->pathBank.clear();
-			anyPathsChanged = true;
-		}
-	}
-
-	if (anyPathsChanged)
-	{
-#if DEBUG_VERBOSE
-		std::cout << "Initializing AgentCoordinator" << std::endl;
-#endif
-
-		iteration = 1;
-
-		timerCoordinator.Begin();
-		agentCollisionMap.clear();
-		collisionCosts.clear();
-	}
-	else
-	{
-		std::cout << "AgentCoordinator: All agents have paths to their goals" << std::endl;
-	}
-
-	return anyPathsChanged;
-}
-
-void AgentCoordinator::PrintPath(Agent* agent, MAPF::Path& path)
-{
-	std::cout << "Path for " << *agent << " of length " << path.size() << " | ";
-	for (Tile* tile : path)
-		std::cout << *tile << " > ";
-	std::cout << std::endl;
-}
-
 int AgentCoordinator::GetLongestPathLength(std::vector<Agent*>& agents)
 {
 	int longest = -1;
@@ -114,7 +67,8 @@ void AgentCoordinator::UpdateAgents2(std::vector<Agent*>& agents)
 		MAPF::AgentPathRef* pathRef = MAPF::AgentPathRef::Make(agent, agent->pathBank.size() - 1, usedPathRefs);
 		agent->SetPath(pathRef);
 
-		PrintPath(pathRef->agent, pathRef->GetPath());
+		std::cout << "Shortest path for agent " << *agent << ": " << std::endl;
+		MAPF::PrintPath(pathRef->GetPath());
 	}
 
 	int iteration = 0;
@@ -190,14 +144,19 @@ std::vector<MAPF::PathCollision> AgentCoordinator::CheckForCollisions(std::vecto
 
 			/** CHECK FOR OVERLAP COLLISIONS */
 			std::vector<MAPF::AgentPathRef*>& pathRefs = collisionTable[MAPF::TileTime(currentTile, i)];
-		
+
 			// if there are already paths at this time on this tile, then there is a collision
 			for (MAPF::AgentPathRef* pathRefOther : pathRefs)
+			{
 				if (pathRef->agent != pathRefOther->agent) // path must be of a different agent
+				{
+					std::cout << "Tile collision between " << *pathRef << " and " << *pathRefOther << " at time " << i << std::endl;
 					uniqueCollisions.emplace(pathRef, pathRefOther);
-			
+				}
+			}
 
-			
+
+
 			/** CHECK FOR PASSING COLLISIONS */
 			if (i == 0) continue;
 			Tile* previousTile = GetTileAtTimestep(pathRef->GetPath(), i - 1);
@@ -213,14 +172,12 @@ std::vector<MAPF::PathCollision> AgentCoordinator::CheckForCollisions(std::vecto
 
 				std::cout << "Pass collision between " << *pathRef << " and " << *pathRefOther << " at time " << i << std::endl;
 
-				std::cout << "Comparing " << *currentTile << " = " << *previousTileOther << std::endl;
-
 				if (currentTileOther == previousTile && previousTileOther == currentTile)
 				{
 					uniqueCollisions.emplace(pathRef, pathRefOther);
 				}
-			}			
-			
+			}
+
 			// update the table describing that this path was here at this timestep
 			collisionTable[MAPF::TileTime(currentTile, i)].push_back(pathRef);
 		}
@@ -250,12 +207,11 @@ void AgentCoordinator::CreateActionPenalties(CollisionPenalties& penalties, MAPF
 		std::pair<Tile*, Tile*> waitAction(tile, tile);
 		timeActionSet[i].emplace(waitAction);
 
-		if (i < path.size() - 1) // penalize cross collision
-		{
-			Tile* nextTile = path[i + 1];
-			std::pair<Tile*, Tile*> action(nextTile, tile);
-			timeActionSet[i].emplace(action);
-		}
+		/** penalize passing collision */
+		if (i == 0) continue;
+		Tile* previousTile = path[i - 1];
+		std::pair<Tile*, Tile*> action(previousTile, tile);
+		timeActionSet[i].emplace(action);
 	}
 
 	for (auto& it : timeActionSet)
@@ -282,13 +238,19 @@ void AgentCoordinator::GeneratePath2(MAPF::PathCollision& collision)
 
 	MAPF::AgentPathRef* pathRefA = agentA->GeneratePath(gridMap, penaltiesA, usedPathRefs);
 	if (pathRefA)
-		PrintPath(pathRefA->agent, pathRefA->GetPath());
+	{
+		std::cout << "Generating path for Agent " << *agentA << std::endl;
+		MAPF::PrintPath(pathRefA->GetPath());
+	}
 	else
 		std::cout << "Generated duplicate path" << std::endl;
-	
+
 	MAPF::AgentPathRef* pathRefB = agentB->GeneratePath(gridMap, penaltiesB, usedPathRefs);
 	if (pathRefB)
-		PrintPath(pathRefB->agent, pathRefB->GetPath());
+	{
+		std::cout << "Generating path for Agent " << *agentB << std::endl;
+		MAPF::PrintPath(pathRefB->GetPath());
+	}
 	else
 		std::cout << "Generated duplicate path" << std::endl;
 }

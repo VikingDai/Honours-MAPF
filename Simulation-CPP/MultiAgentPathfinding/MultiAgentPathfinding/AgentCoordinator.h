@@ -39,36 +39,6 @@ public:
 private:
 	int iteration;
 	bool isRunning;
-	
-private:
-	void PrintPath(Agent* agent, MAPF::Path& path);
-
-private:
-	using TileToPathMap = std::map<Tile*, std::vector<MAPF::AgentPathRef*>>;
-	
-	/** (tile => time => num collisions) */
-	using TileCollision = std::vector<std::pair<Tile*, int>>;
-
-	/** This path is in collision with other paths at time*/
-	using CollisionAtTime = std::map<int, std::vector<MAPF::AgentPathRef*>>;
-
-private:
-	std::map<Agent*, CollisionPenalties> agentPenalties;
-	std::map<Agent*, TemporalAStar::TileCosts> agentCollisionPenalties;
-	std::map<Agent*, std::map<Agent*, int>> agentCollisionCount;
-
-	std::set<Agent*> failedAgents;
-	std::map<Agent*, TileCollision> agentCollisionMap;
-	TemporalAStar::TileCosts collisionCosts;
-	std::deque<TileToPathMap> tileToPathMapAtTimestep;
-	std::map<Tile*, std::map<int, std::vector<MAPF::AgentPathRef*>>> collisionTable;
-
-	std::map<Agent*, std::vector<std::pair<int, Tile*>>> agentCrossCollisions;
-
-	std::vector<std::pair<Tile*, MAPF::AgentPathRef*>> bottomLayer;
-
-private:
-	bool Init(std::vector<Agent*>& agents);
 
 	MAPF::PathCollisions crossCollisionSet;
 public:

@@ -186,7 +186,7 @@ public:
 
 	void Resize(int newSize)
 	{
-		std::cout << "pqueue::resize oldsize: " << queueSize << " newsize " << newSize << std::endl;
+		//std::cout << "pqueue::resize oldsize: " << queueSize << " newsize " << newSize << std::endl;
 		if (newSize < queueSize)
 		{
 			std::cerr << "err; pqueue::resize newsize < queuesize " << std::endl;

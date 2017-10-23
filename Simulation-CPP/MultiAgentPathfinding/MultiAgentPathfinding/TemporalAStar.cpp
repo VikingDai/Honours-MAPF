@@ -7,10 +7,10 @@
 #include "Statistics.h"
 #include "Heuristics.h"
 
-#define DEBUG_VERBOSE 0
+#define DEBUG_VERBOSE 1
 #define DEBUG_STATS 0
 
-#define DEBUG_SIMPLE 0
+#define DEBUG_SIMPLE 1
 
 int TemporalAStar::GLOBAL_TILES_EXPANDED = 0;
 
