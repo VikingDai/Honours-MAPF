@@ -8,7 +8,7 @@
 #include "Heuristics.h"
 
 #define DEBUG_VERBOSE 0
-#define DEBUG_STATS 1
+#define DEBUG_STATS 0
 
 #define DEBUG_SIMPLE 0
 
@@ -47,6 +47,20 @@ TemporalAStar::~TemporalAStar()
 
 MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, CollisionPenalties& penalties)
 {
+#if DEBUG_VERBOSE
+	std::cout << std::endl << "*** FINDING PATH FROM ***" << *start << " to " << *goal << std::endl;
+	std::cout << "PENALTIES: " << std::endl;
+	for (auto& it : penalties.actionCollisions)
+	{
+		int time = it.first;
+		auto& it2 = it.second;
+		for (auto& pair : it2)
+		{
+			std::cout << "\tACTION FROM " << *pair.first.first << " TO " << *pair.first.second << " at time " << time << " Has a penalty of " << pair.second << std::endl;
+		}
+	}
+#endif
+
 	MAPF::Path path;
 
 	if (!start || !goal || start == goal)
@@ -75,28 +89,30 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, CollisionPenalties& 
 	
 	while (!open.Empty())
 	{	
-		//std::cout << ">>>>> BEGIN OPEN QUEUE"<< std::endl;
-		//std::cout << open << std::endl;
-		//std::cout << "<<<<< END OPEN QUEUE" << std::endl;
 
+#if DEBUG_VERBOSE
+		std::cout << ">>>>> CHOOSING FROM OPEN QUEUE"<< std::endl;
+		std::cout << open << std::endl;
+#endif
 		current = open.Pop();
+#if DEBUG_SIMPLE
+		std::cout << "CHOSE " << *current << std::endl;
+#endif
 		
 		current->bClosed = true;
 		
 //#if DEBUG_VERBOSE
-#if DEBUG_SIMPLE
-		std::cout << "EXPAND " << *current << std::endl;
-#endif
+
 		//current->tile->SetColor(sf::Color::Red);
 
 		if (current->tile == goal) // found path to goal!
 			break;
 
+		ExpandNeighbor(open, current, current->tile, start, goal, penalties); // wait
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 0, 1), start, goal, penalties); // up
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, -1, 0), start, goal, penalties); // left
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 0, -1), start, goal, penalties); // down
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 1, 0), start, goal, penalties); // right
-		ExpandNeighbor(open, current, current->tile, start, goal, penalties); // wait
 		
 
 #if DEBUG_VERBOSE
@@ -110,6 +126,13 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, CollisionPenalties& 
 		path.push_front(current->tile);
 		current = current->parent;
 	}
+
+#if DEBUG_VERBOSE
+	std::cout << "Temporal A* Path:" << std::endl;
+	for (Tile* tile : path)
+		std::cout << *tile << " > ";
+	std::cout << std::endl;
+#endif
 
 	// reset any modified tiles
 	for (AStarTileTime* modified : modifiedTileTimes)
@@ -167,44 +190,47 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 		modifiedTileTimes.push_back(neighbor);
 	}
 
-	//if (std::find(closed.begin(), closed.end(), neighbor) != closed.end())
-	//if (!spatialGridMap[neighborTile].empty())
-		//return;
-
 	if (neighbor->bClosed) // skip if the node has already been expanded
 		return;
 
 	LOCAL_TILES_EXPANDED += 1;
 	neighborTile->SetColor(sf::Color(current->tile->GetColor().r, current->tile->GetColor().g + 20, current->tile->GetColor().b, current->tile->GetColor().a));
 
-	float customCost = GetCustomCosts(current->timestep, current->tile, neighborTile, penalties);
-	float customPrev = GetCustomCosts(current->timestep - 1, current->tile, neighborTile, penalties);
+	float penalty = GetCustomCosts(current->timestep, current->tile, neighborTile, penalties);
 	float cost = current->g + 1;
 
 #if 0
-	if (customCost > 0) 
-		std::cout << "\t\t\t\tUSING CUSTOM COST ON TILE " << *neighborTile << " ON TIME " << current->timestep << " VALUE " << customCost << std::endl;
+	if (penalty > 0) 
+		std::cout << "\tUsed CUSTOM COST for action " << *current->tile << " to " << *neighborTile << " at time " << current->timestep << " with value " << penalty << std::endl;
 #endif
 	
 	if (neighbor->bIsInOpen) // relax the node - update the parent
 	{
+		std::cout << *neighbor << " is already in open, updating it"<< std::endl;
+
 		float parentCost = neighbor->parent->g;
 		
 		if (current->g == parentCost)
 		{
-			float currentParentCustom = current->penalty;
-			bool newIsBetter = currentParentCustom < customCost;
+			float currentPenalty = current->penalty;
+			bool newIsBetter = penalty < currentPenalty;
 			if (newIsBetter)
 			{
+				std::cout << "penalty lower: accepting new neighbor" << std::endl;
 				neighbor->SetParent(current);
+				neighbor->SetPenalty(penalty);
 				neighbor->UpdateCosts();
 			}
 		}
 		else if (current->g < parentCost)
 		{
+			std::cout << "g is lower: accepting new neighbor" << std::endl;
 			neighbor->SetParent(current);
+			neighbor->SetPenalty(penalty);
 			neighbor->UpdateCosts();
 		}
+
+		std::cout << "\tUPDATED " << *neighbor << std::endl;
 	}
 	else // create a new info and add it to the open queue
 	{
@@ -212,9 +238,9 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 
 		float heuristic = Heuristics::Manhattan(neighborTile, goal);
 		neighbor->bIsInOpen = true;
-		neighbor->SetInfo(current, neighborTimestep, neighborTile, heuristic, customCost);
+		neighbor->SetInfo(current, neighborTimestep, neighborTile, heuristic, penalty);
 
-#if DEBUG_SIMPLE
+#if 1
 		std::cout << "\tADDED " << *neighbor << std::endl;
 #endif
 

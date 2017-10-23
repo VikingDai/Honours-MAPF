@@ -4,7 +4,7 @@
 
 std::vector<MAPF::AgentPathRef*> MAPF::AgentPathRef::PATH_REF_POOL;
 
-MAPF::AgentPathRef* MAPF::AgentPathRef::Make(std::vector<AgentPathRef*>& usedPathRefs, Agent* agent, int pathIndex)
+MAPF::AgentPathRef* MAPF::AgentPathRef::Make(Agent* agent, int pathIndex, std::vector<AgentPathRef*>& usedPathRefs)
 {
 	AgentPathRef* pathRef = nullptr;
 
@@ -34,7 +34,7 @@ MAPF::Path& MAPF::AgentPathRef::GetPath()
 {
 	if (IsValid())
 	{
-		return agent->potentialPaths[pathIndex];
+		return agent->pathBank[pathIndex];
 	}
 	else
 	{
@@ -46,7 +46,7 @@ MAPF::Path& MAPF::AgentPathRef::GetPath()
 
 bool MAPF::AgentPathRef::IsValid()
 {
-	return agent && pathIndex >= 0 && pathIndex < agent->potentialPaths.size();
+	return agent && pathIndex >= 0 && pathIndex < agent->pathBank.size();
 }
 
 std::ostream& MAPF::operator<<(std::ostream& os, AgentPathRef& pathRef)

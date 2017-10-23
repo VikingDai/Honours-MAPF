@@ -53,7 +53,7 @@ public:
 		this->f = g + h + penalty;
 	}
 
-	void SetInfo(AStarTileTime* parent, int timestep, Tile* tile, float heuristic, float customCost)
+	void SetInfo(AStarTileTime* parent, int timestep, Tile* tile, float heuristic, float penalty)
 	{
 		SetParent(parent);
 
@@ -61,8 +61,14 @@ public:
 		this->tile = tile;
 
 		this->h = heuristic;
-		this->penalty = customCost;
+		this->penalty = penalty;
 
+		UpdateCosts();
+	}
+
+	void SetPenalty(float penalty)
+	{
+		this->penalty = penalty;
 		UpdateCosts();
 	}
 
@@ -89,12 +95,11 @@ public:
 	{
 		if (f == other.f)
 		{
-			//if (penalty == other.penalty)
+			if (g == other.g)
 			{
-				return g > other.g;
+				return penalty < other.penalty;
 			}
-			
-			return penalty < other.penalty;
+			return g > other.g;
 		}
 
 		return f < other.f;
@@ -104,12 +109,12 @@ public:
 	{
 		if (f == other.f)
 		{
-			//if (penalty == other.penalty)
+			if (g == other.g)
 			{
-				return g < other.g;
+				return penalty > other.penalty;
 			}
 
-			return penalty > other.penalty;
+			return g < other.g;
 		}
 
 		return f > other.f;
@@ -123,6 +128,12 @@ public:
 			" | g: " << tileTime.g <<
 			" | h: " << tileTime.h <<
 			" | penalty: " << tileTime.penalty;
+
+		os << " | parent: ";
+		if (tileTime.parent != nullptr)
+			os << *tileTime.parent->tile << " @ " << tileTime.parent->timestep;
+		else
+			os << "nullptr";
 
 		return os;
 	}

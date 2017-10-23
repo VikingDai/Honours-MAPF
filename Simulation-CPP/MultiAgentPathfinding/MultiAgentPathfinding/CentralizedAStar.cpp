@@ -68,7 +68,7 @@ void CentralizedAStar::AssignPaths(std::vector<Agent*>& agents)
 
 			for (auto& it : agentPath)
 			{
-				it.first->potentialPaths.push_back(it.second);
+				it.first->pathBank.push_back(it.second);
 
 				std::cout << *it.first << std::endl;
 

@@ -4,7 +4,7 @@
 #include <sstream>
 #include <string>
 
-#define DEBUG_MIP 0
+#define DEBUG_MIP 1
 #define DEBUG_STATS 0
 
 PathAssigner::PathAssigner(GridMap* inGridMap)
@@ -105,10 +105,10 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, MAPF::Path
 		agentVariables.push_back(penaltyVar);
 
 		// for each path construct a variable in the form 'a1p1'
-		std::vector<MAPF::Path>& paths = agent->potentialPaths;
+		std::vector<MAPF::Path>& paths = agent->pathBank;
 		for (int i = 0; i < paths.size(); i++)
 		{
-			MAPF::AgentPathRef* path = MAPF::AgentPathRef::Make(usedPathRefs, agent, i);
+			MAPF::AgentPathRef* path = MAPF::AgentPathRef::Make(agent, i, usedPathRefs);
 			assert(!path->GetPath().empty());
 
 			// create variable describing path

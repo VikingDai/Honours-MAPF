@@ -34,7 +34,7 @@ private:
 
 	MAPF::AgentPathRef* pathRef;
 public:
-	std::vector<MAPF::Path> potentialPaths;
+	std::vector<MAPF::Path> pathBank;
 
 	MAPF::Path& GetAssignedPath() 
 	{ 
@@ -68,6 +68,8 @@ public:
 	void DrawLineToGoal(sf::RenderWindow& window);
 	void DrawGoal(sf::RenderWindow& window);
 	void DrawAgent(sf::RenderWindow& window);
+
+	MAPF::AgentPathRef* GeneratePath(GridMap* gridMap, CollisionPenalties& penalties, std::vector<MAPF::AgentPathRef*>& usedPathRefs = std::vector<MAPF::AgentPathRef*>());
 
 	friend std::ostream& operator<<(std::ostream& os, Agent& agent);
 };

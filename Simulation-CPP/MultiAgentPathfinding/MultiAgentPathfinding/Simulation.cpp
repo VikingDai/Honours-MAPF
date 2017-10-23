@@ -258,7 +258,7 @@ void Simulation::BuildOptions()
 	for (Agent* agent : environment.agents)
 	{
 		char agentName[50];
-		sprintf(agentName, "agent %d : %d paths", agent->GetAgentId(), agent->potentialPaths.size());
+		sprintf(agentName, "agent %d : %d paths", agent->GetAgentId(), agent->pathBank.size());
 		ImGui::Checkbox(agentName, &debugAgents[agent]);
 	}
 

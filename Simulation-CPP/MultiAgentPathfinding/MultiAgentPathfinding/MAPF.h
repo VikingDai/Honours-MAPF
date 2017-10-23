@@ -24,7 +24,7 @@ namespace MAPF
 		AgentPathRef(Agent* agent, int pathIndex) : agent(agent), pathIndex(pathIndex) {}
 
 	public:
-		static AgentPathRef* Make(std::vector<AgentPathRef*>& usedPathRefs, Agent* agent, int pathIndex);
+		static AgentPathRef* Make(Agent* agent, int pathIndex, std::vector<AgentPathRef*>& usedPathRefs = std::vector<AgentPathRef*>());
 		static AgentPathRef* MakeNull(Agent* agent);
 
 		Path& GetPath();

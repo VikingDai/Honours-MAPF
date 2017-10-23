@@ -102,11 +102,11 @@ void Agent::DrawPath(sf::RenderWindow& window)
 
 void Agent::DrawPotentialPaths(sf::RenderWindow& window)
 {
-	float pathSep = .4 / potentialPaths.size();
+	float pathSep = .4 / pathBank.size();
 
-	for (int pathIndex = 0; pathIndex < potentialPaths.size(); pathIndex++)
+	for (int pathIndex = 0; pathIndex < pathBank.size(); pathIndex++)
 	{
-		MAPF::Path& path = potentialPaths[pathIndex];
+		MAPF::Path& path = pathBank[pathIndex];
 		if (path.empty()) continue;
 
 		sf::VertexArray points(sf::LineStrip, path.size());
@@ -160,8 +160,39 @@ void Agent::DrawAgent(sf::RenderWindow& window)
 	window.draw(textAgentId);
 }
 
+MAPF::AgentPathRef* Agent::GeneratePath(GridMap* gridMap, CollisionPenalties& penalties, std::vector<MAPF::AgentPathRef*>& usedPathRefs)
+{
+	MAPF::Path& path = temporalAStar.FindPath(gridMap->GetTileAt(x, y), goal, penalties);
+
+	std::cout << "Generated path for agent " << agentId << std::endl;
+
+	for (int i = 0; i < path.size(); i++)
+	{
+		std::cout << *path[i];
+
+		if (i != path.size() - 1)
+			std::cout << " > ";
+	}
+	std::cout << std::endl;
+	
+
+	if (std::find(pathBank.begin(), pathBank.end(), path) == pathBank.end())
+	{
+		std::cout << "Path added to bank" << std::endl;
+		pathBank.emplace_back(path);
+		return MAPF::AgentPathRef::Make(this, pathBank.size() - 1, usedPathRefs);
+	}
+	else
+	{
+		std::cout << "PATH NOT ADDED TO BANK: This is a duplicate path" << std::endl;
+		return nullptr;
+	}
+	
+}
+
 std::ostream& operator<<(std::ostream& os, Agent& agent)
 {
 	os << "Agent " << agent.GetAgentId(); //<< "[" << agent.x << "," << agent.y << " | Goal " << *agent.goal << "]";
 	return os;
 }
+

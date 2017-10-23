@@ -104,5 +104,7 @@ public:
 	void UpdateAgents2(std::vector<Agent*>& agents);
 	std::vector<MAPF::PathCollision> CheckForCollisions(std::vector<Agent*>& agents);
 
-	CollisionPenalties& CreatePenalties(std::vector<Agent*>& agents);
+	void CreateActionPenalties(CollisionPenalties& penalties, MAPF::AgentPathRef* pathRef);
+
+	void GeneratePath2(MAPF::PathCollision& collision);
 };
