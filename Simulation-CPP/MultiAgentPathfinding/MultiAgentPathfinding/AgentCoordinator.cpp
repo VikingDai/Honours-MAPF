@@ -714,7 +714,7 @@ std::vector<MAPF::PathCollision> AgentCoordinator::CheckForCollisions(std::vecto
 				if (pathRef->agent != pathRefOther->agent) // path must be of a different agent
 					uniqueCollisions.emplace(pathRef, pathRefOther);
 			
-			collisionTable[MAPF::TileTime(currentTile, i)].push_back(pathRef);
+
 			
 			/** CHECK FOR PASSING COLLISIONS */
 			if (i == 0) continue;
@@ -735,15 +735,12 @@ std::vector<MAPF::PathCollision> AgentCoordinator::CheckForCollisions(std::vecto
 
 				if (currentTileOther == previousTile && previousTileOther == currentTile)
 				{
-					/*collisionTable[MAPF::TileTime(currentTile, i)].push_back(pathRef);
-					collisionTable[MAPF::TileTime(currentTile, i)].push_back(pathRefOther);*/
-
-					uniqueCollisions.emplace(pathRef, pathRefOther);
-
-					//collisionTable[MAPF::TileTime(previousTile, i)].push_back(pathRef);
-					//collisionTable[MAPF::TileTime(previousTile, i)].push_back(pathRefOther);
+					//uniqueCollisions.emplace(pathRef, pathRefOther);
 				}
-			}
+			}			
+			
+			// update the table describing that this path was here at this timestep
+			collisionTable[MAPF::TileTime(currentTile, i)].push_back(pathRef);
 		}
 	}
 

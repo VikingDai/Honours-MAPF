@@ -7,10 +7,10 @@
 #include "Statistics.h"
 #include "Heuristics.h"
 
-#define DEBUG_VERBOSE 0
+#define DEBUG_VERBOSE 1
 #define DEBUG_STATS 0
 
-#define DEBUG_SIMPLE 0
+#define DEBUG_SIMPLE 1
 
 int TemporalAStar::GLOBAL_TILES_EXPANDED = 0;
 
@@ -121,7 +121,7 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, CollisionPenalties& 
 	}
 
 	// build the path
-	while (current->parent != nullptr)
+	while (current != nullptr)
 	{
 		path.push_front(current->tile);
 		current = current->parent;
@@ -196,7 +196,7 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 	LOCAL_TILES_EXPANDED += 1;
 	neighborTile->SetColor(sf::Color(current->tile->GetColor().r, current->tile->GetColor().g + 20, current->tile->GetColor().b, current->tile->GetColor().a));
 
-	float penalty = GetCustomCosts(current->timestep, current->tile, neighborTile, penalties);
+	float penalty = GetCustomCosts(neighborTimestep, current->tile, neighborTile, penalties);
 	float cost = current->g + 1;
 
 #if 0
@@ -240,7 +240,7 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 		neighbor->bIsInOpen = true;
 		neighbor->SetInfo(current, neighborTimestep, neighborTile, heuristic, penalty);
 
-#if 1
+#if DEBUG_VERBOSE
 		std::cout << "\tADDED " << *neighbor << std::endl;
 #endif
 
