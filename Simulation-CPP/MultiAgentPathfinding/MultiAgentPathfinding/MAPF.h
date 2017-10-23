@@ -12,6 +12,18 @@ namespace MAPF
 	using Path = std::deque<Tile*>;
 	using TileTime = std::pair<Tile*, int>;
 
+	static void PrintPath(Path& path)
+	{
+		std::cout << "Path {";
+		for (int i = 0; i < path.size(); i++)
+		{
+			std::cout << *path[i];
+
+			if (i != path.size() - 1)
+				std::cout << ", ";
+		}
+		std::cout << "}" << std::endl;
+	}
 
 	struct AgentPathRef
 	{

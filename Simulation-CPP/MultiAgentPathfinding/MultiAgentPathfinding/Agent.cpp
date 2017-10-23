@@ -166,14 +166,7 @@ MAPF::AgentPathRef* Agent::GeneratePath(GridMap* gridMap, CollisionPenalties& pe
 
 	std::cout << "Generated path for agent " << agentId << std::endl;
 
-	for (int i = 0; i < path.size(); i++)
-	{
-		std::cout << *path[i];
-
-		if (i != path.size() - 1)
-			std::cout << " > ";
-	}
-	std::cout << std::endl;
+	MAPF::PrintPath(path);
 	
 
 	if (std::find(pathBank.begin(), pathBank.end(), path) == pathBank.end())

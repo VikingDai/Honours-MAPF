@@ -70,34 +70,10 @@ private:
 private:
 	bool Init(std::vector<Agent*>& agents);
 
-	/** Generates a new path for an agent */
-	void GeneratePath(
-		Agent* agent, 
-		bool firstRun);
-
-	/** Groups together paths which are in collision with one another */
-	//using CollisionSet = std::vector<std::unordered_set<MAPF::AgentPathRef*, MAPF::AgentPathRefHash>>;
-
-	std::set<std::pair<Tile*, int>> tilesInCollision;
-
-	MAPF::PathCollisions DetectTileCollisions();
 	MAPF::PathCollisions crossCollisionSet;
-
-	/** Updates the collision table and stores any path collisions */
-	CollisionAtTime UpdateCollisions(MAPF::AgentPathRef* agentPathRef);
-
 public:
 	void Reset();
 
-	/** Gives each agent a conflict-free path */
-	void UpdateAgents(std::vector<Agent*>& agents);
-
-	/** Generate paths and attempt to resolve conflicts for one iteration */
-	bool Step(std::vector<Agent*>& agents);
-
-	void RenderCollisionCosts(sf::RenderWindow& window);
-
-	
 	int GetLongestPathLength(std::vector<Agent*>& agents);
 	Tile* GetTileAtTimestep(MAPF::Path& path, int timestep);
 

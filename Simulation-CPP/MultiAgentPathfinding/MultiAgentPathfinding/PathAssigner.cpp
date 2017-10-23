@@ -4,7 +4,7 @@
 #include <sstream>
 #include <string>
 
-#define DEBUG_MIP 1
+#define DEBUG_MIP 0
 #define DEBUG_STATS 0
 
 PathAssigner::PathAssigner(GridMap* inGridMap)

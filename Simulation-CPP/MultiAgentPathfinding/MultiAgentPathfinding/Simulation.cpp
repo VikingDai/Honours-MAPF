@@ -170,12 +170,12 @@ void Simulation::Step()
 
 	//coordinator->UpdateAgents(environment.agents);
 
-	if (coordinator->Step(environment.agents))
-	{
-		// we have resolved all conflicts, now move agents along their paths
+	//if (coordinator->Step(environment.agents))
+	//{
+	//	// we have resolved all conflicts, now move agents along their paths
 		for (Agent* agent : environment.agents)
 			agent->Step();
-	}
+	//}
 
 	environment.gridMapRenderTexture.display();
 
@@ -219,8 +219,8 @@ void Simulation::Render(sf::RenderWindow& window)
 			agent->DrawPath(window);
 	}
 
-	if (Options::showCollisionCosts)
-		coordinator->RenderCollisionCosts(window);
+	//if (Options::showCollisionCosts)
+		//coordinator->RenderCollisionCosts(window);
 }
 
 void Simulation::BuildOptions()

@@ -83,7 +83,7 @@ void Experiment::RunExperiment(std::string filename, Environment& environment)
 					numAgents);
 
 				AgentCoordinator coordinator(&environment.gridMap);
-				coordinator.UpdateAgents(environment.agents);
+				coordinator.UpdateAgents2(environment.agents);
 
 				timeCollisionDetection += coordinator.timerCollisionDetection.GetAvgTime();
 				timePathAssignment += coordinator.timerPathAssignment.GetAvgTime();

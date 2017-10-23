@@ -5,6 +5,7 @@
 
 #define DEBUG_ASTAR 0
 #define DEBUG_LOG 0
+#define DEBUG_STATS 0
 
 AStar::AStar(GridMap* inGridMap)
 {
@@ -96,7 +97,9 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 
 	timer.End();
 
-	std::cout << "AStar exp <" << LOCAL_EXP << " | AStar gen <" << LOCAL_GEN << " | AStar touch <" << LOCAL_TOUCH << "> | Took " << timer.GetTimeElapsed() << " | " << timer.GetTimeElapsed() / LOCAL_GEN << " per expansion  | found path size " << path.size() << std::endl;
+#if DEBUG_STATS
+	std::cout << "AStar exp <" << LOCAL_EXP << "> | AStar gen <" << LOCAL_GEN << "> | AStar touch <" << LOCAL_TOUCH << "> | Took " << timer.GetTimeElapsed() << " | " << timer.GetTimeElapsed() / LOCAL_GEN << " per expansion  | found path size " << path.size() << std::endl;
+#endif
 
 	for (Tile* tile : path)
 		tile->SetColor(sf::Color::Blue);
