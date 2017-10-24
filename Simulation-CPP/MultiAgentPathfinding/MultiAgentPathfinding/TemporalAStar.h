@@ -122,7 +122,7 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& os, AStarTileTime& tileTime)
 	{
-		os << *tileTime.tile <<
+		os << "Tile " << *tileTime.tile <<
 			" | time: " << tileTime.timestep <<
 			" | f: " << tileTime.f <<
 			" | g: " << tileTime.g <<
@@ -131,7 +131,7 @@ public:
 
 		os << " | parent: ";
 		if (tileTime.parent != nullptr)
-			os << *tileTime.parent->tile << " @ " << tileTime.parent->timestep;
+			os << "Tile " << *tileTime.parent->tile << " @ " << tileTime.parent->timestep;
 		else
 			os << "nullptr";
 

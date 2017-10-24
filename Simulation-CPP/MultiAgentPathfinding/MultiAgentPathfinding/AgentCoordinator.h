@@ -29,7 +29,6 @@ private:
 
 public:
 	AgentCoordinator(GridMap* map);
-	~AgentCoordinator();
 	
 	Timer timerCollisionDetection;
 	Timer timerPathAssignment;
@@ -42,15 +41,19 @@ private:
 
 	MAPF::PathCollisions crossCollisionSet;
 public:
-	void Reset();
+
+	void Solve(std::vector<Agent*>& agents);
+
+	void AssignShortestPath(std::vector<Agent*>& agents);
 
 	int GetLongestPathLength(std::vector<Agent*>& agents);
 	Tile* GetTileAtTimestep(MAPF::Path& path, int timestep);
 
-	void UpdateAgents2(std::vector<Agent*>& agents);
+	
 	std::vector<MAPF::PathCollision> CheckForCollisions(std::vector<Agent*>& agents);
 
 	void CreateActionPenalties(CollisionPenalties& penalties, MAPF::AgentPathRef* pathRef);
 
-	void GeneratePath2(MAPF::PathCollision& collision);
+	void GenerateCollision(MAPF::PathCollision& collision);
+	void GenerateAgainstPath(Agent* agent, MAPF::AgentPathRef* path);
 };

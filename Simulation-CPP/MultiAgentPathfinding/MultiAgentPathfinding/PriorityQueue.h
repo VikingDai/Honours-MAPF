@@ -133,7 +133,7 @@ public:
 		return maxSize * sizeof(T) + sizeof(*this);
 	}
 
-//private:
+	//private:
 	int maxSize;
 	bool minQueue;
 	int queueSize;
@@ -229,11 +229,27 @@ public:
 		tmp->SetPriority(index2);
 	}
 
+	void Copy(PriorityQueue& otherQueue)
+	{
+		otherQueue.maxSize = maxSize;
+		otherQueue.minQueue = minQueue;
+		otherQueue.queueSize = queueSize;
+
+		otherQueue.Resize(maxSize);
+
+		for (unsigned int i = 0; i < queueSize; i++)
+			otherQueue.arr[i] = arr[i];
+	}
+
 	friend std::ostream& operator<<(std::ostream& os, PriorityQueue& queue)
 	{
+		PriorityQueue queueCopy(queue.Size(), true);
+		queue.Copy(queueCopy);
+
 		os << "Priority Queue: " << std::endl;
-		for (int i = 0; i < queue.queueSize; i++)
-			os << "\t" << *queue.arr[i] << std::endl;
+		while (!queueCopy.Empty())
+			os << "\t" << *queueCopy.Pop() << std::endl;
+
 		return os;
 	}
 

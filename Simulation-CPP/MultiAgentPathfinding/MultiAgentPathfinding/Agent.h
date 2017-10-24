@@ -48,6 +48,7 @@ public:
 	MAPF::AgentPathRef* GetPathRef() { return pathRef; }
 
 public:
+	int shortestPathLength;
 	Tile* goal;
 
 	sf::Color color;
@@ -69,7 +70,9 @@ public:
 	void DrawGoal(sf::RenderWindow& window);
 	void DrawAgent(sf::RenderWindow& window);
 
-	MAPF::AgentPathRef* GeneratePath(GridMap* gridMap, CollisionPenalties& penalties, std::vector<MAPF::AgentPathRef*>& usedPathRefs = std::vector<MAPF::AgentPathRef*>());
+	void GeneratePath(MAPF::Path& outPath, GridMap* gridMap, CollisionPenalties& penalties);
+
+	MAPF::AgentPathRef* AddToPathBank(MAPF::Path& path, std::vector<MAPF::AgentPathRef*>& usedPathRefs = std::vector<MAPF::AgentPathRef*>());
 
 	friend std::ostream& operator<<(std::ostream& os, Agent& agent);
 };

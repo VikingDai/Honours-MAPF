@@ -160,27 +160,20 @@ void Agent::DrawAgent(sf::RenderWindow& window)
 	window.draw(textAgentId);
 }
 
-MAPF::AgentPathRef* Agent::GeneratePath(GridMap* gridMap, CollisionPenalties& penalties, std::vector<MAPF::AgentPathRef*>& usedPathRefs)
+void Agent::GeneratePath(MAPF::Path& outPath, GridMap* gridMap, CollisionPenalties& penalties)
 {
-	MAPF::Path& path = temporalAStar.FindPath(gridMap->GetTileAt(x, y), goal, penalties);
+	outPath = temporalAStar.FindPath(gridMap->GetTileAt(x, y), goal, penalties);
+}
 
-	std::cout << "Generated path for agent " << agentId << std::endl;
-
-	MAPF::PrintPath(path);
-	
-
-	if (std::find(pathBank.begin(), pathBank.end(), path) == pathBank.end())
-	{
-		std::cout << "Path added to bank" << std::endl;
-		pathBank.emplace_back(path);
-		return MAPF::AgentPathRef::Make(this, pathBank.size() - 1, usedPathRefs);
-	}
-	else
-	{
-		std::cout << "PATH NOT ADDED TO BANK: This is a duplicate path" << std::endl;
+MAPF::AgentPathRef* Agent::AddToPathBank(MAPF::Path& path, std::vector<MAPF::AgentPathRef*>& usedPathRefs)
+{
+	// check if the path is already in the path bank
+	if (std::find(pathBank.begin(), pathBank.end(), path) != pathBank.end())
 		return nullptr;
-	}
 	
+	// if not then add it
+	pathBank.emplace_back(path);
+	return MAPF::AgentPathRef::Make(this, pathBank.size() - 1, usedPathRefs);
 }
 
 std::ostream& operator<<(std::ostream& os, Agent& agent)

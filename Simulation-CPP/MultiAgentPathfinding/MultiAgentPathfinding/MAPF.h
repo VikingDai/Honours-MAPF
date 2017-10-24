@@ -67,7 +67,7 @@ namespace MAPF
 
 		PathCollision(AgentPathRef* a, AgentPathRef* b) : a(a), b(b) {}
 
-		float CalculateDelta() { return 1; };
+		float CalculateDelta();
 
 		friend bool operator==(const PathCollision& a, const PathCollision& b)
 		{

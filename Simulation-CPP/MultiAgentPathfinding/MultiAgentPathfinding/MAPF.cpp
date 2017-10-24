@@ -51,6 +51,22 @@ bool MAPF::AgentPathRef::IsValid()
 
 std::ostream& MAPF::operator<<(std::ostream& os, AgentPathRef& pathRef)
 {
-	os << "Path " << pathRef.pathIndex << ": Agent(" << pathRef.agent->GetAgentId() << ")";
+	os << "a" << pathRef.agent->GetAgentId() << "p" << pathRef.pathIndex << ": {";
+
+	Path& path = pathRef.GetPath();
+	for (int i = 0; i < path.size(); i++)
+	{
+		Tile* tile = path[i];
+		os << *tile;
+
+		if (i < path.size() - 1) 
+			os << ", ";
+	}
+	os << "}";
 	return os;
+}
+
+float MAPF::PathCollision::CalculateDelta()
+{
+	return (a->GetPath().size() - a->agent->shortestPathLength) + (b->GetPath().size() - b->agent->shortestPathLength);
 }

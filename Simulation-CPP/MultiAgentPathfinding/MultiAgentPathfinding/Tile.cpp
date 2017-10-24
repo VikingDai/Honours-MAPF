@@ -28,7 +28,7 @@ void Tile::Reset()
 
 std::ostream& operator<<(std::ostream& os, Tile& tile)
 {
- 	os << "Tile " << tile.index << " (" << tile.x << "," << tile.y << ")";
+	os << tile.index; //"Tile " << tile.index << " (" << tile.x << "," << tile.y << ")";
 	return os;
 }
 

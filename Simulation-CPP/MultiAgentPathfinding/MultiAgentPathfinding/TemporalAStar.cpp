@@ -48,7 +48,7 @@ TemporalAStar::~TemporalAStar()
 MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, CollisionPenalties& penalties)
 {
 #if DEBUG_VERBOSE
-	std::cout << std::endl << "*** FINDING PATH FROM ***" << *start << " to " << *goal << std::endl;
+	std::cout << std::endl << "### FINDING PATH FROM " << *start << " to " << *goal << std::endl;
 	std::cout << "PENALTIES: " << std::endl;
 	for (auto& it : penalties.actionCollisions)
 	{
@@ -59,6 +59,7 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, CollisionPenalties& 
 			std::cout << "\tACTION FROM " << *pair.first.first << " TO " << *pair.first.second << " at time " << time << " Has a penalty of " << pair.second << std::endl;
 		}
 	}
+	std::cout << std::endl;
 #endif
 
 	MAPF::Path path;
@@ -91,12 +92,12 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, CollisionPenalties& 
 	{	
 
 #if DEBUG_VERBOSE
-		std::cout << ">>>>> CHOOSING FROM OPEN QUEUE"<< std::endl;
+		std::cout << "### Choosing from Open ";
 		std::cout << open << std::endl;
 #endif
 		current = open.Pop();
 #if DEBUG_SIMPLE
-		std::cout << "CHOSE " << *current << std::endl;
+		std::cout << "Temporal A* expanded " << *current << std::endl;
 #endif
 		
 		current->bClosed = true;
@@ -115,7 +116,7 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, CollisionPenalties& 
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 1, 0), start, goal, penalties); // right
 		
 
-#if DEBUG_VERBOSE
+#if DEBUG_STATS
 		std::cout << "Temporal A* has expanded: " << LOCAL_TILES_EXPANDED << std::endl;
 #endif
 	}
@@ -213,7 +214,7 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 		if (current->g == parentCost)
 		{
 			float currentPenalty = current->penalty;
-			bool newIsBetter = penalty < currentPenalty;
+			bool newIsBetter = currentPenalty < penalty;
 			if (newIsBetter)
 			{
 				std::cout << "penalty lower: accepting new neighbor" << std::endl;
@@ -241,7 +242,7 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 		neighbor->SetInfo(current, neighborTimestep, neighborTile, heuristic, penalty);
 
 #if DEBUG_VERBOSE
-		std::cout << "\tADDED " << *neighbor << std::endl;
+		std::cout << "\tGenerated " << *neighbor << std::endl;
 #endif
 
 		open.Push(neighbor);
