@@ -38,19 +38,38 @@ public:
 	int timestep = 0;
 	Tile* tile;
 	float f = 0;
+
+private:
 	float g = 0;
 	float penalty = 0;
+
+public:
 	float h = 0;
+
+	float GetPenalty() const
+	{
+		float parentPenalty = parent ? parent->GetPenalty() : 0;
+		return penalty + parentPenalty;
+	}
+
+	float GetG() const
+	{
+		float parentG = parent ? parent->GetG() : 0;
+		return parent ? parent->GetG() + 1 + GetPenalty() : 0;
+	}
 
 	void SetParent(AStarTileTime* parent)
 	{
 		this->parent = parent;
-		this->g = parent ? parent->g + 1 : 0;
+		//this->g = parent ? parent->g + 1 : 0;
+		UpdateCosts();
 	}
 
 	void UpdateCosts()
 	{
-		this->f = g + h + penalty;
+		//float parentG = parent ? parent->g : 0;
+		//this->g = parentG + 1 + penalty;
+		this->f = GetG() + GetPenalty();
 	}
 
 	void SetInfo(AStarTileTime* parent, int timestep, Tile* tile, float heuristic, float penalty)
@@ -95,11 +114,11 @@ public:
 	{
 		if (f == other.f)
 		{
-			if (g == other.g)
+			if (GetG() == other.GetG())
 			{
-				return penalty < other.penalty;
+				return GetPenalty() < other.GetPenalty();
 			}
-			return g > other.g;
+			return GetG() > other.GetG();
 		}
 
 		return f < other.f;
@@ -109,12 +128,12 @@ public:
 	{
 		if (f == other.f)
 		{
-			if (g == other.g)
+			if (GetG() == other.GetG())
 			{
-				return penalty > other.penalty;
+				return GetPenalty() > other.GetPenalty();
 			}
 
-			return g < other.g;
+			return GetG() < other.GetG();
 		}
 
 		return f > other.f;
@@ -125,8 +144,8 @@ public:
 		os << "Tile " << *tileTime.tile <<
 			" | time: " << tileTime.timestep <<
 			" | f: " << tileTime.f <<
-			" | g: " << tileTime.g <<
-			" | h: " << tileTime.h <<
+			" | g: " << tileTime.GetG() <<
+			" | h: " << tileTime.GetPenalty() <<
 			" | penalty: " << tileTime.penalty;
 
 		os << " | parent: ";
@@ -141,7 +160,7 @@ public:
 
 struct CollisionPenalties
 {
-	std::map<int, std::map<std::pair<Tile*, Tile*>, float>> actionCollisions;
+	std::map<int, std::map<std::pair<Tile*, Tile*>, float>> edge;
 };
 
 class TemporalAStar

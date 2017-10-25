@@ -36,12 +36,10 @@ void AgentCoordinator::Solve(std::vector<Agent*>& agents)
 		std::cout << std::endl << "--- ITERATION " << iteration++ << " ---" << std::endl;
 
 		// run the MIP and apply the path assignment solution
-		std::cout << "Running MIP and assigning paths" << std::endl;
-
-		std::cout << "Constraints:" << std::endl;
+		std::cout << "Running MIP and assigning paths with constraints:" << std::endl;
 		for (auto& constraint : pathConstraints)
 		{
-			std::cout << "\tNOT ( ";
+			std::cout << "\tNOT (";
 			for (MAPF::AgentPathRef* pathRef : constraint)
 			{
 				std::cout << *pathRef << " & ";
@@ -49,15 +47,30 @@ void AgentCoordinator::Solve(std::vector<Agent*>& agents)
 			std::cout << ")" << std::endl;
 		}
 
+		std::cout << "Path bank for agents:" << std::endl;
+		for (Agent* agent : agents)
+		{
+			for (int i = 0; i < agent->pathBank.size(); i++)
+			{
+				std::cout << "\t" << *new MAPF::AgentPathRef(agent, i) << std::endl;
+			}
+		}
+
 		pathAssigner.AssignPaths(agents, pathConstraints);
 
 		std::cout << "ASSIGNMENT:" << std::endl;
 		for (Agent* agent : agents)
-			std::cout << "\t" << *agent->GetPathRef() << std::endl;
+		{
+			MAPF::AgentPathRef* pathRef = agent->GetPathRef();
+			if (pathRef)
+				std::cout << "\t" << *pathRef << std::endl;
+			else
+				std::cout << "\ta" << agent->GetAgentId() << ": NOT ASSIGNED A PATH!" << std::endl;
+		}
 		std::cout << std::endl;
 
 		// check the path assignment for collisions
-		std::cout << "CHECKING FOR COLLISIONS" << std::endl;
+		//std::cout << "CHECKING FOR COLLISIONS" << std::endl;
 		std::vector<MAPF::PathCollision>& collisions = CheckForCollisions(agents);
 		std::cout << std::endl;
 
@@ -70,17 +83,39 @@ void AgentCoordinator::Solve(std::vector<Agent*>& agents)
 		{
 			// get the path collision with the lowest delta
 			std::sort(collisions.begin(), collisions.end(), MAPF::DeltaComparator());
-			MAPF::PathCollision lowestDelta = collisions[0];
-			std::cout << "Lowest Delta collision between: \n\t" << *lowestDelta.a << "\n\t" << *lowestDelta.b << std::endl;
 
-			// for the two agents in the collision: find and store and alternative path
-			GenerateCollision(lowestDelta);
+			const MAPF::PathCollision lowestDelta = collisions[0];
+			std::cout << "Lowest Delta collision between: \n\t" << *lowestDelta.a << "\n\t" << *lowestDelta.b << std::endl;
 
 			// create path constraints from this path collision and use them in the next run of the MIP
 			std::set<MAPF::AgentPathRef*> constraint;
 			constraint.emplace(lowestDelta.a);
 			constraint.emplace(lowestDelta.b);
 			pathConstraints.push_back(constraint);
+			std::cout << "Created CONSTRAINT: NOT " << *lowestDelta.a << " AND " << *lowestDelta.b << std::endl;
+
+			std::cout << "Actual collision:" << std::endl;
+			for (MAPF::AgentPathRef* restriction : constraint)
+			{
+				std::cout << "\t" << *restriction << std::endl;
+			}
+			std::cout << std::endl;
+
+
+			std::cout << "All Collisions:" << std::endl;
+			for (auto& collision : collisions)
+			{
+				std::cout << *collision.a << " and " << *collision.b << std::endl;
+			}
+
+			// for the two agents in the collision: find and store and alternative path
+			GeneratePathsFromCollision(lowestDelta);
+
+			std::cout << "All Collisions AFTER:" << std::endl;
+			for (auto& collision : collisions)
+			{
+				std::cout << *collision.a << " and " << *collision.b << std::endl;
+			}
 		}
 	}
 }
@@ -91,7 +126,7 @@ void AgentCoordinator::AssignShortestPath(std::vector<Agent*>& agents)
 	for (Agent* agent : agents)
 	{
 		agent->pathBank.emplace_back(aStar.FindPath(gridMap->GetTileAt(agent->x, agent->y), agent->goal));
-		MAPF::AgentPathRef* pathRef = MAPF::AgentPathRef::Make(agent, agent->pathBank.size() - 1, usedPathRefs);
+		MAPF::AgentPathRef* pathRef = new MAPF::AgentPathRef(agent, agent->pathBank.size() - 1); //MAPF::AgentPathRef::Make(agent, agent->pathBank.size() - 1, usedPathRefs);
 		agent->SetPath(pathRef);
 		agent->shortestPathLength = pathRef->GetPath().size();
 
@@ -143,11 +178,10 @@ std::vector<MAPF::PathCollision> AgentCoordinator::CheckForCollisions(std::vecto
 			// if there are already paths at this time on this tile, then there is a collision
 			for (MAPF::AgentPathRef* pathRefOther : pathRefs)
 			{
-				if (pathRef->agent != pathRefOther->agent) // path must be of a different agent
-				{
-					std::cout << "Tile collision at time " << i << " between: \n\t" << *pathRef << "\n\t" << *pathRefOther << std::endl;
-					uniqueCollisions.emplace(pathRef, pathRefOther);
-				}
+				if (pathRef->agent == pathRefOther->agent) continue; // collisions must be between two different agents
+
+				std::cout << "SIMPLE DETECTION: Tile collision at time " << i << " between: \n\t" << *pathRef << "\n\t" << *pathRefOther << std::endl;
+				uniqueCollisions.emplace(pathRef, pathRefOther);
 			}
 
 			/** CHECK FOR PASSING COLLISIONS */
@@ -158,14 +192,14 @@ std::vector<MAPF::PathCollision> AgentCoordinator::CheckForCollisions(std::vecto
 
 			for (MAPF::AgentPathRef* pathRefOther : previousPathRefs)
 			{
-				if (pathRef->agent == pathRefOther->agent) continue;
+				if (pathRef->agent == pathRefOther->agent) continue; // collisions must be between two different agents
 
 				Tile* currentTileOther = GetTileAtTimestep(pathRefOther->GetPath(), i);
 				Tile* previousTileOther = GetTileAtTimestep(pathRefOther->GetPath(), i - 1);
 
 				if (currentTileOther == previousTile && previousTileOther == currentTile)
 				{
-					std::cout << "Pass collision at time " << i << " between: \n\t" << *pathRef << "\n\t" << *pathRefOther << std::endl;
+					std::cout << "SIMPLE DETECTION: Pass collision at time " << i << " between: \n\t" << *pathRef << "\n\t" << *pathRefOther << std::endl;
 					uniqueCollisions.emplace(pathRef, pathRefOther);
 				}
 			}
@@ -179,12 +213,11 @@ std::vector<MAPF::PathCollision> AgentCoordinator::CheckForCollisions(std::vecto
 	return collisions;
 }
 
-void AgentCoordinator::CreateActionPenalties(CollisionPenalties& penalties, MAPF::AgentPathRef* pathRef)
+void AgentCoordinator::CreateEdgePenalties(CollisionPenalties& penalties, MAPF::AgentPathRef* pathRef)
 {
 	MAPF::Path& path = pathRef->GetPath();
 
-	std::cout << "Creating penalties for ";
-	MAPF::PrintPath(path);
+	std::cout << "Creating penalties for " << pathRef << std::endl;
 
 	std::map<int, std::set<std::pair<Tile*, Tile*>>> timeActionSet;
 
@@ -217,29 +250,85 @@ void AgentCoordinator::CreateActionPenalties(CollisionPenalties& penalties, MAPF
 		for (auto& action : it.second)
 		{
 			//std::cout << "Penalty at time: " << time << " for action: " << *action.first << " > " << *action.second << std::endl;
-			penalties.actionCollisions[time][action] += 1;
+			penalties.edge[time][action] += 1;
 		}
 	}
 }
 
-void AgentCoordinator::GenerateCollision(MAPF::PathCollision& collision)
+void AgentCoordinator::GeneratePathsFromCollision(const MAPF::PathCollision collision)
 {
 	Agent* agentA = collision.a->agent;
 	Agent* agentB = collision.b->agent;
 
-	GenerateAgainstPath(agentA, collision.b);
-	GenerateAgainstPath(agentB, collision.a);
+	MAPF::Path& pathA = collision.a->GetPath();
+	MAPF::Path& pathB = collision.b->GetPath();
+
+	int longestPathLength = max(pathA.size(), pathB.size());
+
+	for (int i = 0; i < longestPathLength; i++) // check if any tiles are already in use
+	{
+		Tile* tileA = GetTileAtTimestep(collision.a->GetPath(), i);
+		Tile* tileB = GetTileAtTimestep(collision.b->GetPath(), i);
+
+		/** CHECK FOR OVERLAP COLLISIONS */
+		if (tileA == tileB)
+		{
+			std::cout << "PENALTY: Tile collision at time " << i << " between: \n\t" << *collision.a << "\n\t" << *collision.b << std::endl;
+
+			for (Tile* neighbor : gridMap->GetNeighbors(tileA)) // penalize tile collisions
+			{
+				MAPF::Edge edge(neighbor, tileA);
+				agentA->penalties.edge[i][edge] += 1;
+				agentB->penalties.edge[i][edge] += 1;
+			}
+
+			MAPF::Edge waitEdge(tileA, tileA);
+			agentA->penalties.edge[i][waitEdge] += 1;
+			agentB->penalties.edge[i][waitEdge] += 1;
+		}
+
+		/** CHECK FOR PASSING COLLISIONS */
+		if (i == 0) continue;
+		Tile* previousTileA = GetTileAtTimestep(collision.a->GetPath(), i - 1);
+		Tile* previousTileB = GetTileAtTimestep(collision.b->GetPath(), i - 1);
+
+		if (tileA == previousTileB && tileB == previousTileA)
+		{
+			std::cout << "PENALTY: Pass collision at time " << i << " between: \n\t" << *collision.a << "\n\t" << *collision.b << std::endl;
+			std::cout << "\t" << "(" << *previousTileA << "," << *tileA << ")" << std::endl;
+			std::cout << "\t" << "(" << *previousTileB << "," << *tileB << ")" << std::endl;
+			agentA->penalties.edge[i][MAPF::Edge(previousTileA, tileA)] += 1;
+			agentB->penalties.edge[i][MAPF::Edge(previousTileB, tileB)] += 1;
+		}
+	}
+
+	GeneratePath(agentA);
+	GeneratePath(agentB);
 }
 
-void AgentCoordinator::GenerateAgainstPath(Agent* agent, MAPF::AgentPathRef* otherPathRef)
+void AgentCoordinator::GeneratePath(Agent* agent)
 {
-	std::cout << "Generating path for " << *agent << " against " << *otherPathRef << std::endl;
+#if DEBUG_VERBOSE
+	std::cout << "Generating path for with penalties" << *agent << std::endl;
+#endif
 
-	CollisionPenalties penalties;
-	CreateActionPenalties(penalties, otherPathRef);
+	for (auto& it : agent->penalties.edge)
+	{
+		int time = it.first;
+		for (auto it2 : it.second)
+		{
+			float penalty = it2.second;
+#if DEBUG_VERBOSE
+			std::cout << "\tEdge " << *it2.first.first << " -> " << *it2.first.second << " has penalty " << penalty << std::endl;
+#endif
+		}
+		
+	}
+	std::cout << "" << std::endl;
+
 	MAPF::Path path;
-	agent->GeneratePath(path, gridMap, penalties);
-	MAPF::PrintPath(path);
+	agent->GeneratePath(path, gridMap);
+	
 	MAPF::AgentPathRef* newPath = agent->AddToPathBank(path, usedPathRefs);
 	if (newPath)
 		std::cout << "\t" << *newPath << std::endl;

@@ -14,6 +14,7 @@
 
 class Tile;
 class GridMap;
+class CollisionPenalties;
 
 class Agent : public EObject
 {
@@ -28,6 +29,8 @@ public:
 public:
 	TemporalBFS bfs;
 	TemporalAStar temporalAStar;
+
+	CollisionPenalties penalties;
 
 private:
 	int agentId;
@@ -70,7 +73,7 @@ public:
 	void DrawGoal(sf::RenderWindow& window);
 	void DrawAgent(sf::RenderWindow& window);
 
-	void GeneratePath(MAPF::Path& outPath, GridMap* gridMap, CollisionPenalties& penalties);
+	void GeneratePath(MAPF::Path& outPath, GridMap* gridMap);
 
 	MAPF::AgentPathRef* AddToPathBank(MAPF::Path& path, std::vector<MAPF::AgentPathRef*>& usedPathRefs = std::vector<MAPF::AgentPathRef*>());
 

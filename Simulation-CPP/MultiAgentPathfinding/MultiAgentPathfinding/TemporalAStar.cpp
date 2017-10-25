@@ -7,10 +7,10 @@
 #include "Statistics.h"
 #include "Heuristics.h"
 
-#define DEBUG_VERBOSE 1
+#define DEBUG_VERBOSE 0
 #define DEBUG_STATS 0
 
-#define DEBUG_SIMPLE 1
+#define DEBUG_SIMPLE 0
 
 int TemporalAStar::GLOBAL_TILES_EXPANDED = 0;
 
@@ -50,7 +50,7 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, CollisionPenalties& 
 #if DEBUG_VERBOSE
 	std::cout << std::endl << "### FINDING PATH FROM " << *start << " to " << *goal << std::endl;
 	std::cout << "PENALTIES: " << std::endl;
-	for (auto& it : penalties.actionCollisions)
+	for (auto& it : penalties.edge)
 	{
 		int time = it.first;
 		auto& it2 = it.second;
@@ -198,7 +198,7 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 	neighborTile->SetColor(sf::Color(current->tile->GetColor().r, current->tile->GetColor().g + 20, current->tile->GetColor().b, current->tile->GetColor().a));
 
 	float penalty = GetCustomCosts(neighborTimestep, current->tile, neighborTile, penalties);
-	float cost = current->g + 1;
+	float cost = current->GetG() + 1;
 
 #if 0
 	if (penalty > 0) 
@@ -207,31 +207,38 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 	
 	if (neighbor->bIsInOpen) // relax the node - update the parent
 	{
+#if DEBUG_VERBOSE
 		std::cout << *neighbor << " is already in open, updating it"<< std::endl;
+#endif
 
-		float parentCost = neighbor->parent->g;
+		float parentCost = neighbor->parent->GetG();
 		
-		if (current->g == parentCost)
+		if (current->GetG() == parentCost)
 		{
-			float currentPenalty = current->penalty;
+			float currentPenalty = current->GetPenalty();
 			bool newIsBetter = currentPenalty < penalty;
 			if (newIsBetter)
 			{
+#if DEBUG_VERBOSE
 				std::cout << "penalty lower: accepting new neighbor" << std::endl;
+#endif
 				neighbor->SetParent(current);
 				neighbor->SetPenalty(penalty);
 				neighbor->UpdateCosts();
 			}
 		}
-		else if (current->g < parentCost)
+		else if (current->GetG() < parentCost)
 		{
+#if DEBUG_VERBOSE
 			std::cout << "g is lower: accepting new neighbor" << std::endl;
+#endif
 			neighbor->SetParent(current);
 			neighbor->SetPenalty(penalty);
 			neighbor->UpdateCosts();
 		}
-
+#if DEBUG_VERBOSE
 		std::cout << "\tUPDATED " << *neighbor << std::endl;
+#endif
 	}
 	else // create a new info and add it to the open queue
 	{
@@ -252,11 +259,9 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 int TemporalAStar::GetCustomCosts(int timestep, Tile* fromTile, Tile* toTile, CollisionPenalties& penalties)
 {
 	std::pair<Tile*, Tile*> action(fromTile, toTile);
-	bool hasActionPenalty = penalties.actionCollisions.count(timestep) && penalties.actionCollisions[timestep].count(action);
-	auto& actionMap = penalties.actionCollisions[timestep];
+	bool hasActionPenalty = penalties.edge.count(timestep) && penalties.edge[timestep].count(action);
+	auto& actionMap = penalties.edge[timestep];
 	float actionPenalty = actionMap.count(action) ? actionMap[action] : 0;
 
 	return actionPenalty;
-	//bool hasCustomCost = penalties.tileCollisions.count(timestep) && penalties.tileCollisions[timestep].count(fromTile);
-	//return hasCustomCost ? penalties.tileCollisions[timestep][fromTile] : 0;
 }

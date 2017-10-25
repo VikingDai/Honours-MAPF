@@ -160,7 +160,7 @@ void Agent::DrawAgent(sf::RenderWindow& window)
 	window.draw(textAgentId);
 }
 
-void Agent::GeneratePath(MAPF::Path& outPath, GridMap* gridMap, CollisionPenalties& penalties)
+void Agent::GeneratePath(MAPF::Path& outPath, GridMap* gridMap)
 {
 	outPath = temporalAStar.FindPath(gridMap->GetTileAt(x, y), goal, penalties);
 }
@@ -172,8 +172,10 @@ MAPF::AgentPathRef* Agent::AddToPathBank(MAPF::Path& path, std::vector<MAPF::Age
 		return nullptr;
 	
 	// if not then add it
-	pathBank.emplace_back(path);
-	return MAPF::AgentPathRef::Make(this, pathBank.size() - 1, usedPathRefs);
+	pathBank.push_back(path);
+	//pathBank.emplace_back(path);
+	return new MAPF::AgentPathRef(this, pathBank.size() - 1);
+	//return MAPF::AgentPathRef::Make(this, pathBank.size() - 1, usedPathRefs);
 }
 
 std::ostream& operator<<(std::ostream& os, Agent& agent)

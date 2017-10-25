@@ -70,7 +70,7 @@ void PathAssigner::InitAgent(std::vector<Agent*> agents)
 	}
 }
 
-SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, MAPF::PathCollisions& pathCollisions)
+SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, MAPF::PathCollisions& collisions)
 {
 	// create empty problem
 	const SCIP_Real NEG_INFINITY = -SCIPinfinity(scip);
@@ -108,7 +108,7 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, MAPF::Path
 		std::vector<MAPF::Path>& paths = agent->pathBank;
 		for (int i = 0; i < paths.size(); i++)
 		{
-			MAPF::AgentPathRef* path = MAPF::AgentPathRef::Make(agent, i, usedPathRefs);
+			MAPF::AgentPathRef* path = new MAPF::AgentPathRef(agent, i); // MAPF::AgentPathRef::Make(agent, i, usedPathRefs);
 			assert(!path->GetPath().empty());
 
 			// create variable describing path
@@ -137,7 +137,7 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, MAPF::Path
 		CreateAgentChoiceConstraints(agentId, agentVariables);
 	}
 
-	CreateCollisionConstraints(pathCollisions);
+	CreateCollisionConstraints(collisions);
 
 
 	return SCIP_OKAY;
@@ -186,11 +186,11 @@ void PathAssigner::CreateAgentChoiceConstraints(int agentId, std::vector<SCIP_VA
 	SCIP_CALL_EXC(SCIPreleaseCons(scip, &agentChoiceCons)); // release it
 }
 
-void PathAssigner::CreateCollisionConstraints(MAPF::PathCollisions& pathCollisions)
+void PathAssigner::CreateCollisionConstraints(MAPF::PathCollisions& collisions)
 {
-	for (int i = 0; i < pathCollisions.size(); i++)
+	for (int i = 0; i < collisions.size(); i++)
 	{
-		std::set<MAPF::AgentPathRef*>& paths = pathCollisions[i];
+		std::set<MAPF::AgentPathRef*>& paths = collisions[i];
 
 		SCIP_CONS* collisionCons;
 		char collisionConsName[50];
@@ -267,7 +267,7 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 			if (varSolution != 0)
 			{
 #if DEBUG_MIP
-				std::cout << varNames[var] << " was chosen with value " << varSolution << std::endl;
+				//std::cout << varNames[var] << " was chosen with value " << varSolution << std::endl;
 #endif
 				Agent* agent = varToAgentMap[var];
 
@@ -275,7 +275,7 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 				if (isPathVariable)
 				{
 #if DEBUG_MIP
-					std::cout << *agent << " FOUND A PATH SUCCESFULLY!" << std::endl;
+					//std::cout << *agent << " FOUND A PATH SUCCESFULLY!" << std::endl;
 #endif
 					agent->SetPath(varToPathMap[var]);
 				}
@@ -283,7 +283,7 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 				{
 					//agent->setPath(MAPF::Path{ map->getTileAt(agent->x, agent->y) });
 #if DEBUG_MIP
-					std::cout << *agent << " was assigned the penalty var. We failed to find a solution!" << std::endl;
+					//std::cout << *agent << " was assigned the penalty var. We failed to find a solution!" << std::endl;
 #endif
 					agent->SetPath(nullptr);
 					penaltyAgents.push_back(agent);
@@ -292,7 +292,7 @@ std::vector<Agent*> PathAssigner::AssignPaths(
 			else
 			{
 #if DEBUG_MIP
-				std::cout << varNames[var] << " was not chosen with value " << varSolution << std::endl;
+				//std::cout << varNames[var] << " was not chosen with value " << varSolution << std::endl;
 #endif
 			}
 		}

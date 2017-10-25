@@ -32,12 +32,12 @@ namespace MAPF
 		Agent* agent;
 		int pathIndex;
 
-	private:
+	public:
 		AgentPathRef(Agent* agent, int pathIndex) : agent(agent), pathIndex(pathIndex) {}
 
 	public:
-		static AgentPathRef* Make(Agent* agent, int pathIndex, std::vector<AgentPathRef*>& usedPathRefs = std::vector<AgentPathRef*>());
-		static AgentPathRef* MakeNull(Agent* agent);
+		//static AgentPathRef* Make(Agent* agent, int pathIndex, std::vector<AgentPathRef*>& usedPathRefs = std::vector<AgentPathRef*>());
+		//static AgentPathRef* MakeNull(Agent* agent);
 
 		Path& GetPath();
 		bool IsValid();
@@ -59,6 +59,8 @@ namespace MAPF
 	};
 
 	using PathCollisions = std::vector<std::set<AgentPathRef*>>;//std::vector<std::set<AgentPathRef*, AgentPathRefHash>>;
+
+	using Edge = std::pair<Tile*, Tile*>;
 
 	struct PathCollision
 	{

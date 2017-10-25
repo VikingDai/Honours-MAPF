@@ -52,8 +52,8 @@ public:
 	
 	std::vector<MAPF::PathCollision> CheckForCollisions(std::vector<Agent*>& agents);
 
-	void CreateActionPenalties(CollisionPenalties& penalties, MAPF::AgentPathRef* pathRef);
+	void CreateEdgePenalties(CollisionPenalties& penalties, MAPF::AgentPathRef* pathRef);
 
-	void GenerateCollision(MAPF::PathCollision& collision);
-	void GenerateAgainstPath(Agent* agent, MAPF::AgentPathRef* path);
+	void GeneratePathsFromCollision(const MAPF::PathCollision collision);
+	void GeneratePath(Agent* agent);
 };
