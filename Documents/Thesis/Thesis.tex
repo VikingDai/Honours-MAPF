@@ -476,47 +476,63 @@ Agents are assigned
 	\footnotesize
 	\begin{tabular}{|c|c|c|}
 		\hline
-		\cellcolor{black} & 0 & \cellcolor{black} \\ \hline
-		1 & 2 & 3 \\ \hline
-		4 & 5 & 6 \\ \hline
+		\cellcolor{black}  & 1 & 2\\ \hline
+		3 & 4 & 5 \\ \hline
+		\cellcolor{black} & 7 & 8 \\ \hline
 	\end{tabular}
 	
-	\caption{A simple MAPF problem. $a_1: (1, 6), a_2: (0, 3)$}
+	\caption{A simple MAPF problem. $a_1: (1, 5), a_2: (3, 8)$}
 	\label{fig:simple-step-through-example}
 \end{table}
 
 \begin{enumerate}
-	\item \textbf{Initializing:} Generate and store the shortest path in each agent's path bank. Since this is first iteration, we will be finding the shortest path for \textbf{all} agents. In later iterations, we only generate a path for \textbf{one} agent at a time.
+	\item \textbf{Initializing:} Generate and store the shortest path in each agent's path bank for \textbf{all}  agents.
 	\begin{compactitem}
-		\item $a_1p_1: \{1, 2, 3, 6\}$
-		\item $a_2p_1: \{0, 2, 3\}$
+		\item $a_1p_1: \{1, 4, 5\}$
+		\item $a_2p_1: \{3, 4, 7, 8\}$
 	\end{compactitem}
 	\item \textbf{Assign paths MIP:} Create a MIP from the agent's path bank and path constraints (currently none) and use the solution to assign paths to agents
 	\begin{compactitem}
-		\item $a_1assigned: \{1, 2, 3, 6\}$
-		\item $a_2assigned: \{0, 2, 3\}$
+		\item $a_1assigned: a_1p_1: \{1, 4, 5\}$
+		\item $a_2assigned: a_2p_1: \{3, 4, 7, 8\}$
 	\end{compactitem}
-	\item \textbf{Check for a collision:} Here we check the MIP path assignment by finding the first collision (if one exists). There is a path collision at timestep 2 where $a_1$ and $a_2$ are both on tile 2.
-	\item \textbf{Choosing an agent:} We choose one agent in the collision for which we will generate a new path for.
-	\item \textbf{Column generation? and constraints:} Since a collision exists, we now apply a constraint to the MIP describing that $a_1p_1$ and $a_2p_1$ cannot exists at the same time.
-	\item \textbf{Penalties:} In order to generate the next best path, we apply penalties incrementally when a collision occurs. The collision occurs between $a_1p_1$ and $a_1p_2$. Here we decide to generate a path for agent 1 so we penalize all of $a_1p_2$, that is the tile of the path at timestep as so:
+	\item \textbf{Check for a collision:} Here we check the MIP path assignment by finding the first collision (if one exists). There is a path collision at time 1 where $a_1$ and $a_2$ are both on tile 4.
 	\begin{compactitem}
-		\item time 0, tile 0, penalty 1
-		\item time 1, tile 2, penalty 1
-		\item time 2, tile 3, penalty 1
+		\item Collision($a_1p_1$, $a_2p_1$, time: 1, tile: 4, $\Delta$: 0)
 	\end{compactitem}
-	\item \textbf{Generate next best path:} Here we generate and store the next best path. Unlike step 1, we now have penalties applied to certain tiles which lead our pathfinder to avoid collisions. Additionally unlike step 1, we choose one agent to generate a path for (here we have chosen agent 1).
+	\item \textbf{Choosing a collision:} We choose the collision with the lowest $\Delta$. Currently there is only one collision to choose from which is:
 	\begin{compactitem}
-		\item $a_1p_1: \{1, 2, 3, 6\}$
-		\item $a_1p_2: \{1, 4, 5, 6\}$
-		\item $a_2p_1: \{0, 2, 3\}$
+		\item Collision($a_1p_1$, $a_2p_1$, time: 1, tile: 4, $\Delta$: 0)
 	\end{compactitem}
-	\item \textbf{Assign Paths MIP:} Create a MIP from the agent's path bank and use the solution to assign paths to agents. Here the MIP has now assigned $a_1p_2$.
+
+	\item \textbf{Adding a constraint:} Since a collision exists, we now apply a constraint to the tell the MIP that $a_1p_1$ and $a_2p_1$ cannot be assigned at the same time.
+	\begin{compactitem}
+		\item Constraint($a_1p_1$, $a_2p_1$)
+	\end{compactitem}
+		
+	\item \textbf{Penalties:} In order to generate the next best path, we apply penalties at the point of collision. Hence we penalize all \textbf{edges} that lead to tile 4 at time 1.
+	\begin{compactitem}
+		\item Edge (1 $\rightarrow$ 4) has penalty 1 at time 1
+		\item Edge (7 $\rightarrow$ 4) has penalty 1 at time 1
+		\item Edge (4 $\rightarrow$ 4) has penalty 1 at time 1
+		\item Edge (5 $\rightarrow$ 4) has penalty 1 at time 1
+		\item Edge (3 $\rightarrow$ 4) has penalty 1 at time 1
+	\end{compactitem}
+
+	\item \textbf{Generate next best path:} Here we generate and store the next best path. Unlike step 1, we now have penalties applied to certain tiles which lead our pathfinder to avoid collisions. We generate paths for the two agents involved in the lowest $\Delta$ collision. We keep the old paths in the agent's path bank as they are still potential collision-free options.
+	\begin{compactitem}
+		\item $a_1p_1: \{1, 4, 5\}$
+		\item $a_1p_2: \{1, 2, 5\}$ $\leftarrow$ new path
+		\item $a_2p_1: \{3, 4, 7, 8\}$
+		\item $a_2p_2: \{3, 3, 4, 7, 8\}$ $\leftarrow$ new path
+	\end{compactitem}
+
+	\item \textbf{Assign Paths MIP:} Now that we have added additional paths to the agent's path bank. We now update our MIP, run it and assign solution to agents. Here the MIP has now assigned.
 	\begin{itemize}
-		\item $a_1assigned: \{1, 4, 5, 6\}$
-		\item $a_2assigned: \{0, 2, 3\}$
+		\item $a_1assigned: a_1p_2: \{1, 2, 5\}$
+		\item $a_2assigned: a_1p_1: \{3, 4, 7, 8\}$
 	\end{itemize}
-	\item \textbf{Check for a collision:} Here we check the MIP path assignment by finding the first collision (if one exists). There is no collision so the loop terminates and we are satisfied that this path assignment has no collisions.
+	\item \textbf{Check for a collision:} Here we check the MIP path assignment for any collisions. There are no collision so our loop terminates.
 \end{enumerate}
 
 
@@ -528,13 +544,19 @@ Agents are assigned
 	\footnotesize
 	\begin{tabular}{|c|c|c|}
 		\hline
-		\cellcolor{black} & 0 & \cellcolor{black} \\ \hline
 		1 & 2 & 3 \\ \hline
+		\cellcolor{black} & 4 & \cellcolor{black} \\ \hline
 	\end{tabular}
 	
-	\caption{A medium complexity MAPF problem. $a_1: (1, 3), a_2: (3, 1)$}
-	\label{fig:complex-step-through-example}
+	\caption{A complex MAPF problem. $a_1: (1, 3), a_2: (3, 1)$}
+	\label{fig:complex-example}
 \end{table}
+
+Here the optimal solution for \ref{fig:complex-example} is:
+\begin{itemize}
+	\item $a_1assigned : \{0,1,4,4,1,2\}$
+	\item $a_2assigned : \{2,2,1,0\}$
+\end{itemize}
 
 \begin{enumerate}
 	\item \textbf{Shortest path:}
