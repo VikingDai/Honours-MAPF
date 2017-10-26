@@ -69,7 +69,7 @@ public:
 	{
 		//float parentG = parent ? parent->g : 0;
 		//this->g = parentG + 1 + penalty;
-		this->f = GetG() + GetPenalty();
+		this->f = GetG() + h + GetPenalty();
 	}
 
 	void SetInfo(AStarTileTime* parent, int timestep, Tile* tile, float heuristic, float penalty)

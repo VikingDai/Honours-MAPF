@@ -198,7 +198,6 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 	neighborTile->SetColor(sf::Color(current->tile->GetColor().r, current->tile->GetColor().g + 20, current->tile->GetColor().b, current->tile->GetColor().a));
 
 	float penalty = GetCustomCosts(neighborTimestep, current->tile, neighborTile, penalties);
-	float cost = current->GetG() + 1;
 
 #if 0
 	if (penalty > 0) 
@@ -211,9 +210,10 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 		std::cout << *neighbor << " is already in open, updating it"<< std::endl;
 #endif
 
-		float parentCost = neighbor->parent->GetG();
+		float newNeighborCost = current->GetG() + penalty;
+		float neighborCost = neighbor->GetG();
 		
-		if (current->GetG() == parentCost)
+		if (newNeighborCost == neighborCost)
 		{
 			float currentPenalty = current->GetPenalty();
 			bool newIsBetter = currentPenalty < penalty;
@@ -227,7 +227,7 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 				neighbor->UpdateCosts();
 			}
 		}
-		else if (current->GetG() < parentCost)
+		else if (newNeighborCost < neighborCost)
 		{
 #if DEBUG_VERBOSE
 			std::cout << "g is lower: accepting new neighbor" << std::endl;

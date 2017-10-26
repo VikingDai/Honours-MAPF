@@ -70,3 +70,8 @@ float MAPF::PathCollision::CalculateDelta()
 {
 	return (a->GetPath().size() - a->agent->shortestPathLength) + (b->GetPath().size() - b->agent->shortestPathLength);
 }
+
+int MAPF::PathCollision::SmallestPathBankSize()
+{
+	return min(a->agent->pathBank.size(), b->agent->pathBank.size());
+}

@@ -50,14 +50,14 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 		open.pop_back();*/
 
 		
-		
-
 		current = open.Pop();
 
 		//current = open.top();
 		//open.pop();
 
-#if 0
+#if DEBUG_ASTAR
+		std::cout << "### Choosing from Open ";
+		std::cout << open << std::endl;
 		std::cout << "Expanded: " << *current << " with estimate: " << current->f << " cost: " << current->g << std::endl;
 #endif
 

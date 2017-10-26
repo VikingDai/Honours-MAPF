@@ -70,6 +70,7 @@ namespace MAPF
 		PathCollision(AgentPathRef* a, AgentPathRef* b) : a(a), b(b) {}
 
 		float CalculateDelta();
+		int SmallestPathBankSize();
 
 		friend bool operator==(const PathCollision& a, const PathCollision& b)
 		{
@@ -94,7 +95,17 @@ namespace MAPF
 	{
 		bool operator() (PathCollision& a, PathCollision& b)
 		{
+			float deltaA = a.CalculateDelta();
+			float deltaB = b.CalculateDelta();
+
+			// if delta is the same, then use the collision which has the smaller alternative paths
+			if (deltaA == deltaB)
+			{
+				return a.SmallestPathBankSize() < b.SmallestPathBankSize();
+			}
+
 			return a.CalculateDelta() < b.CalculateDelta();
+
 		}
 	};
 }
