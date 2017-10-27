@@ -47,21 +47,27 @@ private:
 public:
 	float h = 0;
 
-	float GetPenalty() const
+	float GetAccPenalty() const
 	{
 		float parentPenalty = parent ? parent->GetPenalty() : 0;
 		return penalty + parentPenalty;
 	}
 
+	float GetPenalty() const
+	{
+		//float parentPenalty = parent;// ? parent->GetPenalty() : 0;
+		return penalty;// +parentPenalty;
+	}
+
 	float GetF() const
 	{
-		return GetG() + h;
+		return GetG() + h; //+ GetPenalty();
 	}
 
 	float GetG() const
 	{
 		float parentG = parent ? parent->GetG() : 0;
-		return parent ? parent->GetG() + 1 + GetPenalty() : 0;
+		return parent ? parent->GetG() + (1 + GetPenalty()) : 0;
 	}
 
 	void SetParent(AStarTileTime* parent)
@@ -151,8 +157,9 @@ public:
 			" | time: " << tileTime.timestep <<
 			" | f: " << tileTime.GetF() <<
 			" | g: " << tileTime.GetG() <<
-			" | h: " << tileTime.GetPenalty() <<
-			" | penalty: " << tileTime.penalty;
+			" | h: " << tileTime.h <<
+			" | penalty: " << tileTime.GetPenalty() <<
+			" | acc penalty: " << tileTime.GetAccPenalty();
 
 		os << " | parent: ";
 		if (tileTime.parent != nullptr)
