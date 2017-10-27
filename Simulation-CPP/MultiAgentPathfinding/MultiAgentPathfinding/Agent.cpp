@@ -14,7 +14,7 @@ int Agent::agentCounter = 0;
 Agent::Agent(GridMap* gridMap, Tile* startTile, Tile* goalTile) 
 	: EObject(startTile->x, startTile->y), 
 	bfs(gridMap), temporalAStar(gridMap),
-	goal(goalTile), pathRef(nullptr)
+	goal(goalTile), pathRef(nullptr), delta(0), shortestPathLength(-1)
 {
 	assert(startTile);
 
@@ -63,11 +63,6 @@ void Agent::Step()
 	if (GetAssignedPath().empty()) // we have reached our goal
 		goal = nullptr;
 }
-
-//void Agent::SetPath(MAPF::Path& inPath)
-//{
-//	chosenPath = inPath;
-//}
 
 void Agent::SetPath(MAPF::AgentPathRef* pathRef)
 {
@@ -171,8 +166,12 @@ MAPF::AgentPathRef* Agent::AddToPathBank(MAPF::Path& path, std::vector<MAPF::Age
 	if (std::find(pathBank.begin(), pathBank.end(), path) != pathBank.end())
 		return nullptr;
 	
+	
+	int newDelta = path.size() - shortestPathLength;
+	delta = max(delta, (int) newDelta);
+
 	// if not then add it
-	pathBank.push_back(path);
+	pathBank.emplace_back(path);
 	//pathBank.emplace_back(path);
 	return new MAPF::AgentPathRef(this, pathBank.size() - 1);
 	//return MAPF::AgentPathRef::Make(this, pathBank.size() - 1, usedPathRefs);

@@ -37,9 +37,10 @@ public:
 
 	int timestep = 0;
 	Tile* tile;
-	float f = 0;
+	
 
 private:
+	float f = 0;
 	float g = 0;
 	float penalty = 0;
 
@@ -50,6 +51,11 @@ public:
 	{
 		float parentPenalty = parent ? parent->GetPenalty() : 0;
 		return penalty + parentPenalty;
+	}
+
+	float GetF() const
+	{
+		return GetG() + h;
 	}
 
 	float GetG() const
@@ -69,7 +75,7 @@ public:
 	{
 		//float parentG = parent ? parent->g : 0;
 		//this->g = parentG + 1 + penalty;
-		this->f = GetG() + h + GetPenalty();
+		this->f = GetG() + h;
 	}
 
 	void SetInfo(AStarTileTime* parent, int timestep, Tile* tile, float heuristic, float penalty)
@@ -112,7 +118,7 @@ public:
 
 	bool operator<(const AStarTileTime& other)
 	{
-		if (f == other.f)
+		if (GetF() == other.GetF())
 		{
 			if (GetG() == other.GetG())
 			{
@@ -121,12 +127,12 @@ public:
 			return GetG() > other.GetG();
 		}
 
-		return f < other.f;
+		return GetF() < other.GetF();
 	}
 
 	bool operator>(const AStarTileTime& other)
 	{
-		if (f == other.f)
+		if (GetF() == other.GetF())
 		{
 			if (GetG() == other.GetG())
 			{
@@ -136,14 +142,14 @@ public:
 			return GetG() < other.GetG();
 		}
 
-		return f > other.f;
+		return GetF() > other.GetF();
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, AStarTileTime& tileTime)
 	{
 		os << "Tile " << *tileTime.tile <<
 			" | time: " << tileTime.timestep <<
-			" | f: " << tileTime.f <<
+			" | f: " << tileTime.GetF() <<
 			" | g: " << tileTime.GetG() <<
 			" | h: " << tileTime.GetPenalty() <<
 			" | penalty: " << tileTime.penalty;

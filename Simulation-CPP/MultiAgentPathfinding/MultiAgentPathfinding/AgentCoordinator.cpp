@@ -72,6 +72,12 @@ void AgentCoordinator::Solve(std::vector<Agent*>& agents)
 		std::cout << std::endl;
 #endif
 
+		std::cout << "Assignment has sum of costs:" << CalculateSumOfCosts(agents) << std::endl;
+		for (Agent* agent : agents)
+		{
+			std::cout << "\t" << *agent->GetPathRef() << " " << agent->pathBank.size() << " paths" << std::endl;
+		}
+
 		// check the path assignment for collisions
 		//std::cout << "CHECKING FOR COLLISIONS" << std::endl;
 		std::vector<MAPF::PathCollision>& collisions = CheckForCollisions(agents);
@@ -79,13 +85,21 @@ void AgentCoordinator::Solve(std::vector<Agent*>& agents)
 
 		if (collisions.empty()) // if there are no collisions, we have assigned collision-free paths to all agents
 		{
-			std::cout << "No collisions exists: we have successfully assigned collision-free paths" << std::endl;
-			int sumOfCosts = 0;
+			std::cout << "Solution with sum of costs " << CalculateSumOfCosts(agents) << std::endl;
+
+			std::cout << "Path bank for agents:" << std::endl;
 			for (Agent* agent : agents)
 			{
-				sumOfCosts += agent->GetPathRef()->GetPath().size();
+				for (int i = 0; i < agent->pathBank.size(); i++)
+				{
+					std::cout << "\t" << *new MAPF::AgentPathRef(agent, i) << std::endl;
+				}
 			}
-			std::cout << "Solution of has sum of costs: " << sumOfCosts << std::endl;
+
+			for (Agent* agent : agents)
+			{
+				std::cout << *agent->GetPathRef() << std::endl;
+			}
 			break;
 		}
 		else
@@ -95,10 +109,13 @@ void AgentCoordinator::Solve(std::vector<Agent*>& agents)
 			// Try seed 30786 5x5_10
 			std::sort(collisions.begin(), collisions.end(), MAPF::DeltaComparator());
 			MAPF::PathCollision& lowestDelta = collisions[0];
-			
 
-#if 1
-			std::cout << "Lowest Delta collision of " << lowestDelta.CalculateDelta() << " and lowest alternatives of " << lowestDelta.SmallestPathBankSize() << " between: \n\t" << *lowestDelta.a << "\n\t" << *lowestDelta.b << std::endl;
+#if DEBUG_VERBOSE
+			for (MAPF::PathCollision& collision : collisions)
+			{
+				std::cout << collision << std::endl;
+			}
+			std::cout << "Lowest Delta: " << lowestDelta << std::endl;
 #endif
 
 			// create path constraints from this path collision and use them in the next run of the MIP
@@ -127,10 +144,17 @@ void AgentCoordinator::AssignShortestPath(std::vector<Agent*>& agents)
 	std::cout << "INITIALIZING agents with shortest path:" << std::endl;
 	for (Agent* agent : agents)
 	{
-		agent->pathBank.emplace_back(aStar.FindPath(gridMap->GetTileAt(agent->x, agent->y), agent->goal));
-		MAPF::AgentPathRef* pathRef = new MAPF::AgentPathRef(agent, agent->pathBank.size() - 1); //MAPF::AgentPathRef::Make(agent, agent->pathBank.size() - 1, usedPathRefs);
+		MAPF::Path& path = aStar.FindPath(gridMap->GetTileAt(agent->x, agent->y), agent->goal);
+
+		agent->shortestPathLength = path.size();
+
+		MAPF::AgentPathRef* pathRef = agent->AddToPathBank(path);
+
 		agent->SetPath(pathRef);
-		agent->shortestPathLength = pathRef->GetPath().size();
+
+		//agent->pathBank.emplace_back();
+		//MAPF::AgentPathRef* pathRef = new MAPF::AgentPathRef(agent, agent->pathBank.size() - 1); //MAPF::AgentPathRef::Make(agent, agent->pathBank.size() - 1, usedPathRefs);
+		//agent->SetPath(pathRef);
 
 		std::cout << "\t" << *pathRef << std::endl;
 	}
@@ -155,6 +179,17 @@ Tile* AgentCoordinator::GetTileAtTimestep(MAPF::Path& path, int timestep)
 	if (path.empty()) return nullptr;
 
 	return timestep < path.size() ? path[timestep] : path[path.size() - 1];
+}
+
+int AgentCoordinator::CalculateSumOfCosts(std::vector<Agent*>& agents)
+{
+	int sumOfCosts = 0;
+	for (Agent* agent : agents)
+	{
+		sumOfCosts += agent->GetPathRef()->GetPath().size();
+	}
+
+	return sumOfCosts;
 }
 
 std::vector<MAPF::PathCollision> AgentCoordinator::CheckForCollisions(std::vector<Agent*>& agents)

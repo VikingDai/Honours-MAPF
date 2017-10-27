@@ -66,9 +66,18 @@ std::ostream& MAPF::operator<<(std::ostream& os, AgentPathRef& pathRef)
 	return os;
 }
 
-float MAPF::PathCollision::CalculateDelta()
+std::ostream& MAPF::operator<<(std::ostream& os, MAPF::PathCollision& collision)
 {
-	return (a->GetPath().size() - a->agent->shortestPathLength) + (b->GetPath().size() - b->agent->shortestPathLength);
+	os << "Collision with Delta " << collision.delta << ", path bank size " << collision.SmallestPathBankSize() << " between:" << std::endl;
+	os << "\t" << *collision.a << " (" << collision.a->GetPath().size() << ", " << collision.a->agent->shortestPathLength << ", " << collision.a->agent->delta << ")" << std::endl;
+	os << "\t" << *collision.b << " (" << collision.b->GetPath().size() << ", " << collision.b->agent->shortestPathLength << ", " << collision.a->agent->delta << ")" << std::endl;
+
+	return os;
+}
+
+MAPF::PathCollision::PathCollision(AgentPathRef* a, AgentPathRef* b) : a(a), b(b)
+{
+	delta = a->agent->delta + b->agent->delta;
 }
 
 int MAPF::PathCollision::SmallestPathBankSize()

@@ -67,9 +67,10 @@ namespace MAPF
 		AgentPathRef* a;
 		AgentPathRef* b;
 
-		PathCollision(AgentPathRef* a, AgentPathRef* b) : a(a), b(b) {}
+		int delta;
 
-		float CalculateDelta();
+		PathCollision(AgentPathRef* a, AgentPathRef* b);
+
 		int SmallestPathBankSize();
 
 		friend bool operator==(const PathCollision& a, const PathCollision& b)
@@ -81,6 +82,8 @@ namespace MAPF
 		{
 			return (a.a == b.a && a.b == b.a) || (a.a == b.b && a.b == b.a);
 		}
+
+		friend std::ostream& operator<<(std::ostream& os, MAPF::PathCollision& collision);
 	};
 
 	struct PathCollisionHash
@@ -95,16 +98,13 @@ namespace MAPF
 	{
 		bool operator() (PathCollision& a, PathCollision& b)
 		{
-			float deltaA = a.CalculateDelta();
-			float deltaB = b.CalculateDelta();
-
 			// if delta is the same, then use the collision which has the smaller alternative paths
-			if (deltaA == deltaB)
+			if (a.delta == b.delta)
 			{
 				return a.SmallestPathBankSize() < b.SmallestPathBankSize();
 			}
 
-			return a.CalculateDelta() < b.CalculateDelta();
+			return a.delta < b.delta;
 
 		}
 	};

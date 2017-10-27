@@ -49,6 +49,8 @@ public:
 	int GetLongestPathLength(std::vector<Agent*>& agents);
 	Tile* GetTileAtTimestep(MAPF::Path& path, int timestep);
 
+	int CalculateSumOfCosts(std::vector<Agent*>& agents);
+
 	
 	std::vector<MAPF::PathCollision> CheckForCollisions(std::vector<Agent*>& agents);
 

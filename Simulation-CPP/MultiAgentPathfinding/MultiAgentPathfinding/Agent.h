@@ -51,6 +51,7 @@ public:
 	MAPF::AgentPathRef* GetPathRef() { return pathRef; }
 
 public:
+	int delta;
 	int shortestPathLength;
 	Tile* goal;
 
