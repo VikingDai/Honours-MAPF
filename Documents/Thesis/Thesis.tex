@@ -419,9 +419,9 @@ struct \{\}
 	\item Repeat 1. if there is not a valid solution found i.e the optimal solution contains a path collision
 \end{compactenum}
 
+\newpage
 \section{Master problem formulation} \label{sec:mip}
 
-\large{TODO}
 \begin{compactitem}
 	\item Section about where path constraints are generated and variables are added
 	\item Bender's Decomposition
@@ -432,16 +432,18 @@ Each agent is given \textit{one or more} paths to their goal. The master problem
 
 \begin{itemize}
 	\item \textbf{Agents:} The MIP is given a set of agents, $A$
-	\item \textbf{Potential paths}: Every agent has a set of paths, $P$ describing a unique path from an agent's position to their goal.
-	\item \textbf{Penalty}: A penalty variable, $q_i$ is added for every agent in the case that all the agent's paths are in collision. If the MIP chooses this penalty in the solution, then the MIP was unable to find an assignment of paths which resulted in a conflict-free solution. The cost of the penalty is set to be larger than the expected maximum path length (here it is 1000).
-	\item \textbf{Conflicts:} A set of conflicts, $C$ is provided to the MIP. A conflict is a set of paths, describing that these paths are not allowed to be assigned at the same time as they will cause a conflict. 
+	\item \textbf{Path bank}: Every agent has a set of paths, $P$ describing a unique path from an agent's position to their goal.
+	\item \textbf{Dummy variable}: A dummy variable, $q_i$ is added for every agent in the case that all the agent's paths are in collision. If the MIP chooses this penalty in the solution, then the MIP was unable to find an assignment of paths which resulted in a conflict-free solution. The cost of the penalty is set to be larger than the expected maximum path length (here it is 1000).
+	\item \textbf{Path Constraints:} A set of path constraints, $C$ is provided to the MIP. A constraint describes that two paths $n$ and $m$ are in collision and hence are not allowed to be assigned at the same time. 
 \end{itemize}
 
-We generate a variable for each path and the cost is set to the path length.
+\noindent \textbf{Line~\ref{mas:min}}: First we define our minimization function. Here we have our path variables $p_{ij}$ which is multiplied by the cost of the path $d_{ij}$. We sum these for each path in each agent's path bank. Additionally we define a dummy variable $q_i$ for when the MIP fails to find a solution.
 
-We specify an agent's path as $p_{ij}$. Penalty $q_i$. Path collision as $c_{nm}$.
+\noindent \textbf{Line~\ref{mas:pick}}: Here we state that every agent must choose one of their paths $p_{ij}$ or take the dummy variable, $q_i$.
 
+\noindent \textbf{Line~\ref{mas:constraint}}: Here we state that every agent must choose one of their paths or take the dummy variable.
 
+\noindent \textbf{Line~\ref{mas:path-one-or-zero}, \ref{mas:penalty}}: Here we state that all variables must be 0 or 1.
 
 \begin{equation} \label{mas:min}
 \text{min} \sum_{i \in A} \sum_{j \in P_i} (d_{ij} * p_{ij}) + q_i
@@ -451,21 +453,19 @@ We specify an agent's path as $p_{ij}$. Penalty $q_i$. Path collision as $c_{nm}
 \text{subject to} \sum_{j \in P_i} (p_{ij}) + q_i = 1, \forall i \in A
 \end{equation}
 
-\begin{equation} \label{mas:conflict} % apply collision constraints
+\begin{equation} \label{mas:constraint} % apply collision constraints
 n + m \le 1, \forall (n,m) \in C
 \end{equation}
 
 \begin{equation} \label{mas:path-one-or-zero} % all vars are 1 or 0
-p_{ij} \in {0, 1}, \forall i, j
+p_{ij} \in {0, 1}, \forall j \in P_i \forall i \in A
 \end{equation}
 
 \begin{equation} \label{mas:penalty} % penalty is 1 or 0
-q_{i} \in {0, 1}, \forall i
+q_{i} \in {0, 1}, \forall i \in A
 \end{equation}
 
 For example \cite{put example!}, our generated variables are: $5a_0p_0 + 5a_0p_1 + 1000q_0 + 2a_1p_0 + 2a_1p_1 + 1000q_1$.
-
-Agents are assigned
 
 
 \subsection{Simple examples}
