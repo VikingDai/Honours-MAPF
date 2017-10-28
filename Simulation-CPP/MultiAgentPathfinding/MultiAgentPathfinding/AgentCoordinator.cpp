@@ -54,36 +54,24 @@ void AgentCoordinator::Solve(std::vector<Agent*>& agents)
 			std::cout << "\t" << *agent->GetPathRef() << " " << agent->pathBank.size() << " paths" << std::endl;
 		}
 
-		// check the path assignment for collisions
+		/** check the path assignment for collisions */
 		std::vector<MAPF::PathCollision>& collisions = CheckForCollisions(agents);
 
 		if (collisions.empty()) // if there are no collisions, we have assigned collision-free paths to all agents
 		{
+			std::cout << "Path bank for agents:" << std::endl;
+			for (Agent* agent : agents)
+				for (int i = 0; i < agent->pathBank.size(); i++)
+					std::cout << "\t" << *new MAPF::AgentPathRef(agent, i) << std::endl;
+
 			std::cout << "Solution with sum of costs " << CalculateSumOfCosts(agents) << std::endl;
 
-			//std::cout << "Path bank for agents:" << std::endl;
-			//for (Agent* agent : agents)
-			//{
-			//	for (int i = 0; i < agent->pathBank.size(); i++)
-			//	{
-			//		std::cout << "\t" << *new MAPF::AgentPathRef(agent, i) << std::endl;
-			//	}
-			//}
-
-			//for (Agent* agent : agents)
-			//{
-			//	std::cout << *agent->GetPathRef() << std::endl;
-			//}
-
 			pathAssigner.Cleanup();
-
 			break;
 		}
 		else
 		{
-			// get the path collision with the lowest delta
-			// TODO: SWITCH TO PRIORITY QUEUE
-			// Try seed 30786 5x5_10
+			/** get the path collision with the lowest delta */
 			std::sort(collisions.begin(), collisions.end(), MAPF::DeltaComparator());
 			MAPF::PathCollision& lowestDelta = collisions[0];
 
@@ -95,7 +83,7 @@ void AgentCoordinator::Solve(std::vector<Agent*>& agents)
 			std::cout << "Lowest Delta: " << lowestDelta << std::endl;
 #endif
 
-			// create path constraints from this path collision and use them in the next run of the MIP
+			/** create constraint from this collision to be used in the next run of the MIP */
 			MAPF::PathConstraint constraint;
 			constraint.emplace(lowestDelta.a);
 			constraint.emplace(lowestDelta.b);
@@ -111,7 +99,7 @@ void AgentCoordinator::Solve(std::vector<Agent*>& agents)
 			std::cout << std::endl;
 #endif
 
-			// for the two agents in the collision: find and store and alternative path
+			/** for the two agents in the collision: find and store and alternative path */
 			GeneratePathsFromCollision(lowestDelta);
 		}
 	}
@@ -130,33 +118,9 @@ void AgentCoordinator::AssignShortestPath(std::vector<Agent*>& agents)
 		pathAssigner.AddPath(pathRef);
 		agent->SetPath(pathRef);
 
-		//agent->pathBank.emplace_back();
-		//MAPF::AgentPathRef* pathRef = new MAPF::AgentPathRef(agent, agent->pathBank.size() - 1); //MAPF::AgentPathRef::Make(agent, agent->pathBank.size() - 1, usedPathRefs);
-		//agent->SetPath(pathRef);
-
 		std::cout << "\t" << *pathRef << std::endl;
 	}
 	std::cout << std::endl;
-}
-
-int AgentCoordinator::GetLongestPathLength(std::vector<Agent*>& agents)
-{
-	int longest = -1;
-
-	for (Agent* agent : agents)
-	{
-		int length = agent->GetPathRef()->GetPath().tiles.size();
-		longest = max(length, longest);
-	}
-
-	return longest;
-}
-
-Tile* AgentCoordinator::GetTileAtTimestep(MAPF::Path& path, int timestep)
-{
-	if (path.tiles.empty()) return nullptr;
-
-	return timestep < path.tiles.size() ? path.tiles[timestep] : path.tiles[path.tiles.size() - 1];
 }
 
 int AgentCoordinator::CalculateSumOfCosts(std::vector<Agent*>& agents)
@@ -231,52 +195,6 @@ std::vector<MAPF::PathCollision> AgentCoordinator::CheckForCollisions(std::vecto
 	std::vector<MAPF::PathCollision> collisions(uniqueCollisions.begin(), uniqueCollisions.end());
 	return collisions;
 }
-
-//void AgentCoordinator::CreateEdgePenalties(MAPF::CollisionPenalties& penalties, MAPF::AgentPathRef* pathRef)
-//{
-//	MAPF::Path& path = pathRef->GetPath();
-//
-//#if DEBUG_VERBOSE
-//	std::cout << "Creating penalties for " << pathRef << std::endl;
-//#endif
-//
-//	std::map<int, std::set<std::pair<Tile*, Tile*>>> timeActionSet;
-//
-//	/** add to time collision set */
-//	for (int i = 0; i < path.tiles.size(); i++)
-//	{
-//		Tile* tile = path.tiles[i];
-//
-//		for (Tile* neighbor : gridMap->GetNeighbors(tile)) // penalize tile collisions
-//		{
-//			std::pair<Tile*, Tile*> action(neighbor, tile);
-//			timeActionSet[i].emplace(action);
-//		}
-//
-//		std::pair<Tile*, Tile*> waitAction(tile, tile);
-//		timeActionSet[i].emplace(waitAction);
-//
-//		/** penalize passing collision */
-//		if (i == 0) continue;
-//		Tile* previousTile = path.tiles[i - 1];
-//		std::pair<Tile*, Tile*> action(tile, previousTile);
-//		timeActionSet[i].emplace(action);
-//
-//#if DEBUG_VERBOSE
-//		std::cout << "Penalizing passing collision: " << *tile << " to " << *previousTile << " at time " << i << std::endl;
-//#endif
-//	}
-//
-//	for (auto& it : timeActionSet)
-//	{
-//		int time = it.first;
-//		for (auto& action : it.second)
-//		{
-//			//std::cout << "Penalty at time: " << time << " for action: " << *action.first << " > " << *action.second << std::endl;
-//			penalties.edge[time][action] += 1;
-//		}
-//	}
-//}
 
 void AgentCoordinator::GeneratePathsFromCollision(const MAPF::PathCollision collision)
 {
@@ -372,4 +290,25 @@ void AgentCoordinator::GeneratePath(Agent* agent, MAPF::CollisionPenalties& pena
 	else
 		std::cout << "\tGenerated duplicate path for " << *agent << std::endl;
 #endif
+}
+
+
+int AgentCoordinator::GetLongestPathLength(std::vector<Agent*>& agents)
+{
+	int longest = -1;
+
+	for (Agent* agent : agents)
+	{
+		int length = agent->GetPathRef()->GetPath().tiles.size();
+		longest = max(length, longest);
+	}
+
+	return longest;
+}
+
+Tile* AgentCoordinator::GetTileAtTimestep(MAPF::Path& path, int timestep)
+{
+	if (path.tiles.empty()) return nullptr;
+
+	return timestep < path.tiles.size() ? path.tiles[timestep] : path.tiles[path.tiles.size() - 1];
 }

@@ -39,7 +39,6 @@ private:
 	int iteration;
 	bool isRunning;
 
-	//MAPF::PathCollisions crossCollisionSet;
 public:
 
 	void Solve(std::vector<Agent*>& agents);
@@ -53,8 +52,6 @@ public:
 
 	
 	std::vector<MAPF::PathCollision> CheckForCollisions(std::vector<Agent*>& agents);
-
-	//void CreateEdgePenalties(MAPF::CollisionPenalties& penalties, MAPF::AgentPathRef* pathRef);
 
 	void GeneratePathsFromCollision(const MAPF::PathCollision collision);
 	void GeneratePath(Agent* agent, MAPF::CollisionPenalties& penalties);
