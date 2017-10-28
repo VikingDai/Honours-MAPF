@@ -7,9 +7,9 @@
 #include "Statistics.h"
 #include "Heuristics.h"
 
-#define DEBUG_VERBOSE 1
+#define DEBUG_VERBOSE 0
 #define DEBUG_STATS 0
-#define DEBUG_SIMPLE 1
+#define DEBUG_SIMPLE 0
 
 int TemporalAStar::GLOBAL_TILES_EXPANDED = 0;
 
@@ -44,7 +44,7 @@ TemporalAStar::~TemporalAStar()
 
 }
 
-MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, CollisionPenalties& penalties)
+MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, MAPF::CollisionPenalties& penalties)
 {
 #if DEBUG_VERBOSE
 	std::cout << std::endl << "### FINDING PATH FROM " << *start << " to " << *goal << std::endl;
@@ -106,7 +106,10 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, CollisionPenalties& 
 		//current->tile->SetColor(sf::Color::Red);
 
 		if (current->tile == goal) // found path to goal!
+		{
+			path.cost = current->GetG();
 			break;
+		}
 
 		ExpandNeighbor(open, current, current->tile, start, goal, penalties); // wait
 		ExpandNeighbor(open, current, gridMap->GetTileRelativeTo(current->tile, 0, 1), start, goal, penalties); // up
@@ -123,13 +126,13 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, CollisionPenalties& 
 	// build the path
 	while (current != nullptr)
 	{
-		path.push_front(current->tile);
+		path.tiles.push_front(current->tile);
 		current = current->parent;
 	}
 
 #if DEBUG_VERBOSE
 	std::cout << "Temporal A* Path:" << std::endl;
-	for (Tile* tile : path)
+	for (Tile* tile : path.tiles)
 		std::cout << *tile << " > ";
 	std::cout << std::endl;
 #endif
@@ -163,13 +166,13 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, CollisionPenalties& 
 
 	sortTimer.Reset();
 
-	for (Tile* tile : path)
+	for (Tile* tile : path.tiles)
 		tile->SetColor(sf::Color::Blue);
 
 	return path;
 }
 
-void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile* neighborTile, Tile* start, Tile* goal, CollisionPenalties& penalties)
+void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile* neighborTile, Tile* start, Tile* goal, MAPF::CollisionPenalties& penalties)
 {
 	if (!neighborTile || !neighborTile->isWalkable) return;
 
@@ -255,7 +258,7 @@ void TemporalAStar::ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile
 	}
 }
 
-int TemporalAStar::GetCustomCosts(int timestep, Tile* fromTile, Tile* toTile, CollisionPenalties& penalties)
+int TemporalAStar::GetCustomCosts(int timestep, Tile* fromTile, Tile* toTile, MAPF::CollisionPenalties& penalties)
 {
 	std::pair<Tile*, Tile*> action(fromTile, toTile);
 	bool hasActionPenalty = penalties.edge.count(timestep) && penalties.edge[timestep].count(action);

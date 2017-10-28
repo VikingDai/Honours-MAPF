@@ -4,6 +4,7 @@
 #include "GridMap.h"
 #include "Timer.h"
 #include "PriorityQueue.h"
+#include "MAPF.h"
 
 struct Heuristic
 {
@@ -33,14 +34,11 @@ private:
 public:
 	AStar(GridMap* gridMap);
 
-public:
-	using Path = std::deque<Tile*>;
-
 private:
 	using OpenQueue = PriorityQueue<Tile*>;
 	void AddNeighbor(OpenQueue& open, Tile* current, Tile* neighbor, Tile* start, Tile* goal);
 
 public:
-	Path FindPath(Tile* start, Tile* goal);
+	MAPF::Path FindPath(Tile* start, Tile* goal);
 };
 

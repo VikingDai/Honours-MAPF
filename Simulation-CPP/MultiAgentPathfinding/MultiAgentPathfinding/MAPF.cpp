@@ -39,7 +39,7 @@ MAPF::Path& MAPF::AgentPathRef::GetPath()
 	else
 	{
 		MAPF::Path emptyPath;
-		std::cout << "PATH INVALID: SIZE " << emptyPath.size() << std::endl;
+		std::cout << "PATH INVALID: SIZE " << emptyPath.tiles.size() << std::endl;
 		return emptyPath;
 	}
 }
@@ -49,28 +49,33 @@ bool MAPF::AgentPathRef::IsValid()
 	return agent && pathIndex >= 0 && pathIndex < agent->pathBank.size();
 }
 
-std::ostream& MAPF::operator<<(std::ostream& os, AgentPathRef& pathRef)
+std::ostream & MAPF::operator<<(std::ostream & os, Path & path)
 {
-	os << "a" << pathRef.agent->GetAgentId() << "p" << pathRef.pathIndex << ": {";
-
-	Path& path = pathRef.GetPath();
-	for (int i = 0; i < path.size(); i++)
+	os << "Path " << path.cost << " {";
+	for (int i = 0; i < path.tiles.size(); i++)
 	{
-		Tile* tile = path[i];
+		Tile* tile = path.tiles[i];
 		os << *tile;
 
-		if (i < path.size() - 1) 
+		if (i < path.tiles.size() - 1)
 			os << ", ";
 	}
 	os << "}";
 	return os;
 }
 
+std::ostream& MAPF::operator<<(std::ostream& os, AgentPathRef& pathRef)
+{
+	os << "a" << pathRef.agent->GetAgentId() << "p" << pathRef.pathIndex << ":\t" << pathRef.GetPath();
+
+	return os;
+}
+
 std::ostream& MAPF::operator<<(std::ostream& os, MAPF::PathCollision& collision)
 {
 	os << "Collision with Delta " << collision.delta << ", path bank size " << collision.SmallestPathBankSize() << " between:" << std::endl;
-	os << "\t" << *collision.a << " (" << collision.a->GetPath().size() << ", " << collision.a->agent->shortestPathLength << ", " << collision.a->agent->delta << ")" << std::endl;
-	os << "\t" << *collision.b << " (" << collision.b->GetPath().size() << ", " << collision.b->agent->shortestPathLength << ", " << collision.a->agent->delta << ")" << std::endl;
+	os << "\t" << *collision.a << " (" << collision.a->GetPath().tiles.size() << ", " << collision.a->agent->shortestPathLength << ", " << collision.a->agent->delta << ")" << std::endl;
+	os << "\t" << *collision.b << " (" << collision.b->GetPath().tiles.size() << ", " << collision.b->agent->shortestPathLength << ", " << collision.a->agent->delta << ")" << std::endl;
 
 	return os;
 }

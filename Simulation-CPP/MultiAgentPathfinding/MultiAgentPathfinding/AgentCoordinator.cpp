@@ -146,7 +146,7 @@ void AgentCoordinator::AssignShortestPath(std::vector<Agent*>& agents)
 	{
 		MAPF::Path& path = aStar.FindPath(gridMap->GetTileAt(agent->x, agent->y), agent->goal);
 
-		agent->shortestPathLength = path.size();
+		agent->shortestPathLength = path.tiles.size();
 
 		MAPF::AgentPathRef* pathRef = agent->AddToPathBank(path);
 
@@ -167,7 +167,7 @@ int AgentCoordinator::GetLongestPathLength(std::vector<Agent*>& agents)
 
 	for (Agent* agent : agents)
 	{
-		int length = agent->GetPathRef()->GetPath().size();
+		int length = agent->GetPathRef()->GetPath().cost;
 		longest = max(length, longest);
 	}
 
@@ -176,9 +176,9 @@ int AgentCoordinator::GetLongestPathLength(std::vector<Agent*>& agents)
 
 Tile* AgentCoordinator::GetTileAtTimestep(MAPF::Path& path, int timestep)
 {
-	if (path.empty()) return nullptr;
+	if (path.tiles.empty()) return nullptr;
 
-	return timestep < path.size() ? path[timestep] : path[path.size() - 1];
+	return timestep < path.tiles.size() ? path.tiles[timestep] : path.tiles[path.tiles.size() - 1];
 }
 
 int AgentCoordinator::CalculateSumOfCosts(std::vector<Agent*>& agents)
@@ -186,7 +186,7 @@ int AgentCoordinator::CalculateSumOfCosts(std::vector<Agent*>& agents)
 	int sumOfCosts = 0;
 	for (Agent* agent : agents)
 	{
-		sumOfCosts += agent->GetPathRef()->GetPath().size();
+		sumOfCosts += agent->GetPathRef()->GetPath().tiles.size();
 	}
 
 	return sumOfCosts;
@@ -254,7 +254,7 @@ std::vector<MAPF::PathCollision> AgentCoordinator::CheckForCollisions(std::vecto
 	return collisions;
 }
 
-void AgentCoordinator::CreateEdgePenalties(CollisionPenalties& penalties, MAPF::AgentPathRef* pathRef)
+void AgentCoordinator::CreateEdgePenalties(MAPF::CollisionPenalties& penalties, MAPF::AgentPathRef* pathRef)
 {
 	MAPF::Path& path = pathRef->GetPath();
 
@@ -265,9 +265,9 @@ void AgentCoordinator::CreateEdgePenalties(CollisionPenalties& penalties, MAPF::
 	std::map<int, std::set<std::pair<Tile*, Tile*>>> timeActionSet;
 
 	/** add to time collision set */
-	for (int i = 0; i < path.size(); i++)
+	for (int i = 0; i < path.tiles.size(); i++)
 	{
-		Tile* tile = path[i];
+		Tile* tile = path.tiles[i];
 
 		for (Tile* neighbor : gridMap->GetNeighbors(tile)) // penalize tile collisions
 		{
@@ -280,7 +280,7 @@ void AgentCoordinator::CreateEdgePenalties(CollisionPenalties& penalties, MAPF::
 
 		/** penalize passing collision */
 		if (i == 0) continue;
-		Tile* previousTile = path[i - 1];
+		Tile* previousTile = path.tiles[i - 1];
 		std::pair<Tile*, Tile*> action(tile, previousTile);
 		timeActionSet[i].emplace(action);
 
@@ -308,7 +308,7 @@ void AgentCoordinator::GeneratePathsFromCollision(const MAPF::PathCollision coll
 	MAPF::Path& pathA = collision.a->GetPath();
 	MAPF::Path& pathB = collision.b->GetPath();
 
-	int longestPathLength = max(pathA.size(), pathB.size());
+	int longestPathLength = max(pathA.tiles.size(), pathB.tiles.size());
 
 	for (int i = 0; i < longestPathLength; i++) // check if any tiles are already in use
 	{

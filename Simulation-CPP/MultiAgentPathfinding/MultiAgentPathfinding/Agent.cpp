@@ -33,11 +33,11 @@ Agent::Agent(GridMap* gridMap, Tile* startTile, Tile* goalTile)
 
 void Agent::Step()
 {
-	if (GetPathRef() && !GetAssignedPath().empty())
+	if (GetPathRef() && !GetAssignedPath().tiles.empty())
 	{
 		// move along current path p to us by the agent coordinator
-		Tile* nextTile = GetAssignedPath().front();
-		GetAssignedPath().pop_front();
+		Tile* nextTile = GetAssignedPath().tiles.front();
+		GetAssignedPath().tiles.pop_front();
 
 		x = nextTile->x;
 		y = nextTile->y;
@@ -60,7 +60,7 @@ void Agent::Step()
 	}
 
 
-	if (GetAssignedPath().empty()) // we have reached our goal
+	if (GetAssignedPath().tiles.empty()) // we have reached our goal
 		goal = nullptr;
 }
 
@@ -82,17 +82,17 @@ void Agent::DrawPath(sf::RenderWindow& window)
 
 	MAPF::Path& path = GetPathRef()->GetPath();
 
-	if (path.empty())
+	if (path.tiles.empty())
 		return;
 
-	sf::VertexArray points(sf::LineStrip, path.size());
-	for (int tileIndex = 0; tileIndex < path.size(); tileIndex++)
+	sf::VertexArray points(sf::LineStrip, path.tiles.size());
+	for (int tileIndex = 0; tileIndex < path.tiles.size(); tileIndex++)
 	{
-		Tile* tile = path[tileIndex];
+		Tile* tile = path.tiles[tileIndex];
 		points[tileIndex] = sf::Vertex(sf::Vector2f(tile->x, tile->y) * Globals::renderSize, color);
 	}
 
-	window.draw(&points[0], path.size(), sf::LineStrip);
+	window.draw(&points[0], path.tiles.size(), sf::LineStrip);
 }
 
 void Agent::DrawPotentialPaths(sf::RenderWindow& window)
@@ -102,18 +102,18 @@ void Agent::DrawPotentialPaths(sf::RenderWindow& window)
 	for (int pathIndex = 0; pathIndex < pathBank.size(); pathIndex++)
 	{
 		MAPF::Path& path = pathBank[pathIndex];
-		if (path.empty()) continue;
+		if (path.tiles.empty()) continue;
 
-		sf::VertexArray points(sf::LineStrip, path.size());
+		sf::VertexArray points(sf::LineStrip, path.tiles.size());
 
-		for (int tileIndex = 0; tileIndex < path.size(); tileIndex++)
+		for (int tileIndex = 0; tileIndex < path.tiles.size(); tileIndex++)
 		{
-			Tile* tile = path[tileIndex];
+			Tile* tile = path.tiles[tileIndex];
 			sf::Vector2f pos(tile->x, tile->y);
 			points[tileIndex] = sf::Vertex(sf::Vector2f(tile->x + pathSep * pathIndex - 0.2f, tile->y + pathSep * pathIndex - 0.2f) * Globals::renderSize, color);
 		}
 
-		window.draw(&points[0], path.size(), sf::LineStrip);
+		window.draw(&points[0], path.tiles.size(), sf::LineStrip);
  	}
 }
 
@@ -167,7 +167,7 @@ MAPF::AgentPathRef* Agent::AddToPathBank(MAPF::Path& path, std::vector<MAPF::Age
 		return nullptr;
 	
 	
-	int newDelta = path.size() - shortestPathLength;
+	int newDelta = path.tiles.size() - shortestPathLength;
 	delta = max(delta, (int) newDelta);
 
 	// if not then add it

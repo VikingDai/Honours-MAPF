@@ -109,7 +109,7 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, MAPF::Path
 		for (int i = 0; i < paths.size(); i++)
 		{
 			MAPF::AgentPathRef* path = new MAPF::AgentPathRef(agent, i); // MAPF::AgentPathRef::Make(agent, i, usedPathRefs);
-			assert(!path->GetPath().empty());
+			assert(!path->GetPath().tiles.empty());
 
 			// create variable describing path
 			SCIP_VAR* pathVar;
@@ -121,7 +121,7 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, MAPF::Path
 			char pathVarNameC[50];
 			sprintf(pathVarNameC, "a%dp%d", agentId, i);
 
-			SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &pathVar, pathVarNameC, 0, 1, path->GetPath().size(), SCIP_VARTYPE_INTEGER));
+			SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &pathVar, pathVarNameC, 0, 1, path->GetPath().cost, SCIP_VARTYPE_INTEGER));
 			SCIP_CALL_EXC(SCIPaddVar(scip, pathVar));
 
 			// add it to the map
@@ -157,8 +157,8 @@ void PathAssigner::AddPath(Agent* agent, MAPF::AgentPathRef* path)
 	sprintf(pathVarNameC, "a%dp%d", agent->GetAgentId(), pathId);
 
 	//int pathSize = pathLengths[&path];
-	int pathSize = path->GetPath().size();
-	SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &pathVar, pathVarNameC, 0, 1, pathSize, SCIP_VARTYPE_INTEGER));
+	int pathCost = path->GetPath().cost;
+	SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &pathVar, pathVarNameC, 0, 1, pathCost, SCIP_VARTYPE_INTEGER));
 	SCIP_CALL_EXC(SCIPaddVar(scip, pathVar));
 
 	// add it to the map

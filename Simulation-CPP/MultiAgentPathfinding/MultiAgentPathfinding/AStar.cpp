@@ -12,15 +12,15 @@ AStar::AStar(GridMap* inGridMap)
 	gridMap = inGridMap;
 }
 
-AStar::Path AStar::FindPath(Tile* start, Tile* goal)
+MAPF::Path AStar::FindPath(Tile* start, Tile* goal)
 {
 	timer.Begin();
-	Path path;
+	MAPF::Path path;
 
 	if (!start || !goal || start == goal || !start->isWalkable || !goal->isWalkable)
 	{
 		// no path was found, return a path of length 1 where the agent does not move
-		path.push_front(start);
+		path.tiles.push_front(start);
 		return path;
 	}
 
@@ -72,7 +72,10 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 		current->SetColor(sf::Color::Red);
 
 		if (current == goal) // found path to the goal
+		{
+			path.cost = current->g;
 			break;
+		}
 
 		current->hasBeenExpanded = true;
 
@@ -87,7 +90,7 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 	// build the path
 	while (current != nullptr)
 	{
-		path.push_front(current);
+		path.tiles.push_front(current);
 		current = current->parent;
 	}
 
@@ -101,7 +104,7 @@ AStar::Path AStar::FindPath(Tile* start, Tile* goal)
 	std::cout << "AStar exp <" << LOCAL_EXP << "> | AStar gen <" << LOCAL_GEN << "> | AStar touch <" << LOCAL_TOUCH << "> | Took " << timer.GetTimeElapsed() << " | " << timer.GetTimeElapsed() / LOCAL_GEN << " per expansion  | found path size " << path.size() << std::endl;
 #endif
 
-	for (Tile* tile : path)
+	for (Tile* tile : path.tiles)
 		tile->SetColor(sf::Color::Blue);
 
 	

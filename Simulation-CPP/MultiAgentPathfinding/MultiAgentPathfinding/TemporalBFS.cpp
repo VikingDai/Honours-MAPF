@@ -77,7 +77,7 @@ MAPF::Path TemporalBFS::FindNextPath(Tile* start, Tile* goal)
 	// rebuild paths
 	while (cameFrom.find(current) != cameFrom.end())
 	{
-		path.push_front(current->first);
+		path.tiles.push_front(current->first);
 		//std::cout << "Rebuilding Path: " << *current->first << "(" << current->second << ")" << " > ";
 
 		current = cameFrom[current];
@@ -85,7 +85,7 @@ MAPF::Path TemporalBFS::FindNextPath(Tile* start, Tile* goal)
 	}
 
 	// print stats
-	std::cout << "Exp " << nodesExpanded << " tiles" << "| Path " << path.size() << std::endl;
+	std::cout << "Exp " << nodesExpanded << " tiles" << "| Path " << path.tiles.size() << std::endl;
 
 	return path;
 }
@@ -144,7 +144,7 @@ std::vector<MAPF::Path> TemporalBFS::SearchToDepth(Tile* start, Tile* goal, int 
 
 		while (cameFrom.find(current) != cameFrom.end())
 		{
-			path.push_front(current->first);
+			path.tiles.push_front(current->first);
 			current = cameFrom[current];
 		}
 

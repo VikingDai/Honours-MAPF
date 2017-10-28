@@ -6,24 +6,47 @@
 #include "Tile.h"
 
 class Agent;
+class CollisionPenalties;
 
 namespace MAPF
 {
-	using Path = std::deque<Tile*>;
-	using TileTime = std::pair<Tile*, int>;
-
-	static void PrintPath(Path& path)
+	struct CollisionPenalties
 	{
-		std::cout << "Path {";
-		for (int i = 0; i < path.size(); i++)
-		{
-			std::cout << *path[i];
+		std::map<int, std::map<std::pair<Tile*, Tile*>, float>> edge;
+	};
 
-			if (i != path.size() - 1)
-				std::cout << ", ";
+
+	struct Path
+	{
+		std::deque<Tile*> tiles;
+		int cost;
+		CollisionPenalties penalties;
+
+		Path() : cost(0)
+		{
 		}
-		std::cout << "}" << std::endl;
-	}
+
+		Path(std::deque<Tile*> tiles, int cost)
+			: tiles(tiles), cost(cost)
+		{
+		}
+
+
+		Path(std::deque<Tile*> tiles, int cost, CollisionPenalties penalties)
+			: tiles(tiles), cost(cost), penalties(penalties)
+		{
+		}
+
+		friend bool operator==(const Path& a, const Path& b)
+		{
+			return a.tiles == b.tiles && a.cost == b.cost;
+		}
+
+		friend std::ostream& operator<<(std::ostream& os, Path& path);
+	};
+
+	//using Path = std::deque<Tile*>;
+	using TileTime = std::pair<Tile*, int>;
 
 	struct AgentPathRef
 	{

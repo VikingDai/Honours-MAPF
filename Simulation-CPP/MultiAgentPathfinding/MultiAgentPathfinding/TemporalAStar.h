@@ -171,11 +171,6 @@ public:
 	}
 };
 
-struct CollisionPenalties
-{
-	std::map<int, std::map<std::pair<Tile*, Tile*>, float>> edge;
-};
-
 class TemporalAStar
 {
 private:
@@ -211,10 +206,10 @@ public:
 
 	std::map<Tile*, std::map<int, AStarTileTime*>> spatialGridMap;
 
-	MAPF::Path FindPath(Tile* start, Tile* goal, CollisionPenalties& penalties = CollisionPenalties());
+	MAPF::Path FindPath(Tile* start, Tile* goal, MAPF::CollisionPenalties& penalties = MAPF::CollisionPenalties());
 
-	void ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile* neighborTile, Tile* start, Tile* goal, CollisionPenalties& penalties);
+	void ExpandNeighbor(OpenQueue& open, AStarTileTime* current, Tile* neighborTile, Tile* start, Tile* goal, MAPF::CollisionPenalties& penalties);
 
-	int GetCustomCosts(int timestep, Tile* fromTile, Tile* toTile, CollisionPenalties& penalties);
+	int GetCustomCosts(int timestep, Tile* fromTile, Tile* toTile, MAPF::CollisionPenalties& penalties);
 };
 

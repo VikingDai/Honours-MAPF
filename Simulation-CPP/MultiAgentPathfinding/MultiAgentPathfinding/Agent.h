@@ -30,7 +30,7 @@ public:
 	TemporalBFS bfs;
 	TemporalAStar temporalAStar;
 
-	CollisionPenalties penalties;
+	MAPF::CollisionPenalties penalties;
 
 private:
 	int agentId;
