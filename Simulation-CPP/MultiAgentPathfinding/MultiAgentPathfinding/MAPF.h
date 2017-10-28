@@ -22,18 +22,12 @@ namespace MAPF
 		int cost;
 		CollisionPenalties penalties;
 
+		Path(CollisionPenalties penalties) 
+			: cost(0), penalties(penalties)
+		{
+		}
+
 		Path() : cost(0)
-		{
-		}
-
-		Path(std::deque<Tile*> tiles, int cost)
-			: tiles(tiles), cost(cost)
-		{
-		}
-
-
-		Path(std::deque<Tile*> tiles, int cost, CollisionPenalties penalties)
-			: tiles(tiles), cost(cost), penalties(penalties)
 		{
 		}
 
@@ -81,7 +75,7 @@ namespace MAPF
 		}
 	};
 
-	using PathCollisions = std::vector<std::set<AgentPathRef*>>;//std::vector<std::set<AgentPathRef*, AgentPathRefHash>>;
+	using PathConstraint = std::set<AgentPathRef*>;//std::vector<std::set<AgentPathRef*, AgentPathRefHash>>;
 
 	using Edge = std::pair<Tile*, Tile*>;
 

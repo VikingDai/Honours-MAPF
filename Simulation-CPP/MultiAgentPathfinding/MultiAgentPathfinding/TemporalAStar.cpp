@@ -61,7 +61,7 @@ MAPF::Path TemporalAStar::FindPath(Tile* start, Tile* goal, MAPF::CollisionPenal
 	std::cout << std::endl;
 #endif
 
-	MAPF::Path path;
+	MAPF::Path path(penalties);
 
 	if (!start || !goal || start == goal)
 		return path;

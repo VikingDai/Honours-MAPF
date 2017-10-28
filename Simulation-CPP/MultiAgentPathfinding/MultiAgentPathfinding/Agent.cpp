@@ -155,7 +155,7 @@ void Agent::DrawAgent(sf::RenderWindow& window)
 	window.draw(textAgentId);
 }
 
-void Agent::GeneratePath(MAPF::Path& outPath, GridMap* gridMap)
+void Agent::GeneratePath(MAPF::Path& outPath, GridMap* gridMap, MAPF::CollisionPenalties& penalties)
 {
 	outPath = temporalAStar.FindPath(gridMap->GetTileAt(x, y), goal, penalties);
 }

@@ -8,6 +8,7 @@
 #define DEBUG_STATS 0
 
 PathAssigner::PathAssigner(GridMap* inGridMap)
+	: constraintCounter(0)
 {
 	map = inGridMap;
 	Init();
@@ -36,11 +37,11 @@ void PathAssigner::Init()
 #endif
 }
 
-void PathAssigner::InitAgent(std::vector<Agent*> agents)
+void PathAssigner::InitAgents(std::vector<Agent*> agents)
 {
 	for (Agent* agent : agents)
 	{
-		// create penalty variable
+		/** create penalty variable */
 		SCIP_VAR* penaltyVar;
 		std::ostringstream penaltyVarNameStream;
 		penaltyVarNameStream << "a" << agent->GetAgentId() << "q";
@@ -56,21 +57,23 @@ void PathAssigner::InitAgent(std::vector<Agent*> agents)
 
 		allVariables.push_back(penaltyVar);
 
-		// create choice constraint
+		/** create choice constraint */
 		SCIP_CONS* agentChoiceCons;
 		char choiceConsName[50];
 		sprintf_s(choiceConsName, "agentChoice%d", agent->GetAgentId());
 
 		SCIP_CALL_EXC(SCIPcreateConsBasicLinear(scip, &agentChoiceCons, choiceConsName, 0, nullptr, nullptr, 1, 1));
 
-		// add penalty var to constraint
+		/** add penalty var to constraint */
 		SCIP_CALL_EXC(SCIPaddCoefLinear(scip, agentChoiceCons, penaltyVar, 1.0));
 
 		SCIP_CALL_EXC(SCIPaddCons(scip, agentChoiceCons)); // add constraint
+
+		agentChoiceConsMap[agent] = agentChoiceCons;
 	}
 }
 
-SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, MAPF::PathCollisions& collisions)
+SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, std::vector<MAPF::PathConstraint>& constraints)
 {
 	// create empty problem
 	const SCIP_Real NEG_INFINITY = -SCIPinfinity(scip);
@@ -137,38 +140,102 @@ SCIP_RETCODE PathAssigner::CreateProblem(std::vector<Agent*>& agents, MAPF::Path
 		CreateAgentChoiceConstraints(agentId, agentVariables);
 	}
 
-	CreateCollisionConstraints(collisions);
+	CreateCollisionConstraints(constraints);
 
 
 	return SCIP_OKAY;
 }
 
-void PathAssigner::AddPath(Agent* agent, MAPF::AgentPathRef* path)
+void PathAssigner::AddPath(MAPF::AgentPathRef* pathRef)
 {
-	int pathId = agentPathVars[agent].size();
-	// create variable describing path
-	SCIP_VAR* pathVar;
-
+	/** create path variable name */
+	int pathId = agentPathVars[pathRef->agent].size();
 	std::ostringstream pathVarNameStream;
-	pathVarNameStream << "a" << agent->GetAgentId() << "p" << pathId;
+	pathVarNameStream << "a" << pathRef->agent->GetAgentId() << "p" << pathId;
 	const char* pathVarName = pathVarNameStream.str().c_str();
 
 	char pathVarNameC[50];
-	sprintf(pathVarNameC, "a%dp%d", agent->GetAgentId(), pathId);
+	sprintf(pathVarNameC, "a%dp%d", pathRef->agent->GetAgentId(), pathId);
 
-	//int pathSize = pathLengths[&path];
-	int pathCost = path->GetPath().cost;
+
+	/** create variable describing path */
+	SCIP_VAR* pathVar;
+	int pathCost = pathRef->GetPath().cost;
 	SCIP_CALL_EXC(SCIPcreateVarBasic(scip, &pathVar, pathVarNameC, 0, 1, pathCost, SCIP_VARTYPE_INTEGER));
 	SCIP_CALL_EXC(SCIPaddVar(scip, pathVar));
 
-	// add it to the map
-	pathToVarMap[path->agent][path->pathIndex] = pathVar;
-	varToPathMap[pathVar] = path;
-	varToAgentMap[pathVar] = agent;
+	/** add path to agent choice constraint */
+	SCIP_CONS* agentChoiceCons = agentChoiceConsMap[pathRef->agent];
+	SCIP_CALL_EXC(SCIPaddCoefLinear(scip, agentChoiceCons, pathVar, 1.0));
+
+	/** add it to the map */
+	pathToVarMap[pathRef->agent][pathRef->pathIndex] = pathVar;
+	varToPathMap[pathVar] = pathRef;
+	varToAgentMap[pathVar] = pathRef->agent;
 	varNames[pathVar] = pathVarNameStream.str();
 
 	allVariables.push_back(pathVar);
-	agentPathVars[agent].push_back(pathVar);
+	agentPathVars[pathRef->agent].push_back(pathVar);
+}
+
+void PathAssigner::AddConstraint(MAPF::PathConstraint& constraint)
+{
+	/** make constraint name */
+	char collisionConsName[50];
+	sprintf_s(collisionConsName, "collision%d", constraintCounter);
+	constraintCounter += 1;
+
+	/** create the constraint */
+	SCIP_CONS* collisionCons;
+	SCIP_CALL_EXC(SCIPcreateConsBasicLinear(scip, &collisionCons, collisionConsName, 0, nullptr, nullptr, 0, 1));
+
+	/** apply collision constraints to path variables */
+	for (MAPF::AgentPathRef* path : constraint)
+	{
+		SCIP_VAR* pathVar = pathToVarMap[path->agent][path->pathIndex];
+		SCIP_CALL_EXC(SCIPaddCoefLinear(scip, collisionCons, pathVar, 1.0));
+	}
+
+	/** add then release constraint */
+	SCIP_CALL_EXC(SCIPaddCons(scip, collisionCons));
+	SCIP_CALL_EXC(SCIPreleaseCons(scip, &collisionCons));
+}
+
+void PathAssigner::Solve()
+{
+	SCIP_CALL_EXC(SCIPpresolve(scip));
+
+	SCIP_CALL_EXC(SCIPsolve(scip));
+
+	SCIP_CALL_EXC(SCIPfreeTransform(scip));
+
+	if (SCIPgetNSols(scip) > 0)
+	{
+		SCIP_SOL* solution = SCIPgetBestSol(scip);
+
+		for (SCIP_VAR* var : allVariables)
+		{
+			double varSolution = SCIPgetSolVal(scip, solution, var);
+
+			if (varSolution > 0) // has chosen this path
+			{
+				Agent* agent = varToAgentMap[var];
+				bool isPathVariable = varToPathMap.find(var) != varToPathMap.end();
+				if (isPathVariable)
+				{
+					agent->SetPath(varToPathMap[var]);
+				}
+				else // the variable is a penalty var
+				{
+					agent->SetPath(nullptr);
+				}
+			}
+		}
+	}
+	else
+	{
+		assert(false);
+	}
 }
 
 void PathAssigner::CreateAgentChoiceConstraints(int agentId, std::vector<SCIP_VAR*> agentVariables)
@@ -186,11 +253,11 @@ void PathAssigner::CreateAgentChoiceConstraints(int agentId, std::vector<SCIP_VA
 	SCIP_CALL_EXC(SCIPreleaseCons(scip, &agentChoiceCons)); // release it
 }
 
-void PathAssigner::CreateCollisionConstraints(MAPF::PathCollisions& collisions)
+void PathAssigner::CreateCollisionConstraints(std::vector<MAPF::PathConstraint>& constraints)
 {
-	for (int i = 0; i < collisions.size(); i++)
+	for (int i = 0; i < constraints.size(); i++)
 	{
-		std::set<MAPF::AgentPathRef*>& paths = collisions[i];
+		std::set<MAPF::AgentPathRef*>& paths = constraints[i];
 
 		SCIP_CONS* collisionCons;
 		char collisionConsName[50];
@@ -212,22 +279,13 @@ void PathAssigner::CreateCollisionConstraints(MAPF::PathCollisions& collisions)
 
 std::vector<Agent*> PathAssigner::AssignPaths(
 	std::vector<Agent*>& agents,
-	MAPF::PathCollisions& collisions)
+	std::vector<MAPF::PathConstraint>& constraints)
 {
 	mipTimer.Begin();
 
 	Init();
-	/*SCIP* scip;
-	SCIP_CALL_EXC(SCIPcreate(&scip));
-	SCIP_CALL_EXC(SCIPincludeDefaultPlugins(scip));*/
 
-	//SCIPinfoMessage(scip, nullptr, "\n");
-	//SCIPinfoMessage(scip, nullptr, "****************************\n");
-	//SCIPinfoMessage(scip, nullptr, "* Running MAPF SCIP Solver *\n");
-	//SCIPinfoMessage(scip, nullptr, "****************************\n");
-	//SCIPinfoMessage(scip, nullptr, "\n");
-
-	SCIP_CALL_EXC(CreateProblem(agents, collisions));
+	SCIP_CALL_EXC(CreateProblem(agents, constraints));
 
 #if DEBUG_MIP
 	SCIPinfoMessage(scip, nullptr, "Original problem:\n");
