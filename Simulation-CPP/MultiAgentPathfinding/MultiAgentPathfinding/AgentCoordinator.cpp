@@ -24,59 +24,29 @@ AgentCoordinator::AgentCoordinator(GridMap* inMap) : gridMap(inMap), aStar(inMap
 
 void AgentCoordinator::Solve(std::vector<Agent*>& agents)
 {
-	pathAssigner.Init();
-	pathAssigner.InitAgents(agents);
+	/** init the path assigner */
+	pathAssigner.Init(agents);
 
-	std::vector<MAPF::PathConstraint> pathConstraints;
-
-	// find and store the shortest path for each agent
+	/** find and store the shortest path for each agent */
 	AssignShortestPath(agents);
 
 	int iteration = 0;
-
-	//pathAssigner.Init();
 
 	while (true)
 	{
 		std::cout << std::endl << "--- ITERATION " << iteration++ << " ---" << std::endl;
 
-		// run the MIP and apply the path assignment solution
-#if DEBUG_VERBOSE
-		std::cout << "Running MIP and assigning paths with constraints:" << std::endl;
-		for (auto& constraint : pathConstraints)
-		{
-			std::cout << "\tNOT (";
-			for (MAPF::AgentPathRef* pathRef : constraint)
-			{
-				std::cout << *pathRef << " & ";
-			}
-			std::cout << ")" << std::endl;
-		}
-		std::cout << "Path bank for agents:" << std::endl;
+		/*std::cout << "Path bank for agents:" << std::endl;
 		for (Agent* agent : agents)
 		{
 			for (int i = 0; i < agent->pathBank.size(); i++)
 			{
 				std::cout << "\t" << *new MAPF::AgentPathRef(agent, i) << std::endl;
 			}
-		}
-#endif
+		}*/
 
-		//pathAssigner.AssignPaths(agents, pathConstraints);
+		/** run the MIP and apply the path assignment solution */
 		pathAssigner.Solve();
-
-#if DEBUG_VERBOSE
-		std::cout << "ASSIGNMENT:" << std::endl;
-		for (Agent* agent : agents)
-		{
-			MAPF::AgentPathRef* pathRef = agent->GetPathRef();
-			if (pathRef)
-				std::cout << "\t" << *pathRef << std::endl;
-			else
-				std::cout << "\ta" << agent->GetAgentId() << ": NOT ASSIGNED A PATH!" << std::endl;
-		}
-		std::cout << std::endl;
-#endif
 
 		std::cout << "Assignment has sum of costs:" << CalculateSumOfCosts(agents) << std::endl;
 		for (Agent* agent : agents)
@@ -85,27 +55,25 @@ void AgentCoordinator::Solve(std::vector<Agent*>& agents)
 		}
 
 		// check the path assignment for collisions
-		//std::cout << "CHECKING FOR COLLISIONS" << std::endl;
 		std::vector<MAPF::PathCollision>& collisions = CheckForCollisions(agents);
-		std::cout << std::endl;
 
 		if (collisions.empty()) // if there are no collisions, we have assigned collision-free paths to all agents
 		{
 			std::cout << "Solution with sum of costs " << CalculateSumOfCosts(agents) << std::endl;
 
-			std::cout << "Path bank for agents:" << std::endl;
-			for (Agent* agent : agents)
-			{
-				for (int i = 0; i < agent->pathBank.size(); i++)
-				{
-					std::cout << "\t" << *new MAPF::AgentPathRef(agent, i) << std::endl;
-				}
-			}
+			//std::cout << "Path bank for agents:" << std::endl;
+			//for (Agent* agent : agents)
+			//{
+			//	for (int i = 0; i < agent->pathBank.size(); i++)
+			//	{
+			//		std::cout << "\t" << *new MAPF::AgentPathRef(agent, i) << std::endl;
+			//	}
+			//}
 
-			for (Agent* agent : agents)
-			{
-				std::cout << *agent->GetPathRef() << std::endl;
-			}
+			//for (Agent* agent : agents)
+			//{
+			//	std::cout << *agent->GetPathRef() << std::endl;
+			//}
 
 			pathAssigner.Cleanup();
 
@@ -132,7 +100,7 @@ void AgentCoordinator::Solve(std::vector<Agent*>& agents)
 			constraint.emplace(lowestDelta.a);
 			constraint.emplace(lowestDelta.b);
 			pathAssigner.AddConstraint(constraint);
-			//pathConstraints.push_back(constraint);
+
 #if DEBUG_VERBOSE
 			std::cout << "Created CONSTRAINT: NOT " << *lowestDelta.a << " AND " << *lowestDelta.b << std::endl;
 			std::cout << "Actual collision:" << std::endl;
@@ -400,8 +368,8 @@ void AgentCoordinator::GeneratePath(Agent* agent, MAPF::CollisionPenalties& pena
 
 #if 1//DEBUG_VERBOSE
 	if (newPath)
-		std::cout << "\t" << *newPath << std::endl;
+		std::cout << "\tGenerated " << *newPath << " for " << *agent << std::endl;
 	else
-		std::cout << "\tGenerated duplicate path" << std::endl;
+		std::cout << "\tGenerated duplicate path for " << *agent << std::endl;
 #endif
 }

@@ -33,7 +33,12 @@ namespace MAPF
 
 		friend bool operator==(const Path& a, const Path& b)
 		{
-			return a.tiles == b.tiles && a.cost == b.cost;
+			/*return a.penalties.size() == rhs.size()
+				&& std::equal(lhs.begin(), lhs.end(),
+					rhs.begin());*/
+
+			// std::map<int, std::map<std::pair<Tile*, Tile*>, float>> edge;
+			return a.tiles == b.tiles && a.cost == b.cost && a.penalties.edge == b.penalties.edge;
 		}
 
 		friend std::ostream& operator<<(std::ostream& os, Path& path);
@@ -115,6 +120,8 @@ namespace MAPF
 	{
 		bool operator() (PathCollision& a, PathCollision& b)
 		{
+			return a.SmallestPathBankSize() < b.SmallestPathBankSize();
+
 			// if delta is the same, then use the collision which has the smaller alternative paths
 			if (a.delta == b.delta)
 			{

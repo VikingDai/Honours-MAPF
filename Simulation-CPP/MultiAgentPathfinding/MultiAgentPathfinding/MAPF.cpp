@@ -87,5 +87,5 @@ MAPF::PathCollision::PathCollision(AgentPathRef* a, AgentPathRef* b) : a(a), b(b
 
 int MAPF::PathCollision::SmallestPathBankSize()
 {
-	return min(a->agent->pathBank.size(), b->agent->pathBank.size());
+	return a->agent->pathBank.size() + b->agent->pathBank.size();
 }
